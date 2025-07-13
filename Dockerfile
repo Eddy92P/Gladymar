@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED=1
 
 COPY ./backend/requirements.txt /tmp/requirements.txt
 COPY ./backend/requirements.dev.txt /tmp/requirements.dev.txt
-COPY ./backend/src /src
+COPY ./backend /src
 WORKDIR /src
 EXPOSE 8000
 
