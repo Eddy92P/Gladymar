@@ -1,0 +1,162 @@
+"""
+Views for warehouse API.
+"""
+from rest_framework import viewsets, filters
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+from .serializers import (
+    AgencySerializer,
+    WarehouseSerializer,
+    CategorySerializer,
+    BatchSerializer,
+    ProductSerializer,
+    SupplierSerializer,
+    EntrySerializer,
+    OutputSerializer,
+    ClientSerializer
+)
+from core.models import (
+    Agency,
+    Warehouse,
+    Category,
+    Batch,
+    Product,
+    Supplier,
+    Entry,
+    Output,
+    Client
+)
+
+
+class AgencyViewSet(viewsets.ModelViewSet):
+    """View for managing agency APIs."""
+    serializer_class = AgencySerializer
+    queryset = Agency.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'patch', 'put']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id', 'name']
+
+    def get_queryset(self):
+        """Retrieve agencies ordered by id."""
+        return self.queryset.order_by('-id')
+
+
+class WarehouseViewSet(viewsets.ModelViewSet):
+    """View for managing warehouse APIs."""
+    serializer_class = WarehouseSerializer
+    queryset = Warehouse.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'patch', 'put']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id', 'name']
+
+    def get_queryset(self):
+        """Retrieve warehouses ordered by id."""
+        return self.queryset.order_by('-id')
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    """View for managing category APIs."""
+    serializer_class = CategorySerializer
+    queryset = Category.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'patch', 'put']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id', 'name']
+
+    def get_queryset(self):
+        """Retrieve categories ordered by id."""
+        return self.queryset.order_by('-id')
+
+
+class BatchViewSet(viewsets.ModelViewSet):
+    """View for managing batch APIs."""
+    serializer_class = BatchSerializer
+    queryset = Batch.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'patch', 'put']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id', 'name']
+
+    def get_queryset(self):
+        """Retrieve batches ordered by id."""
+        return self.queryset.order_by('-id')
+    
+
+class ProductViewSet(viewsets.ModelViewSet):
+    """View for managing product APIs."""
+    serializer_class = ProductSerializer
+    queryset = Product.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'patch', 'put']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id', 'name']
+
+    def get_queryset(self):
+        """Retrieve products ordered by id."""
+        return self.queryset.order_by('-id')
+    
+class ClientViewSet(viewsets.ModelViewSet):
+    """View for managing client APIs."""
+    serializer_class = ClientSerializer
+    queryset = Client.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'patch', 'put']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id', 'name']
+    
+    def get_queryset(self):
+        """Retrieve clients ordered by id."""
+        return self.queryset.order_by('-id')
+
+    
+class SupplierViewSet(viewsets.ModelViewSet):
+    """View for managing supplier APIs."""
+    serializer_class = SupplierSerializer
+    queryset = Supplier.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'patch', 'put']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id', 'name']
+
+    def get_queryset(self):
+        """Retrieve suppliers ordered by id."""
+        return self.queryset.order_by('-id')
+
+
+class EntryViewSet(viewsets.ModelViewSet):
+    """View for managing entry APIs."""
+    serializer_class = EntrySerializer
+    queryset = Entry.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'patch', 'put']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id', 'invoice_number']
+
+    def get_queryset(self):
+        """Retrieve entries ordered by id."""
+        return self.queryset.order_by('-id')
+
+
+class OutputViewSet(viewsets.ModelViewSet):
+    """View for managing output APIs."""
+    serializer_class = OutputSerializer
+    queryset = Output.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'patch', 'put']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id']
+
+    def get_queryset(self):
+        """Retrieve outputs ordered by id."""
+        return self.queryset.order_by('-id')

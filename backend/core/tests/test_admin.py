@@ -1,7 +1,8 @@
 """
 Tests for the Django admin modifications.
 """
-from django.test import TestCase, Client
+from django.test import Client
+from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 
@@ -20,7 +21,11 @@ class AdminSiteTests(TestCase):
         self.user = get_user_model().objects.create_user(
             email='user@example.com',
             password='userpass123',
-            name='Test User'
+            first_name='Test',
+            last_name='User',
+            ci='1234568',
+            phone='12345678',
+            address='Test Address'
         )
 
     def test_users_listed(self):
@@ -29,7 +34,7 @@ class AdminSiteTests(TestCase):
         res = self.client.get(url)
 
         self.assertContains(res, self.user.email)
-        self.assertContains(res, self.user.name)
+        self.assertContains(res, self.user.first_name)
 
     def test_edit_user_page(self):
         """Test that the edit user page works."""

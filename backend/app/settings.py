@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -43,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'drf_spectacular',
     'user',
+    'sale',
     'corsheaders',
 ]
 
@@ -119,6 +121,17 @@ DATABASES = {
         'NAME': os.getenv('DB_NAME'),
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
+        'OPTIONS': {
+            'connect_timeout': 10,
+            'application_name': 'gladymar_app',
+        },
+        'CONN_MAX_AGE': 0,
+        'TEST': {
+            'NAME': 'test_gladydb',
+            'SERIALIZE': False,
+        },
+        'ATOMIC_REQUESTS': True,
+        'AUTOCOMMIT': True,
     }
 }
 
@@ -166,6 +179,16 @@ STATIC_ROOT = '/vol/web/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+
+# Media files (Uploaded files)
+MEDIA_URL = '/media/'
+
+# Use temporary directory for tests, regular media directory for production
+if 'test' in sys.argv:
+    import tempfile
+    MEDIA_ROOT = tempfile.mkdtemp()
+else:
+    MEDIA_ROOT = '/vol/web/media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
