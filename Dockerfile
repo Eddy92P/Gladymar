@@ -23,6 +23,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zlib1g-dev \
     fontconfig \
     fonts-dejavu-core \
+    libwebp-dev \
+    libtiff5-dev \
+    libopenjp2-7-dev \
+    libfreetype6-dev \
+    liblcms2-dev \
+    libxcb1-dev \
     && rm -rf /var/lib/apt/lists/*
 
 RUN python -m venv /py && \
