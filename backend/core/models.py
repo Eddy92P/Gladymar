@@ -123,53 +123,6 @@ class Setting(models.Model):
     
     def __str__(self):
         return self.name
-    
-    
-class Supplier(models.Model):
-    name = models.CharField(
-        max_length=150, 
-        null=False, 
-        blank=False, 
-        validators=[
-            RegexValidator(
-                regex=r'^[a-zA-Z]+$',
-                message="El nombre solo puede contener letras."
-            )
-        ]
-    )
-    phone = models.CharField(
-        max_length=10, 
-        null=False, 
-        blank=False, 
-        validators=[
-            RegexValidator(
-                regex=r'^\+?1?\d{8}$',
-                message="El número de teléfono debe tener 8 dígitos."
-            )
-        ]
-    )
-    nit = models.CharField(
-        max_length=50,
-        unique=True,
-        null=False,
-        blank=False,
-        validators=[
-            RegexValidator(
-                regex=r'^\d{7,11}(-[A-Z]{2})?$',
-                message=(
-                    "El NIT debe tener 7-11 dígitos seguidos opcionalmente de un guión "
-                    "y 2 letras mayúsculas (e.g., 1234567-AB o 12345678)."
-                )
-            )
-        ]
-    )
-    email = models.EmailField(max_length=50, unique=True, null=False, blank=True)
-    address = models.CharField(max_length=150, null=False, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    def __str__(self):
-        return self.name
 
 
 class Client(models.Model):
@@ -332,7 +285,6 @@ class Batch(models.Model):
 
 class Product(models.Model):
     batch = models.ForeignKey(Batch, on_delete=models.PROTECT)
-    supplier = models.ManyToManyField(Supplier, related_name="suppliers")
     name = models.CharField(
         max_length=150,
         unique=True,
@@ -345,7 +297,6 @@ class Product(models.Model):
             )
         ]
     )
-    price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     stock = models.PositiveIntegerField(default=0)
     code = models.CharField(
         max_length=50,
@@ -391,10 +342,58 @@ class Product(models.Model):
                 filename = self.image.name
                 self.image.save(filename, ContentFile(buffer.getvalue()), save=False)
                 super().save(*args, **kwargs)
+                
+                
+class Supplier(models.Model):
+    product = models.ManyToManyField(Product, related_name='suppliers')
+    name = models.CharField(
+        max_length=150, 
+        null=False, 
+        blank=False, 
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z]+$',
+                message="El nombre solo puede contener letras."
+            )
+        ]
+    )
+    phone = models.CharField(
+        max_length=10, 
+        null=False, 
+        blank=False, 
+        validators=[
+            RegexValidator(
+                regex=r'^\+?1?\d{8}$',
+                message="El número de teléfono debe tener 8 dígitos."
+            )
+        ]
+    )
+    nit = models.CharField(
+        max_length=50,
+        unique=True,
+        null=False,
+        blank=False,
+        validators=[
+            RegexValidator(
+                regex=r'^\d{7,11}(-[A-Z]{2})?$',
+                message=(
+                    "El NIT debe tener 7-11 dígitos seguidos opcionalmente de un guión "
+                    "y 2 letras mayúsculas (e.g., 1234567-AB o 12345678)."
+                )
+            )
+        ]
+    )
+    email = models.EmailField(max_length=50, unique=True, null=False, blank=True)
+    address = models.CharField(max_length=150, null=False, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.name
 
                 
 class SellingChannel(models.Model):
-    product = models.ManyToManyField(Product, related_name='products', through='ProductChannelPrice')
+    product = models.ManyToManyField(Product, related_name='selling_channels', through='ProductChannelPrice')
     name = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -442,7 +441,7 @@ class Purchase(models.Model):
     
     
 class PurchaseItem(models.Model):
-    purchase = models.ForeignKey(Purchase, on_delete=models.PROTECT)
+    purchase = models.ForeignKey(Purchase, on_delete=models.PROTECT, related_name='purchase_items')
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -534,7 +533,7 @@ class Sale(models.Model):
     
 
 class SaleItem(models.Model):
-    sale = models.ForeignKey(Sale, on_delete=models.PROTECT)
+    sale = models.ForeignKey(Sale, on_delete=models.PROTECT, related_name='sale_items')
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -560,4 +559,3 @@ class Payment(models.Model):
     payment_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    

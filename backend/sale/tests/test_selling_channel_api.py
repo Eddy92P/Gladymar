@@ -1,0 +1,400 @@
+"""
+Tests for selling channel API.
+"""
+from django.test import TestCase
+from django.urls import reverse
+from rest_framework.test import APIClient
+from rest_framework import status
+from django.contrib.auth import get_user_model
+from core.models import (
+    SellingChannel, Product, ProductChannelPrice, 
+    Batch, Category, Warehouse, Agency, Supplier
+)
+from sale.serializers import SellingChannelSerializer
+import uuid
+from datetime import date
+
+
+SELLING_CHANNEL_URL = reverse('sale:sellingchannel-list')
+
+def detail_url(selling_channel_id):
+    """Return the URL for a selling channel detail view."""
+    return reverse('sale:sellingchannel-detail', args=[selling_channel_id])
+
+def create_user(**params):
+    """Create and return a sample user."""
+    unique_suffix = str(uuid.uuid4())[:4]
+    defaults = {
+        'first_name': 'Test',
+        'last_name': 'User',
+        'ci': f'1234567{unique_suffix}',
+        'phone': '12345678',
+        'address': 'Test Address',
+        'email': f't{unique_suffix}@test.com',
+    }
+    defaults.update(params)
+    return get_user_model().objects.create_user(**defaults)
+
+def create_agency(**params):
+    """Create and return a sample agency."""
+    unique_suffix = str(uuid.uuid4())[:8]
+    defaults = {
+        'name': f'Test Agency {unique_suffix}',
+        'location': f'Test Agency Location {unique_suffix}',
+    }
+    defaults.update(params)
+    return Agency.objects.create(**defaults)
+
+def create_warehouse(**params):
+    """Create and return a sample warehouse."""
+    unique_suffix = str(uuid.uuid4())[:8]
+    defaults = {
+        'agency': create_agency(),
+        'name': f'Sample Warehouse {unique_suffix}',
+        'location': 'Sample Location',
+    }
+    defaults.update(params)
+    warehouse = Warehouse.objects.create(**defaults)
+    return warehouse
+
+def create_category(**params):
+    """Create and return a sample category."""
+    unique_suffix = str(uuid.uuid4())[:8]
+    defaults = {
+        'name': f'Sample Category {unique_suffix}',
+        'warehouse': create_warehouse(),
+    }
+    defaults.update(params)
+    category = Category.objects.create(**defaults)
+    return category
+
+def create_batch(**params):
+    """Create and return a sample batch."""
+    unique_suffix = str(uuid.uuid4())[:8]
+    defaults = {
+        'name': f'Sample Batch {unique_suffix}',
+        'category': create_category(),
+    }
+    defaults.update(params)
+    batch = Batch.objects.create(**defaults)
+    return batch
+
+def create_supplier(**params):
+    """Create and return a sample supplier."""
+    unique_suffix = str(uuid.uuid4())[:8]
+    defaults = {
+        'name': f'Sample Supplier {unique_suffix}',
+        'phone': '12345678',
+        'nit': f'NIT-{unique_suffix}',
+        'email': f'sample{unique_suffix}@example.com',
+        'address': 'Sample Address',
+    }
+    defaults.update(params)
+    supplier = Supplier.objects.create(**defaults)
+    return supplier
+
+def create_product(**params):
+    """Create and return a sample product."""
+    unique_suffix = str(uuid.uuid4())[:8]
+    defaults = {
+        'name': f'Sample Product {unique_suffix}',
+        'batch': create_batch(),
+        'stock': 100,
+        'code': f'Sample Code {unique_suffix}',
+        'unit_of_measurement': 'Unit',
+        'description': 'Sample Description',
+        'image': None,
+        'minimum_stock': 10,
+        'maximum_stock': 100,
+        'minimum_sale_price': 100,
+        'maximum_sale_price': 100,
+    }
+    defaults.update(params)
+    
+    # Handle supplier separately since it's a ManyToManyField
+    supplier = defaults.pop('supplier', None)
+    if supplier is None:
+        supplier = create_supplier()
+    
+    product = Product.objects.create(**defaults)
+    product.suppliers.add(supplier)
+    return product
+
+def create_selling_channel(**params):
+    """Create and return a sample selling channel."""
+    unique_suffix = str(uuid.uuid4())[:8]
+    defaults = {
+        'name': f'Sample Selling Channel {unique_suffix}',
+    }
+    defaults.update(params)
+    selling_channel = SellingChannel.objects.create(**defaults)
+    return selling_channel
+
+def create_product_channel_price(**params):
+    """Create and return a sample product channel price."""
+    defaults = {
+        'product': create_product(),
+        'selling_channel': create_selling_channel(),
+        'price': 150.00,
+        'start_date': date.today(),
+        'end_date': None,
+    }
+    defaults.update(params)
+    return ProductChannelPrice.objects.create(**defaults)
+
+
+class PublicSellingChannelApiTests(TestCase):
+    """Test API requests for unauthenticated users."""
+    
+    def setUp(self):
+        self.client = APIClient()
+        
+    def test_auth_required(self):
+        """Test that authentication is required for accessing the endpoint."""
+        res = self.client.get(SELLING_CHANNEL_URL)
+        self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class PrivateSellingChannelApiTests(TestCase):
+    """Test API requests for authenticated users."""
+    
+    def setUp(self):
+        self.client = APIClient()
+        self.user = create_user(
+            email='test@example.com',
+            password='testpass',
+        )
+        self.client.force_authenticate(self.user)
+        
+    def test_retrieve_selling_channels(self):
+        """Test retrieving a list of selling channels."""
+        create_selling_channel()
+        create_selling_channel()
+        
+        res = self.client.get(SELLING_CHANNEL_URL)
+        selling_channels = SellingChannel.objects.all().order_by('-id')
+        serializer = SellingChannelSerializer(selling_channels, many=True)
+        
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+        
+    def test_create_selling_channel(self):
+        """Test creating a selling channel."""
+        unique_suffix = str(uuid.uuid4())[:8]
+        product1 = create_product()
+        product2 = create_product()
+        
+        payload = {
+            'name': f'Test Selling Channel {unique_suffix}',
+            'product_prices_data': [
+                {
+                    'product': product1.id,
+                    'price': 120.00,
+                    'start_date': date.today(),
+                    'end_date': None,
+                },
+                {
+                    'product': product2.id,
+                    'price': 180.00,
+                    'start_date': date.today(),
+                    'end_date': None,
+                }
+            ]
+        }
+        
+        res = self.client.post(SELLING_CHANNEL_URL, payload, format='json')
+        
+        if res.status_code != status.HTTP_201_CREATED:
+            print(f"Response status: {res.status_code}")
+            print(f"Response content: {res.content}")
+        
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        selling_channel = SellingChannel.objects.get(id=res.data['id'])
+        self.assertEqual(selling_channel.name, payload['name'])
+        self.assertEqual(selling_channel.product.count(), 2)
+        self.assertEqual(selling_channel.productchannelprice_set.count(), 2)
+        
+    def test_create_selling_channel_without_products(self):
+        """Test creating a selling channel without products."""
+        unique_suffix = str(uuid.uuid4())[:8]
+        
+        payload = {
+            'name': f'Test Selling Channel {unique_suffix}',
+            'product_prices_data': []
+        }
+        
+        res = self.client.post(SELLING_CHANNEL_URL, payload, format='json')
+        
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        selling_channel = SellingChannel.objects.get(id=res.data['id'])
+        self.assertEqual(selling_channel.name, payload['name'])
+        self.assertEqual(selling_channel.product.count(), 0)
+        self.assertEqual(selling_channel.productchannelprice_set.count(), 0)
+        
+    def test_partial_update_selling_channel_name_only(self):
+        """Test partial update of only the selling channel name."""
+        selling_channel = create_selling_channel(name='Old Name')
+        
+        payload = {'name': 'Updated Name Only'}
+        
+        url = detail_url(selling_channel.id)
+        res = self.client.patch(url, payload, format='json')
+        
+        selling_channel.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(selling_channel.name, payload['name'])
+        
+    def test_full_update_selling_channel(self):
+        """Test full update of a selling channel."""
+        selling_channel = create_selling_channel(name='Old Name')
+        product1 = create_product()
+        product2 = create_product()
+        
+        payload = {
+            'name': 'Fully Updated Name',
+            'product_prices_data': [
+                {
+                    'product': product1.id,
+                    'price': 150.00,
+                    'start_date': date.today(),
+                    'end_date': None,
+                },
+                {
+                    'product': product2.id,
+                    'price': 250.00,
+                    'start_date': date.today(),
+                    'end_date': None,
+                }
+            ]
+        }
+        
+        url = detail_url(selling_channel.id)
+        res = self.client.put(url, payload, format='json')
+        
+        selling_channel.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(selling_channel.name, payload['name'])
+        self.assertEqual(selling_channel.product.count(), 2)
+        self.assertEqual(selling_channel.productchannelprice_set.count(), 2)
+        
+    def test_full_update_selling_channel_remove_products(self):
+        """Test full update of a selling channel removing all products."""
+        product = create_product()
+        selling_channel = create_selling_channel(name='Test Channel')
+        create_product_channel_price(
+            product=product,
+            selling_channel=selling_channel
+        )
+        
+        payload = {
+            'name': 'Updated Channel',
+            'product': [],
+            'product_prices_data': []
+        }
+        
+        url = detail_url(selling_channel.id)
+        res = self.client.put(url, payload, format='json')
+        
+        selling_channel.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(selling_channel.name, payload['name'])
+        self.assertEqual(selling_channel.product.count(), 0)
+        self.assertEqual(selling_channel.productchannelprice_set.count(), 0)
+        
+    def test_not_delete_selling_channel(self):
+        """Test that a selling channel cannot be deleted via API."""
+        selling_channel = create_selling_channel()
+        url = detail_url(selling_channel.id)
+        res = self.client.delete(url)
+        
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertTrue(SellingChannel.objects.filter(id=selling_channel.id).exists())
+        
+    def test_retrieve_selling_channel_detail(self):
+        """Test retrieving a specific selling channel."""
+        selling_channel = create_selling_channel()
+        url = detail_url(selling_channel.id)
+        res = self.client.get(url)
+        
+        serializer = SellingChannelSerializer(selling_channel)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+        
+    def test_create_selling_channel_invalid_product_prices(self):
+        """Test creating a selling channel with invalid product prices."""
+        unique_suffix = str(uuid.uuid4())[:8]
+        product = create_product()
+        
+        payload = {
+            'name': f'Test Selling Channel {unique_suffix}',
+            'product_prices_data': [
+                {
+                    'product': product.id,
+                    'price': 120.00,
+                    'start_date': date.today(),
+                    'end_date': date.today().replace(day=date.today().day - 1),  # Invalid: end_date before start_date
+                }
+            ]
+        }
+        
+        res = self.client.post(SELLING_CHANNEL_URL, payload, format='json')
+        
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        
+    def test_create_selling_channel_missing_product_prices(self):
+        """Test creating a selling channel with products missing prices."""
+        unique_suffix = str(uuid.uuid4())[:8]
+        product1 = create_product()
+        product2 = create_product()
+        product3 = create_product()
+        
+        payload = {
+            'name': f'Test Selling Channel {unique_suffix}',
+            'product_prices_data': [
+                {
+                    'product': product1.id,
+                    'price': 120.00,
+                    'start_date': date.today(),
+                    'end_date': None,
+                },
+                {
+                    'product': product2.id,
+                    'price': 85.50,
+                    'start_date': date.today(),
+                    'end_date': None,
+                }
+                # Falta el precio para product3
+            ]
+        }
+        
+        res = self.client.post(SELLING_CHANNEL_URL, payload, format='json')
+        
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        
+    def test_create_selling_channel_extra_product_prices(self):
+        """Test creating a selling channel with prices for products not in the list."""
+        unique_suffix = str(uuid.uuid4())[:8]
+        product1 = create_product()
+        product3 = create_product()  # Producto no incluido en la lista
+        
+        payload = {
+            'name': f'Test Selling Channel {unique_suffix}',
+            'product_prices_data': [
+                {
+                    'product': product1.id,
+                    'price': 120.00,
+                    'start_date': date.today(),
+                    'end_date': None,
+                },
+                {
+                    'product': product3.id,  # Precio para producto no incluido
+                    'price': 200.00,
+                    'start_date': date.today(),
+                    'end_date': None,
+                }
+            ]
+        }
+        
+        res = self.client.post(SELLING_CHANNEL_URL, payload, format='json')
+        
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)

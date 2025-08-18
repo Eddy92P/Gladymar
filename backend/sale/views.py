@@ -4,28 +4,8 @@ Views for warehouse API.
 from rest_framework import viewsets, filters
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from .serializers import (
-    AgencySerializer,
-    WarehouseSerializer,
-    CategorySerializer,
-    BatchSerializer,
-    ProductSerializer,
-    SupplierSerializer,
-    EntrySerializer,
-    OutputSerializer,
-    ClientSerializer
-)
-from core.models import (
-    Agency,
-    Warehouse,
-    Category,
-    Batch,
-    Product,
-    Supplier,
-    Entry,
-    Output,
-    Client
-)
+from .serializers import *
+from core.models import *
 
 
 class AgencyViewSet(viewsets.ModelViewSet):
@@ -159,4 +139,78 @@ class OutputViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retrieve outputs ordered by id."""
+        return self.queryset.order_by('-id')
+
+
+class ProductChannelPriceViewSet(viewsets.ModelViewSet):
+    """View for managing product channel price APIs."""
+    serializer_class = ProductChannelPriceSerializer
+    queryset = ProductChannelPrice.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'patch', 'put']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['product__name', 'selling_channel__name']
+
+    def get_queryset(self):
+        """Retrieve product channel prices ordered by id."""
+        return self.queryset.order_by('-id')
+
+
+class SellingChannelViewSet(viewsets.ModelViewSet):
+    """View for managing selling channel APIs."""
+    serializer_class = SellingChannelSerializer
+    queryset = SellingChannel.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'patch', 'put']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id', 'name']
+
+    def get_queryset(self):
+        """Retrieve selling channels ordered by id."""
+        return self.queryset.order_by('-id')
+    
+
+class PurchaseViewSet(viewsets.ModelViewSet):
+    """View for managing purchase APIs."""
+    serializer_class = PurchaseSerializer
+    queryset = Purchase.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'patch', 'put']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id']
+
+    def get_queryset(self):
+        """Retrieve purchases ordered by id."""
+        return self.queryset.order_by('-id')
+    
+    
+class SaleViewSet(viewsets.ModelViewSet):
+    """View for managin Sale APIs."""
+    serializer_class = SaleSerializer
+    queryset = Sale.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'patch', 'put']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id']
+
+    def get_queryset(self):
+        """Retrieve sales ordered by id."""
+        return self.queryset.order_by('-id')
+    
+class PaymentViewSet(viewsets.ModelViewSet):
+    """View for managing Payment APIs."""
+    serializer_class = PaymentSerializer
+    queryset = Payment.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'patch', 'put']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id']
+
+    def get_queryset(self):
+        """Retrieve payments ordered by id."""
         return self.queryset.order_by('-id')

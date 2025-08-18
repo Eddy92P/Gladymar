@@ -62,7 +62,6 @@ class TestUpdateProductStockService(TestCase):
         defaults = {
             'name': f'Test Product{unique_suffix}',
             'batch': batch,
-            'price': 10.00,
             'stock': 50,
             'code': f'TEST-{unique_suffix}',
             'unit_of_measurement': 'Unit',

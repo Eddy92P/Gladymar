@@ -17,6 +17,11 @@ router.register('suppliers', views.SupplierViewSet)
 router.register('entries', views.EntryViewSet)
 router.register('outputs', views.OutputViewSet)
 router.register('clients', views.ClientViewSet)
+router.register('product-channel-prices', views.ProductChannelPriceViewSet)
+router.register('selling-channels', views.SellingChannelViewSet)
+router.register('purchases', views.PurchaseViewSet)
+router.register('sales', views.SaleViewSet)
+router.register('payment', views.PaymentViewSet)
 
 app_name = 'sale'
 

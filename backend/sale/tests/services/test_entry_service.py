@@ -58,7 +58,6 @@ class TestIncreaseProductStockService(TestCase):
         defaults = {
             'name': f'Test Product{unique_suffix}',
             'batch': batch,
-            'price': 10.00,
             'stock': 50,
             'code': f'TEST-{unique_suffix}',
             'unit_of_measurement': 'Unit',
@@ -107,7 +106,7 @@ class TestIncreaseProductStockService(TestCase):
                 name='Test Supplier 3',
                 phone='12345679',
                 nit='NIT-1233',
-                email='test1@example.com',
+                email='test3@example.com',
                 address='Test Address'
             ),
             entry_date=timezone.now(),

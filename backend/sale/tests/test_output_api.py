@@ -29,7 +29,7 @@ def create_user(**params):
     defaults = {
         'first_name': 'Test',
         'last_name': 'User',
-        'ci': f'1234567{unique_suffix}',
+        'ci': f'12345{unique_suffix}',
         'phone': '12345678',
         'address': 'Test Address',
         'email': f't{unique_suffix}@test.com',
@@ -93,7 +93,6 @@ def create_product(**params):
     defaults = {
         'name': f'Sample Product {unique_suffix}',
         'batch': create_batch(),
-        'price': 10.00,
         'stock': 50,
         'code': f'CODE-{unique_suffix}',
         'unit_of_measurement': 'Unit',

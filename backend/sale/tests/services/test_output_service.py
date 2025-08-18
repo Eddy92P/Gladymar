@@ -60,7 +60,6 @@ class TestDecreaseProductStockService(TestCase):
         defaults = {
             'name': f'Test Product {unique_suffix}',
             'batch': batch,
-            'price': 10.00,
             'stock': 50,
             'code': f'TEST-{unique_suffix}',
             'unit_of_measurement': 'Unit',
@@ -82,7 +81,7 @@ class TestDecreaseProductStockService(TestCase):
                 name = 'Test Client 1',
                 phone = '123456789',
                 nit = f'{unique_suffix}',
-                email = 'test1@example.com',
+                email = f'test4{unique_suffix}@example.com',
                 address = 'test address'
             ),
             output_date = timezone.now()

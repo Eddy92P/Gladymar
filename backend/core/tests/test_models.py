@@ -1,23 +1,5 @@
 from django.test import TestCase
-from core.models import (
-    Warehouse, 
-    Seller, 
-    Setting, 
-    Supplier, 
-    SellingChannel, 
-    Client, 
-    Category,
-    Batch,
-    Product,
-    Entry,
-    EntryItem,
-    Output,
-    OutputItem,
-    Sale,
-    SaleItem,
-    User,
-    Agency,
-)
+from core.models import *
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
@@ -228,7 +210,6 @@ class ModelTest(TestCase):
                 name='Test Batch',
             ),
             name='Test Product',
-            price=10,
             stock=10,
             code='1234567890',
             unit_of_measurement='Test Unit',
@@ -239,7 +220,6 @@ class ModelTest(TestCase):
             maximum_sale_price=20,
         )
         self.assertEqual(product.name, 'Test Product')
-        self.assertEqual(product.price, 10)
         self.assertEqual(product.stock, 10)
         self.assertEqual(product.code, '1234567890')
         self.assertEqual(product.unit_of_measurement, 'Test Unit')
@@ -268,7 +248,6 @@ class ModelTest(TestCase):
                     name='Test Batch',
                 ),
                 name='Test Product',
-                price=10,
                 stock=20,
                 code='1234567890',
                 unit_of_measurement='Test Unit',
@@ -297,7 +276,6 @@ class ModelTest(TestCase):
                     name='Test Batch',
                 ),
                 name='Test Product',
-                price=10,
                 stock=10,
                 code='1234567890',
                 unit_of_measurement='Test Unit',
@@ -373,7 +351,6 @@ class ModelTest(TestCase):
                     name='Test Batch',
                 ),
                 name='Test Product',
-                price=10,
                 stock=10,
                 code='1234567890',
                 unit_of_measurement='Test Unit',
@@ -452,7 +429,6 @@ class ModelTest(TestCase):
                     name='Test Batch',
                 ),
                 name='Test Product',
-                price=10,
                 stock=10,
                 code='1234567890',
                 unit_of_measurement='Test Unit',
@@ -524,7 +500,6 @@ class ModelTest(TestCase):
                     name='Test Batch',
                 ),
                 name='Test Product',
-                price=10,
                 stock=10,
                 code='1234567890',
                 unit_of_measurement='Test Unit',

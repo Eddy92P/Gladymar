@@ -67,7 +67,6 @@ def create_product(**params):
     defaults = {
         'name': f'Sample Product {unique_suffix}',
         'batch': create_batch(),
-        'price': 10.00,
         'stock': 50,
         'code': f'CODE-{unique_suffix}',
         'unit_of_measurement': 'Unit',

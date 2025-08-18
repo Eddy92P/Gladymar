@@ -84,7 +84,6 @@ def create_product(**params):
     defaults = {
         'name': f'Sample Product {unique_suffix}',
         'batch': create_batch(),
-        'price': 100,
         'stock': 100,
         'code': f'Sample Code {unique_suffix}',
         'unit_of_measurement': 'Unit',
@@ -103,7 +102,7 @@ def create_product(**params):
         supplier = create_supplier()
     
     product = Product.objects.create(**defaults)
-    product.supplier.add(supplier)
+    product.suppliers.add(supplier)
     return product
 
 def create_test_image(name='test_image.jpg', content=None):
@@ -196,7 +195,6 @@ class PrivateProductApiTests(TestCase):
         payload = {
             'name': f'Test Product with Image {unique_suffix}',
             'batch': batch.id,
-            'price': 150.00,
             'stock': 50,
             'code': f'TEST001_{unique_suffix}',
             'unit_of_measurement': 'Unit',
@@ -231,7 +229,6 @@ class PrivateProductApiTests(TestCase):
         payload = {
             'name': f'Test Product without Image {unique_suffix}',
             'batch': batch.id,
-            'price': 100.00,
             'stock': 25,
             'code': f'TEST002_{unique_suffix}',
             'unit_of_measurement': 'Unit',
@@ -324,7 +321,6 @@ class PrivateProductApiTests(TestCase):
         payload = {
             'name': f'Test Product {unique_suffix}',
             'batch': batch.id,
-            'price': 100.00,
             'stock': 10,
             'code': f'TEST003_{unique_suffix}',
             'unit_of_measurement': 'Unit',
@@ -363,11 +359,10 @@ class PrivateProductApiTests(TestCase):
         product = create_product(name='Old Name')
         unique_suffix = str(uuid.uuid4())[:8]
         # Get the current supplier IDs
-        supplier_ids = list(product.supplier.values_list('id', flat=True))
+        supplier_ids = list(product.suppliers.values_list('id', flat=True))
         payload = {
             'name': 'Updated Name',
             'batch': product.batch.id,
-            'price': 150.00,
             'stock': 100,
             'code': f'TEST004_{unique_suffix}',
             'unit_of_measurement': 'Unit',
@@ -385,7 +380,6 @@ class PrivateProductApiTests(TestCase):
         product.refresh_from_db()
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(product.name, payload['name'])
-        self.assertEqual(product.price, payload['price'])
         
     def test_not_delete_product(self):
         """Test that a product cannot be deleted via API."""

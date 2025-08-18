@@ -23,6 +23,7 @@ def create_user(**params):
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
 
+
 def create_warehouse(**params):
     """Create and return a sample warehouse."""
     unique_suffix = str(uuid.uuid4())[:8]
