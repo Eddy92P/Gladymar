@@ -73,8 +73,7 @@ class SupplierSerializer(serializers.ModelSerializer):
     products = ProductSerializer(many=True, read_only=True, source='product')
     product = serializers.PrimaryKeyRelatedField(
         many=True, 
-        queryset=Product.objects.all(), 
-        source='product',
+        queryset=Product.objects.all(),
         write_only=True,
         required=False
     )
@@ -107,22 +106,25 @@ class ClientSerializer(serializers.ModelSerializer):
 
 class EntryItemSerializer(serializers.ModelSerializer):
     """Serializer for EntryItem model"""
-    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+    products = ProductSerializer(read_only=True, source='product')
+    product = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Product.objects.all())
 
     class Meta:
         model = EntryItem
-        fields = ['id', 'product', 'quantity', 'unit_price', 'total_price']
+        fields = ['id', 'product', 'products', 'quantity', 'unit_price', 'total_price']
         read_only_fields = ['id']
 
 
 class EntrySerializer(serializers.ModelSerializer):
     """Serializer for Entry model"""
     warehouse_keeper = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    suppliers = SupplierSerializer(read_only=True, source='supplier')
+    supplier = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Supplier.objects.all())
     entry_items = EntryItemSerializer(many=True)
 
     class Meta:
         model = Entry
-        fields = ['id', 'warehouse_keeper', 'supplier', 'entry_date', 'invoice_number', 'entry_items', 'created_at', 'updated_at']
+        fields = ['id', 'warehouse_keeper', 'supplier', 'suppliers', 'entry_date', 'invoice_number', 'entry_items', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
  
     @transaction.atomic
@@ -181,12 +183,13 @@ class OutputItemSerializer(serializers.ModelSerializer):
 class OutputSerializer(serializers.ModelSerializer):
     """Serializer for Output model"""
     warehouse_keeper = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
-    client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all())
+    clients = ClientSerializer(read_only=True, source='client')
+    client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all(), write_only=True)
     output_items = OutputItemSerializer(many=True)
 
     class Meta:
         model = Output
-        fields = ['id', 'warehouse_keeper', 'client', 'output_date', 'output_items', 'created_at', 'updated_at']
+        fields = ['id', 'warehouse_keeper', 'client', 'clients', 'output_date', 'output_items', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     @transaction.atomic
@@ -363,11 +366,15 @@ class SellingChannelSerializer(serializers.ModelSerializer):
 
 class PurchaseItemSerializer(serializers.ModelSerializer):
     """Serializer for Purchase Item model."""
-    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+    products = ProductSerializer(read_only=True, source='product')
+    product = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(),
+        write_only=True,
+    )
     
     class Meta:
         model = PurchaseItem
-        fields = ['product', 'quantity', 'unit_price', 'total_price']
+        fields = ['product', 'products', 'quantity', 'unit_price', 'total_price']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
         
@@ -375,7 +382,11 @@ class PurchaseSerializer(serializers.ModelSerializer):
     """Serializer for Purchase model."""
     buyer = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     purchase_items = PurchaseItemSerializer(many=True, required=True)
-    supplier = serializers.PrimaryKeyRelatedField(queryset=Supplier.objects.all())
+    suppliers = SupplierSerializer(read_only=True, source='supplier')
+    supplier = serializers.PrimaryKeyRelatedField(
+        queryset=Supplier.objects.all(),
+        write_only=True,
+    )
 
     class Meta:
         model = Purchase
@@ -384,6 +395,7 @@ class PurchaseSerializer(serializers.ModelSerializer):
             'buyer',
             'purchase_items',
             'supplier',
+            'suppliers',
             'purchase_type',
             'purchase_date',
             'invoice_number',
@@ -428,25 +440,39 @@ class PurchaseSerializer(serializers.ModelSerializer):
     
 class SaleItemSerializer(serializers.ModelSerializer):
     """Serializer for Sale Item model."""
-    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+    products = ProductSerializer(read_only=True, source='product')
+    product = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(),
+        write_only=True,
+    )
     
     class Meta:
         model = SaleItem
-        fields = ['product', 'quantity', 'unit_price', 'total_price']
+        fields = ['product', 'products', 'quantity', 'unit_price', 'total_price']
         read_only_fields = ['id']
     
     
 class SaleSerializer(serializers.ModelSerializer):
     """Serializer for Sale model."""
-    selling_channel = serializers.PrimaryKeyRelatedField(queryset=SellingChannel.objects.all())
+    selling_channels = SellingChannelSerializer(read_only=True, source='selling_channel')
+    selling_channel = serializers.PrimaryKeyRelatedField(
+        queryset=SellingChannel.objects.all(),
+        write_only=True,
+    )
     seller = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     sale_items = SaleItemSerializer(many=True, required=True)
+    clients = ClientSerializer(read_only=True, source='client')
+    client = serializers.PrimaryKeyRelatedField(
+        queryset=Client.objects.all(),
+        write_only=True,
+    )
     
     class Meta:
         model = Sale
         fields = [
             'id',
             'selling_channel',
+            'selling_channels',
             'seller',
             'sale_items',
             'total',
@@ -454,6 +480,8 @@ class SaleSerializer(serializers.ModelSerializer):
             'status',
             'sale_type',
             'sale_date',
+            'client',
+            'clients',
             'created_at',
             'updated_at',
         ]

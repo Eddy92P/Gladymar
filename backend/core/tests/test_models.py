@@ -445,6 +445,13 @@ class ModelTest(TestCase):
     def test_create_sale(self):
         """Test creating a Sale."""
         sale = Sale.objects.create(
+            client=Client.objects.create(
+                name='Test Client',
+                phone='75871256',
+                nit='12345678',
+                email='test@example.com',
+                address='Test Address',
+            ),
             selling_channel=SellingChannel.objects.create(
                 name='Test Selling Channel',
             ),
@@ -468,6 +475,13 @@ class ModelTest(TestCase):
         """Test creating a SaleItem."""
         sale_item = SaleItem.objects.create(
             sale=Sale.objects.create(
+                client=Client.objects.create(
+                    name='Test Client',
+                    phone='75871256',
+                    nit='12345678',
+                    email='test@example.com',
+                    address='Test Address',
+                ),
                 selling_channel=SellingChannel.objects.create(
                     name='Test Selling Channel',
                 ),

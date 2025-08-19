@@ -3,7 +3,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from core.models import Sale, SellingChannel, SaleItem, Product, Warehouse, Agency, Category, Batch
+from core.models import Sale, SellingChannel, SaleItem, Product, Warehouse, Agency, Category, Batch, Client
 from sale.serializers import SaleSerializer
 import uuid
 from datetime import datetime
@@ -26,6 +26,19 @@ def create_user(**params):
     }
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
+
+def create_client(**params):
+    unique_suffix = str(uuid.uuid4())[:8]
+    defaults = {
+        'name': f'Test Client {unique_suffix}',
+        'phone': '75871256',
+        'nit': f'12{unique_suffix}',
+        'email': f'test{unique_suffix}@example.com',
+        'address': 'Test Address'
+    }
+    defaults.update(params)
+
+    return Client.objects.create(**defaults)
 
 def create_agency(**params):
     """Create and return a sample Agency."""
@@ -96,6 +109,7 @@ def create_selling_channel(**params):
 def create_sale(**params):
     """Create and return a sample Sale."""
     defaults = {
+        'client': create_client(),
         'selling_channel': create_selling_channel(),
         'seller': create_user(),
         'total': 10.00,
@@ -160,6 +174,7 @@ class PrivatePurchaseApiTests(TestCase):
     def test_create_sale(self):
         """Test for create a sale."""
         payload = {
+            'client': create_client().id,
             'selling_channel': create_selling_channel().id,
             'seller': create_user().id,
             'total': 100.00,
@@ -204,6 +219,7 @@ class PrivatePurchaseApiTests(TestCase):
         """Test for full update a sale."""
         sale = create_sale()
         payload = {
+            'client': create_client().id,
             'selling_channel': create_selling_channel().id,
             'seller': create_user().id,
             'total': 100.00,
