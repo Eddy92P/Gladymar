@@ -1,0 +1,16 @@
+.headerContainer {
+    background-color: white;
+    display: flex;
+    align-items: center;
+    height: 67px;
+    padding-left: 24px;
+}
+
+.headerTitle {
+    font-size: 32px;
+    font-family: 'Lato', sans-serif;
+    font-style: normal;
+    line-height: 38px;
+    margin-right: 16px;
+    width: 82%;
+}

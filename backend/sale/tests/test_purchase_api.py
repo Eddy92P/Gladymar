@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from core.models import Batch, Category, Warehouse, Agency, Supplier, Product, Purchase, PurchaseItem
+from core.models import Batch, Category, Warehouse, Agency, Supplier, Product, Purchase, PurchaseItem, Payment
 from sale.serializers import PurchaseSerializer
 import uuid
 from datetime import date
@@ -140,6 +140,18 @@ def create_purchase(**params):
 
     return Purchase.objects.create(**defaults)
 
+def create_payment(**params):
+    defaults = {
+        'transaction_id': 1,
+        'payment_method': 'cash',
+        'transaction_type': 'purchase',
+        'amount': 50.00,
+        'payment_date': '2025-01-01',
+    }
+    defaults.update(params)
+
+    return Payment.objects.create(**defaults)
+
 
 class PublicPurchaseApiTests(TestCase):
     """Tests for an user when is unauthenticated."""
@@ -152,7 +164,7 @@ class PublicPurchaseApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
     
     
-class PrivatePruchaseApiTests(TestCase):
+class PrivatePurchaseApiTests(TestCase):
     """Test for an user is authorized."""
     def setUp(self):
         self.client = APIClient()
@@ -195,13 +207,12 @@ class PrivatePruchaseApiTests(TestCase):
     def test_create_purchase(self):
         """Test creating a purchase."""
         payload = {
-            'buyer': create_user().id,
             'supplier': create_supplier().id,
             'purchase_type': 'full_payment',
             'purchase_date': '2024-01-01',
             'invoice_number': '123456789',
             'total': 150.00,
-            'balance_due': 0.00,
+            'balance_due': 150.00,
             'purchase_items': [
                 {
                     'product': create_product().id,
@@ -216,6 +227,12 @@ class PrivatePruchaseApiTests(TestCase):
                     'total_price': 100.00
                 }
             ],
+            'payments': {
+                'payment_method': 'cash',
+                'transaction_type': 'purchase',
+                'amount': 150.00,
+                'payment_date': '2024-01-01',
+            }
         }
 
         res = self.client.post(PURCHASE_URL, payload, format='json')
@@ -223,12 +240,11 @@ class PrivatePruchaseApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         purchase = Purchase.objects.get(id=res.data['id'])
 
-        self.assertEqual(purchase.buyer.id, payload['buyer'])
         self.assertEqual(purchase.supplier.id, payload['supplier'])
         self.assertEqual(purchase.purchase_type, payload['purchase_type'])
         self.assertEqual(purchase.invoice_number, payload['invoice_number'])
         self.assertEqual(float(purchase.total), payload['total'])
-        self.assertEqual(float(purchase.balance_due), payload['balance_due'])
+        self.assertEqual(float(purchase.balance_due), 0.0)
         
     def test_partial_update_purchase(self):
         """Test for partial update a purchase"""
@@ -243,11 +259,10 @@ class PrivatePruchaseApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(purchase.purchase_type, payload['purchase_type'])
         
-    def test_full_update_pruchase(self):
+    def test_full_update_purchase(self):
         """Test for full update a purchase"""
         purchase = create_purchase()
         payload = {
-            'buyer': create_user().id,
             'supplier': create_supplier().id,
             'purchase_type': 'full_payment',
             'purchase_date': '2024-01-01',

@@ -181,9 +181,18 @@ class PurchaseViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
     search_fields = ['id']
+    
+    def perform_create(self, serializer):
+        serializer.save(buyer=self.request.user)
 
     def get_queryset(self):
-        """Retrieve purchases ordered by id."""
+        """Retrieve purchases ordered by id and filtered by status."""
+        queryset = super().get_queryset()
+        status = self.request.query_params.get('status')
+        
+        if status:
+            queryset = queryset.filter(status=status).order_by('-id')
+
         return self.queryset.order_by('-id')
     
     
@@ -196,9 +205,17 @@ class SaleViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
     search_fields = ['id']
+    
+    def perform_create(self, serializer):
+        serializer.save(seller=self.request.user)
 
     def get_queryset(self):
-        """Retrieve sales ordered by id."""
+        """Retrieve sales ordered by id and filtered by status."""
+        queryset = super().get_queryset()
+        status = self.request.query_params.get("status")
+        
+        if status:
+            queryset = queryset.filter(status=status).order_by('-id')
         return self.queryset.order_by('-id')
     
 class PaymentViewSet(viewsets.ModelViewSet):

@@ -176,7 +176,6 @@ class PrivatePurchaseApiTests(TestCase):
         payload = {
             'client': create_client().id,
             'selling_channel': create_selling_channel().id,
-            'seller': create_user().id,
             'total': 100.00,
             'balance_due': 100.00,
             'status': 'generated',
@@ -197,7 +196,6 @@ class PrivatePurchaseApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(payload['selling_channel'], sale.selling_channel.id)
-        self.assertEqual(payload['seller'], sale.seller.id)
         self.assertEqual(payload['total'], sale.total)
         for sale_item in sale.sale_items.all():
             self.assertEqual(payload['sale_items'][0]['product'], sale_item.product.id)
@@ -221,7 +219,6 @@ class PrivatePurchaseApiTests(TestCase):
         payload = {
             'client': create_client().id,
             'selling_channel': create_selling_channel().id,
-            'seller': create_user().id,
             'total': 100.00,
             'balance_due': 100.00,
             'status': 'generated',

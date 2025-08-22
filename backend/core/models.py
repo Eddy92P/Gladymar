@@ -445,6 +445,11 @@ class Purchase(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.balance_due = self.total
+        super().save(*args, **kwargs)
+    
     
 class PurchaseItem(models.Model):
     purchase = models.ForeignKey(Purchase, on_delete=models.PROTECT, related_name='purchase_items')
@@ -463,7 +468,7 @@ class Entry(models.Model):
         blank=True,
         null=True
     )
-    entry_date = models.DateField()
+    entry_date = models.DateField(null=False, blank=False)
     invoice_number = models.CharField(
         max_length=50, 
         null=False, 
@@ -519,6 +524,7 @@ class Sale(models.Model):
         ('generated', 'Generada'),
         ('done', 'Realizada'),
         ('finished', 'Terminada'),
+        ('denied', 'Rechazada')
     )
     SALE_TYPE_CHOICES = (
         ('full_payment', 'Pago al contado'),
@@ -531,12 +537,17 @@ class Sale(models.Model):
     balance_due = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='generated')
     sale_type = models.CharField(max_length=25, choices=SALE_TYPE_CHOICES, default='full_payment')
-    sale_date = models.DateField()
+    sale_date = models.DateField(null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.seller.first_name} {self.seller.last_name} - ${self.total}"
+    
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.balance_due = self.total
+        super().save(*args, **kwargs)
     
 
 class SaleItem(models.Model):
@@ -563,6 +574,14 @@ class Payment(models.Model):
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='cash')
     transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPE_CHOICES, default='purchase')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_date = models.DateField()
+    payment_date = models.DateField(null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['transaction_id', 'transaction_type'],
+                name='unique_transaction'
+            )
+        ]

@@ -1,0 +1,12 @@
+.listContainer {
+    background-color: white;
+    margin-top: 39px;
+    padding: 20px 40px 118px 24px;
+    padding-left: 24px;
+    padding-right: 40px;
+    padding-bottom: 18px;
+}
+
+.headerTable {
+    border-bottom: 2px solid black;
+}

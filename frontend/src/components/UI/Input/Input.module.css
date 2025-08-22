@@ -1,0 +1,18 @@
+.control input:focus {
+    outline: none;
+    border-color: #68a4d6;
+    background: #f3f3f3;
+}
+
+.control.invalid input {
+    border-color: #127fe6;
+    background: #dff6ff;
+}
+
+.invalid-text {
+    color: #0f2851 !important;
+}
+
+.control label {
+    font-family: 'Roboto', sans-serif;
+}

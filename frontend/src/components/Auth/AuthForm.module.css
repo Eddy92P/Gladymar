@@ -1,0 +1,54 @@
+.authContainer {
+    margin: 3rem auto;
+    width: 95%;
+    max-width: 25rem;
+    text-align: left;
+}
+
+.auth {
+    border: 0.5px solid rgb(169, 212, 236);
+    padding: 1.5rem;
+    color: black;
+    background: rgba(223, 246, 255, 0.5) !important;
+    border-radius: 8px;
+}
+
+.auth h1 {
+    text-align: center;
+    padding: 0.4rem;
+    color: #0f2851;
+    font-family: 'Lato', sans-serif;
+    font-weight: 400;
+    font-size: 30px;
+    line-height: 36px;
+    letter-spacing: -0.32px;
+}
+
+.control label {
+    display: block;
+    color: rgb(48, 138, 190);
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.actions {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.link {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.link > a {
+    color: black;
+}
+
+.link > a:hover {
+    color: #127fe6;
+}
