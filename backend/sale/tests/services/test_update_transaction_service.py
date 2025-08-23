@@ -95,7 +95,7 @@ class UpdateTransactionServiceTest(TestCase):
                 email=f'test{unique_suffix}@example.com',
                 address='Test Address'
             ),
-            purchase_type='full_payment',
+            purchase_type='contado',
             purchase_date='2025-05-05',
             invoice_number='12345678',
             total=100,
@@ -104,8 +104,8 @@ class UpdateTransactionServiceTest(TestCase):
         
         payment = Payment.objects.create(
             transaction_id=purchase.id,
-            payment_method='cash',
-            transaction_type='purchase',
+            payment_method='efectivo',
+            transaction_type='compra',
             amount=50,
             payment_date='2025-05-06',
         )
@@ -128,7 +128,7 @@ class UpdateTransactionServiceTest(TestCase):
                 email=f'test{unique_suffix}@example.com',
                 address='Test Address'
             ),
-            purchase_type='full_payment',
+            purchase_type='contado',
             purchase_date='2025-05-05',
             invoice_number='12345678',
             total=100,
@@ -137,8 +137,8 @@ class UpdateTransactionServiceTest(TestCase):
         
         payment = Payment.objects.create(
             transaction_id=purchase.id,
-            payment_method='cash',
-            transaction_type='purchase',
+            payment_method='efectivo',
+            transaction_type='compra',
             amount=150,
             payment_date='2025-05-06',
         )
@@ -170,8 +170,8 @@ class UpdateTransactionServiceTest(TestCase):
         
         payment = Payment.objects.create(
             transaction_id=purchase.id,
-            payment_method='cash',
-            transaction_type='purchase',
+            payment_method='efectivo',
+            transaction_type='compra',
             amount=100,
             payment_date='2025-05-06',
         )
@@ -190,14 +190,14 @@ class UpdateTransactionServiceTest(TestCase):
             seller=create_user(),
             total=100,
             balance_due=100,
-            status='generated',
-            sale_type='full_payment',
+            status='generado',
+            sale_type='contado',
             sale_date='2025-01-01',
         )
         payment = Payment.objects.create(
             transaction_id=sale.id,
-            payment_method='cash',
-            transaction_type='sale',
+            payment_method='efectivo',
+            transaction_type='venta',
             amount=50,
             payment_date='2025-05-06',
         )
@@ -217,14 +217,14 @@ class UpdateTransactionServiceTest(TestCase):
             seller=create_user(),
             total=100,
             balance_due=100,
-            status='generated',
-            sale_type='full_payment',
+            status='generado',
+            sale_type='contado',
             sale_date='2025-01-01',
         )
         payment = Payment.objects.create(
             transaction_id=sale.id,
-            payment_method='cash',
-            transaction_type='sale',
+            payment_method='efectivo',
+            transaction_type='venta',
             amount=150,
             payment_date='2025-05-06',
         )
@@ -243,14 +243,14 @@ class UpdateTransactionServiceTest(TestCase):
             seller=create_user(),
             total=100,
             balance_due=100,
-            status='generated',
-            sale_type='full_payment',
+            status='generado',
+            sale_type='contado',
             sale_date='2025-01-01',
         )
         payment = Payment.objects.create(
             transaction_id=sale.id,
-            payment_method='cash',
-            transaction_type='sale',
+            payment_method='efectivo',
+            transaction_type='venta',
             amount=100,
             payment_date='2025-05-06',
         )

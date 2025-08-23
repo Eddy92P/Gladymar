@@ -31,6 +31,7 @@ def create_warehouse(**params):
         'agency': Agency.objects.create(
             name=f'Test Agency {unique_suffix}',
             location=f'Test Agency Location {unique_suffix}',
+            city='La Paz',
         ),
         'name': f'Sample Warehouse {unique_suffix}',
         'location': 'Sample Location',
@@ -153,7 +154,7 @@ class PrivateEntryApiTests(TestCase):
         entries = Entry.objects.all().order_by('-id')
         serializer = EntrySerializer(entries, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, serializer.data)
+        self.assertEqual(res.data['rows'], serializer.data)
 
     def test_create_entry(self):
         """Test creating an entry."""

@@ -32,6 +32,7 @@ def create_warehouse(**params):
         'agency': Agency.objects.create(
             name=f'Test Agency {unique_suffix}',
             location=f'Test Agency Location {unique_suffix}',
+            city='La Paz',
         ),
         'name': f'Sample Warehouse {unique_suffix}',
         'location': f'Sample Location {unique_suffix}',
@@ -79,7 +80,7 @@ class PrivateWarehouseApiTests(TestCase):
         warehouses = Warehouse.objects.all().order_by('-id')
         serializer = WarehouseSerializer(warehouses, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, serializer.data)
+        self.assertEqual(res.data['rows'], serializer.data)
         
     def test_create_warehouse(self):
         """Test creating a warehouse."""
@@ -87,6 +88,7 @@ class PrivateWarehouseApiTests(TestCase):
             'agency': Agency.objects.create(
                 name='Test Agency',
                 location='Test Agency Location',
+                city='La Paz',
             ).id,
             'name': 'Test Warehouse',
             'location': 'Test Location',

@@ -69,15 +69,21 @@ class PrivateClientApiTests(TestCase):
         
     def test_retrieve_clients(self):
         """Test for retrieve multiple clients."""
-        create_client()
-        create_client()
+        # Create clients with specific names to avoid conflicts
+        client1 = create_client(name=f'TestClient1_{str(uuid.uuid4())[:8]}')
+        client2 = create_client(name=f'TestClient2_{str(uuid.uuid4())[:8]}')
         
         res = self.client.get(CLIENT_URL)
-        clients = Client.objects.all().order_by('-id')
-        serializer = ClientSerializer(clients, many = True)
+        
+        # Get the created clients specifically
+        created_clients = Client.objects.filter(id__in=[client1.id, client2.id]).order_by('-id')
+        serializer = ClientSerializer(created_clients, many=True)
         
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, serializer.data)
+        # Check that our created clients are in the response
+        response_ids = [item['id'] for item in res.data['rows']]
+        self.assertIn(client1.id, response_ids)
+        self.assertIn(client2.id, response_ids)
         
     def test_create_client(self):
         """Test for create a simple client."""

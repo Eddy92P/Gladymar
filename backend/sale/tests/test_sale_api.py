@@ -114,8 +114,8 @@ def create_sale(**params):
         'seller': create_user(),
         'total': 10.00,
         'balance_due': 10.00,
-        'status': 'generated',
-        'sale_type': 'full_payment',
+        'status': 'generado',
+        'sale_type': 'contado',
         'sale_date': '2024-01-01',
     }
     
@@ -169,7 +169,7 @@ class PrivatePurchaseApiTests(TestCase):
         serializer = SaleSerializer(sales, many=True)
         
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, serializer.data)
+        self.assertEqual(res.data['rows'], serializer.data)
         
     def test_create_sale(self):
         """Test for create a sale."""
@@ -178,8 +178,8 @@ class PrivatePurchaseApiTests(TestCase):
             'selling_channel': create_selling_channel().id,
             'total': 100.00,
             'balance_due': 100.00,
-            'status': 'generated',
-            'sale_type': 'full_payment',
+            'status': 'generado',
+            'sale_type': 'contado',
             'sale_date': '2025-10-10',
             'sale_items': [
                 {
@@ -221,8 +221,8 @@ class PrivatePurchaseApiTests(TestCase):
             'selling_channel': create_selling_channel().id,
             'total': 100.00,
             'balance_due': 100.00,
-            'status': 'generated',
-            'sale_type': 'full_payment',
+            'status': 'generado',
+            'sale_type': 'contado',
             'sale_date': '2025-10-10',
             'sale_items': [
                 {

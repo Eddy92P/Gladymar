@@ -131,7 +131,7 @@ class PrivateProductChannelApiTests(TestCase):
         serializer = ProductChannelPriceSerializer(product_channel, many=True)
         
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, serializer.data)
+        self.assertEqual(res.data['rows'], serializer.data)
         
     def test_create_product_channel(self):
         """Test for create a product channel."""

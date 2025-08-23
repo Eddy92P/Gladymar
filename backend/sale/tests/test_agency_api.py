@@ -32,7 +32,7 @@ def create_agency(**params):
     defaults = {
         'name': f'Test Agency {unique_suffix}',
         'location': f'Test Agency Location {unique_suffix}',
-        'city': 'LP',
+        'city': 'La Paz',
     }
     defaults.update(params)
     return Agency.objects.create(**defaults)
@@ -75,14 +75,15 @@ class PrivateAgencyApiTests(TestCase):
         agencies = Agency.objects.all().order_by('-id')
         serializer = AgencySerializer(agencies, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, serializer.data)
+        self.assertEqual(res.data['rows'], serializer.data)
+        self.assertEqual(res.data['total'], agencies.count())
         
     def test_create_agency(self):
         """Test creating an agency."""
         payload = {
             'name': 'Test Agency',
             'location': 'Test Agency Location',
-            'city': 'CBBA',
+            'city': 'Cochabamba',
         }
         res = self.client.post(AGENCY_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
@@ -106,7 +107,7 @@ class PrivateAgencyApiTests(TestCase):
         payload = {
             'name': 'Updated Agency',
             'location': 'Updated Location',
-            'city': 'SCZ',
+            'city': 'Santa Cruz',
         }
         url = detail_url(agency.id)
         res = self.client.put(url, payload)

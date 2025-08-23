@@ -28,10 +28,12 @@ def create_user(**params):
     return get_user_model().objects.create_user(**defaults)
 
 def create_payment(**params):
+    # Generate unique transaction_id to avoid constraint violations
+    unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
-        'transaction_id': 1,
-        'payment_method': 'card',
-        'transaction_type': 'sale',
+        'transaction_id': int(unique_suffix, 16) % 10000,  # Generate unique transaction_id
+        'payment_method': 'tarjeta',
+        'transaction_type': 'venta',
         'amount': 100.00,
         'payment_date': datetime.now().date(),
     }
@@ -69,14 +71,14 @@ class PrivatePaymentApiTests(TestCase):
         res = self.client.get(PAYMENT_URL)
         
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, serializer.data)
+        self.assertEqual(res.data['rows'], serializer.data)
         
     def test_create_payment(self):
         """Test for create a payment."""
         payload = {
             'transaction_id': 2,
-            'payment_method': 'card',
-            'transaction_type': 'sale',
+            'payment_method': 'tarjeta',
+            'transaction_type': 'venta',
             'amount': 150.00,
             'payment_date': datetime.now().date(),
         }
@@ -93,8 +95,8 @@ class PrivatePaymentApiTests(TestCase):
         
     def test_partial_update_payment(self):
         """Test for partial update a payment."""
-        payment = create_payment(payment_method='card')
-        payload = {'payment_method': 'cash'}
+        payment = create_payment(payment_method='tarjeta')
+        payload = {'payment_method': 'efectivo'}
         
         url = detail_url(payment.id)
         res = self.client.patch(url, payload)
@@ -108,8 +110,8 @@ class PrivatePaymentApiTests(TestCase):
         payment = create_payment()
         payload = {
             'transaction_id': 3,
-            'payment_method': 'cash',
-            'transaction_type': 'purchase',
+            'payment_method': 'efectivo',
+            'transaction_type': 'compra',
             'amount': 500.00,
             'payment_date': datetime.now().date(),
         }

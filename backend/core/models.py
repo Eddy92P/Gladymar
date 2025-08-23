@@ -127,9 +127,9 @@ class Setting(models.Model):
 
 class Client(models.Model):
     CLIENT_TYPE_CHOICES = (
-        ('distribution', 'Distribución'),
+        ('distribucion', 'Distribución'),
         ('showroom', 'Showroom'),
-        ('projects', 'Proyectos'),
+        ('proyecto', 'Proyectos'),
     )
     name = models.CharField(
         max_length=100, 
@@ -180,15 +180,15 @@ class Client(models.Model):
     
 class Agency(models.Model):
     CITY_CHOICES = (
-        ('LP', 'La Paz'),
-        ('CBBA', 'Cochabamba'),
-        ('SCZ', 'Santa Cruz'),
-        ('TJA', 'Tarija'),
-        ('OR', 'Oruro'),
-        ('PT', 'Potosí'),
-        ('CH', 'Chuquisaca'),
-        ('BE', 'Beni'),
-        ('PD', 'Pando'),
+        ('La Paz', 'LP'),
+        ('Cochabamba', 'CBBA'),
+        ('Santa Cruz', 'SCZ'),
+        ('Tarija', 'TJA'),
+        ('Oruro', 'OR'),
+        ('Potosi', 'PT'),
+        ('Chuquisaca', 'CH'),
+        ('Beni', 'BE'),
+        ('Pando', 'PD'),
     )
     name = models.CharField(
         max_length=255, 
@@ -213,7 +213,7 @@ class Agency(models.Model):
             )
         ]
     )
-    city = models.CharField(max_length=5, choices=CITY_CHOICES, default='PT')
+    city = models.CharField(max_length=15, choices=CITY_CHOICES, default='Potosi')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -418,16 +418,17 @@ class ProductChannelPrice(models.Model):
 
 class Purchase(models.Model):
     STATUS_CHOICES = (
-        ('done', 'Realizada'),
-        ('finished', 'Terminada'),
+        ('realizado', 'Realizada'),
+        ('terminado', 'Terminada'),
     )
     PURCHASE_TYPE_CHOICES = (
-        ('full_payment', 'Pago al contado'),
-        ('partial_payment', 'Pago a crédito')
+        ('contado', 'Pago al contado'),
+        ('credito', 'Pago a crédito')
     )
     buyer = models.ForeignKey(User, on_delete=models.PROTECT)
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
-    purchase_type = models.CharField(max_length=25, choices=PURCHASE_TYPE_CHOICES, default='full_payment')
+    purchase_type = models.CharField(max_length=25, choices=PURCHASE_TYPE_CHOICES, default='contado')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='realizado')
     purchase_date = models.DateField()
     invoice_number = models.CharField(
         max_length=50, 
@@ -521,22 +522,22 @@ class OutputItem(models.Model):
 
 class Sale(models.Model):
     STATUS_CHOICES = (
-        ('generated', 'Generada'),
-        ('done', 'Realizada'),
-        ('finished', 'Terminada'),
-        ('denied', 'Rechazada')
+        ('generado', 'Generada'),
+        ('realizado', 'Realizada'),
+        ('terminado', 'Terminada'),
+        ('rechazado', 'Rechazada')
     )
     SALE_TYPE_CHOICES = (
-        ('full_payment', 'Pago al contado'),
-        ('partial_payment', 'Pago a crédito')
+        ('contado', 'Pago al contado'),
+        ('credito', 'Pago a crédito')
     )
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
     selling_channel = models.ForeignKey(SellingChannel, on_delete=models.PROTECT)
     seller = models.ForeignKey(User, on_delete=models.PROTECT)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     balance_due = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='generated')
-    sale_type = models.CharField(max_length=25, choices=SALE_TYPE_CHOICES, default='full_payment')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='generado')
+    sale_type = models.CharField(max_length=25, choices=SALE_TYPE_CHOICES, default='contado')
     sale_date = models.DateField(null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -562,17 +563,17 @@ class SaleItem(models.Model):
     
 class Payment(models.Model):
     PAYMENT_METHOD_CHOICES = (
-        ('cash', 'Efectivo'),
-        ('card', 'Tarjeta'),
+        ('efectivo', 'Efectivo'),
+        ('tarjeta', 'Tarjeta'),
         ('qr', 'QR')
     )
     TRANSACTION_TYPE_CHOICES = (
-        ('purchase', 'Compra'),
-        ('sale', 'Venta'),
+        ('compra', 'Compra'),
+        ('venta', 'Venta'),
     )
     transaction_id = models.PositiveIntegerField(null=False, blank=False)
-    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='cash')
-    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPE_CHOICES, default='purchase')
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='efectivo')
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPE_CHOICES, default='compra')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_date = models.DateField(null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)

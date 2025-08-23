@@ -115,7 +115,7 @@ def create_purchase(**params):
     defaults = {
         'buyer': create_user(),
         'supplier': create_supplier(),
-        'purchase_type': 'full_payment',
+        'purchase_type': 'contado',
         'purchase_date': date(2024, 1, 1),
         'invoice_number': f'123456{unique_suffix}',
         'total': 100.00,
@@ -141,10 +141,12 @@ def create_purchase(**params):
     return Purchase.objects.create(**defaults)
 
 def create_payment(**params):
+    # Generate unique transaction_id to avoid constraint violations
+    unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
-        'transaction_id': 1,
-        'payment_method': 'cash',
-        'transaction_type': 'purchase',
+        'transaction_id': int(unique_suffix, 16) % 10000,  # Generate unique transaction_id
+        'payment_method': 'efectivo',
+        'transaction_type': 'compra',
         'amount': 50.00,
         'payment_date': '2025-01-01',
     }
@@ -185,7 +187,7 @@ class PrivatePurchaseApiTests(TestCase):
         purchases = Purchase.objects.all().order_by('-id')
         serializer = PurchaseSerializer(purchases, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, serializer.data)
+        self.assertEqual(res.data['rows'], serializer.data)
 
     def test_supplier_with_products_relationship(self):
         """Test creating a supplier with products using M:M relationship."""
@@ -208,7 +210,7 @@ class PrivatePurchaseApiTests(TestCase):
         """Test creating a purchase."""
         payload = {
             'supplier': create_supplier().id,
-            'purchase_type': 'full_payment',
+            'purchase_type': 'contado',
             'purchase_date': '2024-01-01',
             'invoice_number': '123456789',
             'total': 150.00,
@@ -228,8 +230,8 @@ class PrivatePurchaseApiTests(TestCase):
                 }
             ],
             'payments': {
-                'payment_method': 'cash',
-                'transaction_type': 'purchase',
+                'payment_method': 'efectivo',
+                'transaction_type': 'compra',
                 'amount': 150.00,
                 'payment_date': '2024-01-01',
             }
@@ -248,9 +250,9 @@ class PrivatePurchaseApiTests(TestCase):
         
     def test_partial_update_purchase(self):
         """Test for partial update a purchase"""
-        purchase = create_purchase(purchase_type='partial_payment')
+        purchase = create_purchase(purchase_type='credito')
         payload = {
-            'purchase_type': 'full_payment'
+            'purchase_type': 'contado'
         }
         url = detail_url(purchase.id)
         res = self.client.patch(url, payload)
@@ -264,7 +266,7 @@ class PrivatePurchaseApiTests(TestCase):
         purchase = create_purchase()
         payload = {
             'supplier': create_supplier().id,
-            'purchase_type': 'full_payment',
+            'purchase_type': 'contado',
             'purchase_date': '2024-01-01',
             'invoice_number': '123456789',
             'total': 150.00,

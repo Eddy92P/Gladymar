@@ -41,6 +41,7 @@ def create_agency(**params):
     defaults = {
         'name': f'Test Agency {unique_suffix}',
         'location': f'Test Agency Location {unique_suffix}',
+        'city': 'La Paz',
     }
     defaults.update(params)
     return Agency.objects.create(**defaults)
@@ -176,7 +177,7 @@ class PrivateSellingChannelApiTests(TestCase):
         serializer = SellingChannelSerializer(selling_channels, many=True)
         
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, serializer.data)
+        self.assertEqual(res.data['rows'], serializer.data)
         
     def test_create_selling_channel(self):
         """Test creating a selling channel."""
@@ -203,10 +204,6 @@ class PrivateSellingChannelApiTests(TestCase):
         }
         
         res = self.client.post(SELLING_CHANNEL_URL, payload, format='json')
-        
-        if res.status_code != status.HTTP_201_CREATED:
-            print(f"Response status: {res.status_code}")
-            print(f"Response content: {res.content}")
         
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         selling_channel = SellingChannel.objects.get(id=res.data['id'])

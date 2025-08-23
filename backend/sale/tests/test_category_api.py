@@ -31,6 +31,7 @@ def create_warehouse(**params):
         'agency': Agency.objects.create(
             name=f'Test Agency {unique_suffix}',
             location=f'Test Agency Location {unique_suffix}',
+            city='La Paz',
         ),
         'name': f'Sample Warehouse {unique_suffix}',
         'location': 'Sample Location',
@@ -86,7 +87,8 @@ class PrivatCategoryApiTests(TestCase):
         categories = Category.objects.all().order_by('-id')
         serializer = CategorySerializer(categories, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data, serializer.data)
+        self.assertEqual(res.data['rows'], serializer.data)
+        self.assertEqual(res.data['total'], 2)
         
     def test_create_category(self):
         """Test creating a category."""

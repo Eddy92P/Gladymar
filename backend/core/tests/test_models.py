@@ -116,9 +116,11 @@ class ModelTest(TestCase):
         setting = Agency.objects.create(
             name='Test Setting',
             location='Test Value',
+            city='La Paz',
         )
         self.assertEqual(setting.name, 'Test Setting')
         self.assertEqual(setting.location, 'Test Value')
+        self.assertEqual(setting.city, 'LP')
         
     def test_create_client(self):
         """Test creating a Client."""
@@ -140,11 +142,11 @@ class ModelTest(TestCase):
         agency = Agency.objects.create(
             name='Test Agency',
             location='Test Agency Location',
-            city='LP',
+            city='La Paz',
         )
         self.assertEqual(agency.name, 'Test Agency')
         self.assertEqual(agency.location, 'Test Agency Location')
-        self.assertEqual(agency.city, 'LP')
+        self.assertEqual(agency.city, 'La Paz')
         
     def test_create_warehouse(self):
         """Test creating a Warehouse."""
@@ -152,6 +154,7 @@ class ModelTest(TestCase):
             agency=Agency.objects.create(
                 name='Test Setting',
                 location='Test Value',
+                city='LP',
             ),
             name='Test Warehouse',
             location='Test Location',
@@ -166,6 +169,7 @@ class ModelTest(TestCase):
                 agency=Agency.objects.create(
                     name='Test Agency',
                     location='Test Agency Location',
+                    city='LP',
                 ),
                 name='Test Warehouse',
                 location='Test Location',
@@ -182,6 +186,7 @@ class ModelTest(TestCase):
                     agency=Agency.objects.create(
                         name='Test Agency',
                         location='Test Agency Location',
+                        city='LP',
                     ),
                     name='Test Warehouse',
                     location='Test Location',
@@ -201,6 +206,7 @@ class ModelTest(TestCase):
                         agency=Agency.objects.create(
                             name='Test Agency',
                             location='Test Agency Location',
+                            city='LP',
                         ),
                         name='Test Warehouse',
                         location='Test Location',
@@ -239,6 +245,7 @@ class ModelTest(TestCase):
                             agency=Agency.objects.create(
                                 name='Test Agency',
                                 location='Test Agency Location',
+                                city='LP',
                             ),
                             name='Test Warehouse',
                             location='Test Location',
@@ -267,6 +274,7 @@ class ModelTest(TestCase):
                             agency=Agency.objects.create(
                                 name='Test Agency',
                                 location='Test Agency Location',
+                                city='LP',
                             ),
                             name='Test Warehouse',
                             location='Test Location',
@@ -342,6 +350,7 @@ class ModelTest(TestCase):
                             agency=Agency.objects.create(
                                 name='Test Agency',
                                 location='Test Agency Location',
+                                city='LP',
                             ),
                             name='Test Warehouse',
                             location='Test Location',
@@ -505,6 +514,7 @@ class ModelTest(TestCase):
                             agency=Agency.objects.create(
                                 name='Test Agency',
                                 location='Test Agency Location',
+                                city='LP',
                             ),
                             name='Test Warehouse',
                             location='Test Location',

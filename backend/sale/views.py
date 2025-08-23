@@ -5,6 +5,7 @@ from rest_framework import viewsets, filters
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.response import Response
 from .serializers import *
 from core.models import *
 
@@ -12,6 +13,12 @@ from core.models import *
 class PersonalizedPagination(LimitOffsetPagination):
     default_limit = 10
     max_limit = 100
+
+    def get_paginated_response(self, data):
+        return Response({
+            'rows': data,
+            'total': self.count
+        })
 
 
 class AgencyViewSet(viewsets.ModelViewSet):
@@ -22,7 +29,7 @@ class AgencyViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
-    search_fields = ['id', 'name']
+    search_fields = ['id', 'name', 'city']
     pagination_class = PersonalizedPagination
 
     def get_queryset(self):
@@ -76,7 +83,7 @@ class BatchViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve batches ordered by id."""
         return self.queryset.order_by('-id')
-    
+
 
 class ProductViewSet(viewsets.ModelViewSet):
     """View for managing product APIs."""
@@ -86,13 +93,14 @@ class ProductViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
-    search_fields = ['id', 'name']
+    search_fields = ['id', 'name', 'code']
     pagination_class = PersonalizedPagination
 
     def get_queryset(self):
         """Retrieve products ordered by id."""
         return self.queryset.order_by('-id')
-    
+
+
 class ClientViewSet(viewsets.ModelViewSet):
     """View for managing client APIs."""
     serializer_class = ClientSerializer
@@ -101,14 +109,14 @@ class ClientViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
-    search_fields = ['id', 'name']
+    search_fields = ['id', 'name', 'phone', 'nit']
     pagination_class = PersonalizedPagination
-    
+
     def get_queryset(self):
         """Retrieve clients ordered by id."""
         return self.queryset.order_by('-id')
 
-    
+
 class SupplierViewSet(viewsets.ModelViewSet):
     """View for managing supplier APIs."""
     serializer_class = SupplierSerializer
@@ -117,7 +125,7 @@ class SupplierViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
-    search_fields = ['id', 'name']
+    search_fields = ['id', 'name', 'phone', 'nit']
     pagination_class = PersonalizedPagination
 
     def get_queryset(self):
@@ -133,7 +141,8 @@ class EntryViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
-    search_fields = ['id', 'invoice_number']
+    search_fields = ['id', 'invoice_number',
+                     'warehouse_keeper__first_name', 'warehouse_keeper__last_name', 'supplier__name']
     pagination_class = PersonalizedPagination
 
     def get_queryset(self):
@@ -149,7 +158,8 @@ class OutputViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
-    search_fields = ['id']
+    search_fields = ['id',
+                     'warehouse_keeper__first_name', 'warehouse_keeper__last_name', 'client__name']
     pagination_class = PersonalizedPagination
 
     def get_queryset(self):
@@ -187,7 +197,7 @@ class SellingChannelViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve selling channels ordered by id."""
         return self.queryset.order_by('-id')
-    
+
 
 class PurchaseViewSet(viewsets.ModelViewSet):
     """View for managing purchase APIs."""
@@ -197,9 +207,9 @@ class PurchaseViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
-    search_fields = ['id']
+    search_fields = ['id', 'buyer__first_name', 'buyer__last_name', 'supplier__name', 'purchase_type']
     pagination_class = PersonalizedPagination
-    
+
     def perform_create(self, serializer):
         serializer.save(buyer=self.request.user)
 
@@ -207,13 +217,13 @@ class PurchaseViewSet(viewsets.ModelViewSet):
         """Retrieve purchases ordered by id and filtered by status."""
         queryset = super().get_queryset()
         status = self.request.query_params.get('status')
-        
+
         if status:
             queryset = queryset.filter(status=status).order_by('-id')
 
         return self.queryset.order_by('-id')
-    
-    
+
+
 class SaleViewSet(viewsets.ModelViewSet):
     """View for managin Sale APIs."""
     serializer_class = SaleSerializer
@@ -224,7 +234,7 @@ class SaleViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter]
     search_fields = ['id']
     pagination_class = PersonalizedPagination
-    
+
     def perform_create(self, serializer):
         serializer.save(seller=self.request.user)
 
@@ -232,11 +242,12 @@ class SaleViewSet(viewsets.ModelViewSet):
         """Retrieve sales ordered by id and filtered by status."""
         queryset = super().get_queryset()
         status = self.request.query_params.get("status")
-        
+
         if status:
             queryset = queryset.filter(status=status).order_by('-id')
         return self.queryset.order_by('-id')
-    
+
+
 class PaymentViewSet(viewsets.ModelViewSet):
     """View for managing Payment APIs."""
     serializer_class = PaymentSerializer
