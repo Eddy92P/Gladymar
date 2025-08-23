@@ -308,7 +308,7 @@ export default function Main() {
 													)}
 										</ListItemIcon>
 										<ListItemText
-											primary={option.label}
+											secondary={option.label}
 											sx={[
 												drawerOpen
 													? {
@@ -318,6 +318,12 @@ export default function Main() {
 															opacity: 0,
 														},
 											]}
+											slotProps={{
+												primary: {
+													color: 'primary',
+													variant: 'h1',
+												},
+											}}
 										/>
 									</ListItemButton>
 								</Link>

@@ -4,8 +4,14 @@ Views for warehouse API.
 from rest_framework import viewsets, filters
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import LimitOffsetPagination
 from .serializers import *
 from core.models import *
+
+
+class PersonalizedPagination(LimitOffsetPagination):
+    default_limit = 10
+    max_limit = 100
 
 
 class AgencyViewSet(viewsets.ModelViewSet):
@@ -17,6 +23,7 @@ class AgencyViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
     search_fields = ['id', 'name']
+    pagination_class = PersonalizedPagination
 
     def get_queryset(self):
         """Retrieve agencies ordered by id."""
@@ -32,6 +39,7 @@ class WarehouseViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
     search_fields = ['id', 'name']
+    pagination_class = PersonalizedPagination
 
     def get_queryset(self):
         """Retrieve warehouses ordered by id."""
@@ -47,6 +55,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
     search_fields = ['id', 'name']
+    pagination_class = PersonalizedPagination
 
     def get_queryset(self):
         """Retrieve categories ordered by id."""
@@ -62,6 +71,7 @@ class BatchViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
     search_fields = ['id', 'name']
+    pagination_class = PersonalizedPagination
 
     def get_queryset(self):
         """Retrieve batches ordered by id."""
@@ -77,6 +87,7 @@ class ProductViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
     search_fields = ['id', 'name']
+    pagination_class = PersonalizedPagination
 
     def get_queryset(self):
         """Retrieve products ordered by id."""
@@ -91,6 +102,7 @@ class ClientViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
     search_fields = ['id', 'name']
+    pagination_class = PersonalizedPagination
     
     def get_queryset(self):
         """Retrieve clients ordered by id."""
@@ -106,6 +118,7 @@ class SupplierViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
     search_fields = ['id', 'name']
+    pagination_class = PersonalizedPagination
 
     def get_queryset(self):
         """Retrieve suppliers ordered by id."""
@@ -121,6 +134,7 @@ class EntryViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
     search_fields = ['id', 'invoice_number']
+    pagination_class = PersonalizedPagination
 
     def get_queryset(self):
         """Retrieve entries ordered by id."""
@@ -136,6 +150,7 @@ class OutputViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
     search_fields = ['id']
+    pagination_class = PersonalizedPagination
 
     def get_queryset(self):
         """Retrieve outputs ordered by id."""
@@ -151,6 +166,7 @@ class ProductChannelPriceViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
     search_fields = ['product__name', 'selling_channel__name']
+    pagination_class = PersonalizedPagination
 
     def get_queryset(self):
         """Retrieve product channel prices ordered by id."""
@@ -166,6 +182,7 @@ class SellingChannelViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
     search_fields = ['id', 'name']
+    pagination_class = PersonalizedPagination
 
     def get_queryset(self):
         """Retrieve selling channels ordered by id."""
@@ -181,6 +198,7 @@ class PurchaseViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
     search_fields = ['id']
+    pagination_class = PersonalizedPagination
     
     def perform_create(self, serializer):
         serializer.save(buyer=self.request.user)
@@ -205,6 +223,7 @@ class SaleViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
     search_fields = ['id']
+    pagination_class = PersonalizedPagination
     
     def perform_create(self, serializer):
         serializer.save(seller=self.request.user)
@@ -227,6 +246,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
     search_fields = ['id']
+    pagination_class = PersonalizedPagination
 
     def get_queryset(self):
         """Retrieve payments ordered by id."""
