@@ -7,7 +7,6 @@ import MuiAppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import List from '@mui/material/List';
 import CssBaseline from '@mui/material/CssBaseline';
-import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -17,9 +16,6 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import InboxIcon from '@mui/icons-material/MoveToInbox';
-import MailIcon from '@mui/icons-material/Mail';
-import AccountCircle from '@mui/icons-material/AccountCircle';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Avatar from '@mui/material/Avatar';
@@ -27,9 +23,13 @@ import PersonAdd from '@mui/icons-material/PersonAdd';
 import Settings from '@mui/icons-material/Settings';
 import Logout from '@mui/icons-material/Logout';
 
-import { Outlet } from 'react-router-dom';
+import { options } from '../../SideBarOptions.jsx';
 
 import AuthContext from '../../store/auth-context';
+
+import MainContent from './MainContent';
+
+import { Link } from 'react-router-dom';
 
 const drawerWidth = 240;
 
@@ -115,6 +115,9 @@ export default function Main() {
 	const [drawerOpen, setDrawerOpen] = React.useState(false);
 	const [anchorEl, setAnchorEl] = React.useState(null);
 	const authContext = useContext(AuthContext);
+	const avatarName =
+		authContext.name.charAt(0).toUpperCase() +
+		authContext.lastName.charAt(0).toUpperCase();
 
 	const handleMenu = event => {
 		setAnchorEl(event.currentTarget);
@@ -133,7 +136,7 @@ export default function Main() {
 	};
 
 	return (
-		<Box sx={{ display: 'flex' }}>
+		<Box sx={{ display: 'flex', height: '100vh' }}>
 			<CssBaseline />
 			<AppBar
 				position="fixed"
@@ -164,7 +167,9 @@ export default function Main() {
 						aria-haspopup="true"
 						aria-expanded={anchorEl ? 'true' : undefined}
 					>
-						<Avatar sx={{ width: 32, height: 32 }}>M</Avatar>
+						<Avatar sx={{ width: 40, height: 40 }}>
+							{avatarName}
+						</Avatar>
 					</IconButton>
 					<Menu
 						anchorEl={anchorEl}
@@ -250,130 +255,97 @@ export default function Main() {
 				</DrawerHeader>
 				<Divider />
 				<List>
-					{['Inbox', 'Starred', 'Send email', 'Drafts'].map(
-						(text, index) => (
+					{options
+						.filter(option =>
+							authContext.permissions.includes(option.permission)
+						)
+						.map(option => (
 							<ListItem
-								key={text}
+								key={option.key}
 								disablePadding
 								sx={{ display: 'block' }}
 							>
-								<ListItemButton
-									sx={[
-										{
-											minHeight: 48,
-											px: 2.5,
-										},
-										drawerOpen
-											? {
-													justifyContent: 'initial',
-												}
-											: {
-													justifyContent: 'center',
-												},
-									]}
+								<Link
+									to={option.path}
+									style={{ textDecoration: 'none' }}
 								>
-									<ListItemIcon
+									<ListItemButton
 										sx={[
 											{
-												minWidth: 0,
-												justifyContent: 'center',
+												minHeight: 48,
+												px: 2.5,
 											},
 											drawerOpen
 												? {
-														mr: 3,
+														justifyContent:
+															'initial',
 													}
 												: {
-														mr: 'auto',
+														justifyContent:
+															'center',
 													},
 										]}
 									>
-										{index % 2 === 0 ? (
-											<InboxIcon />
-										) : (
-											<MailIcon />
-										)}
-									</ListItemIcon>
-									<ListItemText
-										primary={text}
-										sx={[
-											drawerOpen
-												? {
-														opacity: 1,
-													}
-												: {
-														opacity: 0,
-													},
-										]}
-									/>
-								</ListItemButton>
+										<ListItemIcon
+											sx={[
+												{
+													minWidth: 0,
+													justifyContent: 'center',
+												},
+												drawerOpen
+													? {
+															mr: 3,
+														}
+													: {
+															mr: 'auto',
+														},
+											]}
+										>
+											{typeof option.icon === 'function'
+												? option.icon()
+												: React.createElement(
+														option.icon
+													)}
+										</ListItemIcon>
+										<ListItemText
+											primary={option.label}
+											sx={[
+												drawerOpen
+													? {
+															opacity: 1,
+														}
+													: {
+															opacity: 0,
+														},
+											]}
+										/>
+									</ListItemButton>
+								</Link>
 							</ListItem>
-						)
-					)}
+						))}
 				</List>
 				<Divider />
-				<List>
-					{['All mail', 'Trash', 'Spam'].map((text, index) => (
-						<ListItem
-							key={text}
-							disablePadding
-							sx={{ display: 'block' }}
-						>
-							<ListItemButton
-								sx={[
-									{
-										minHeight: 48,
-										px: 2.5,
-									},
-									drawerOpen
-										? {
-												justifyContent: 'initial',
-											}
-										: {
-												justifyContent: 'center',
-											},
-								]}
-							>
-								<ListItemIcon
-									sx={[
-										{
-											minWidth: 0,
-											justifyContent: 'center',
-										},
-										drawerOpen
-											? {
-													mr: 3,
-												}
-											: {
-													mr: 'auto',
-												},
-									]}
-								>
-									{index % 2 === 0 ? (
-										<InboxIcon />
-									) : (
-										<MailIcon />
-									)}
-								</ListItemIcon>
-								<ListItemText
-									primary={text}
-									sx={[
-										drawerOpen
-											? {
-													opacity: 1,
-												}
-											: {
-													opacity: 0,
-												},
-									]}
-								/>
-							</ListItemButton>
-						</ListItem>
-					))}
-				</List>
 			</Drawer>
-			<Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+			<Box
+				component="main"
+				sx={{
+					flexGrow: 1,
+					p: 3,
+					display: 'flex',
+					flexDirection: 'column',
+					height: '100vh',
+				}}
+			>
 				<DrawerHeader />
-				<Outlet />
+				<Box
+					sx={{
+						flexGrow: 1,
+						display: 'flex',
+						flexDirection: 'column',
+					}}
+				>
+					<MainContent />
+				</Box>
 			</Box>
 		</Box>
 	);

@@ -1,0 +1,11 @@
+.mainContent {
+    font: 1.5rem;
+    font-weight: 600;
+    line-height: 1.75rem;
+    flex: 1;
+    height: 100%;
+    padding: 1rem;
+    background-color: #F8F9FD;
+    display: flex;
+    flex-direction: column;
+}

@@ -3,11 +3,11 @@ import React, { useState, useCallback } from 'react';
 // let logoutTimer;
 
 const AuthContext = React.createContext({
-    token: '',
-    perms: [],
-    isLoggedIn: false,
-    login: token => {},
-    logout: () => {},
+	token: '',
+	perms: [],
+	isLoggedIn: false,
+	login: token => {},
+	logout: () => {},
 });
 
 // const calculateRemainingTime = (expirationTime) => {
@@ -20,95 +20,121 @@ const AuthContext = React.createContext({
 // };
 
 const retrieveStoredToken = () => {
-    const storedToken = sessionStorage.getItem('token');
+	const storedToken = sessionStorage.getItem('token');
 
-    return {
-        token: storedToken,
-    };
+	return {
+		token: storedToken,
+	};
 };
 
-const retrieveStoredOptions = () => {
-    const storedOptions = JSON.parse(sessionStorage.getItem('options'));
+const retrieveStoredPermissions = () => {
+	const storedPermissions = JSON.parse(sessionStorage.getItem('permissions'));
 
-    return {
-        options: storedOptions,
-    };
+	return {
+		permissions: storedPermissions,
+	};
 };
 
 const retrieveStoredName = () => {
-    const storedName = sessionStorage.getItem('name');
+	const storedName = sessionStorage.getItem('name');
 
-    return {
-        name: storedName,
-    };
+	return {
+		name: storedName,
+	};
+};
+
+const retrieveStoredLastName = () => {
+	const storedLastName = sessionStorage.getItem('last_name');
+
+	return {
+		lastName: storedLastName,
+	};
 };
 
 export const AuthContextProvider = props => {
-    const tokenData = retrieveStoredToken();
-    const optionsData = retrieveStoredOptions();
-    const nameData = retrieveStoredName();
+	const tokenData = retrieveStoredToken();
+	const permissionsData = retrieveStoredPermissions();
+	const nameData = retrieveStoredName();
+	const lastNameData = retrieveStoredLastName();
 
-    let initialToken;
-    let initialOptions;
-    let initialName;
+	let initialToken;
+	let initialPermission;
+	let initialName;
+	let initialLastName;
 
-    if (tokenData) {
-        initialToken = tokenData.token;
-    }
+	if (tokenData) {
+		initialToken = tokenData.token;
+	}
 
-    if (optionsData) {
-        initialOptions = optionsData.options;
-    }
+	if (permissionsData) {
+		initialPermission = permissionsData.permissions;
+	}
 
-    if (nameData) {
-        initialName = nameData.name;
-    }
+	if (nameData) {
+		initialName = nameData.name;
+	}
 
-    const [token, setToken] = useState(initialToken);
-    const [options, setOptions] = useState(initialOptions);
-    const [name, setName] = useState(initialName);
+	if (lastNameData) {
+		initialLastName = lastNameData.lastName;
+	}
 
-    const userIsLoggedIn = !!token;
-    const userOptions = options;
-    const userName = name;
+	const [token, setToken] = useState(initialToken);
+	const [permissions, setPermissions] = useState(initialPermission);
+	const [name, setName] = useState(initialName);
+	const [lastName, setLastName] = useState(initialLastName);
 
-    const logoutHandler = useCallback(() => {
-        setToken(null);
-        sessionStorage.removeItem('token');
-        sessionStorage.removeItem('options');
-        sessionStorage.removeItem('name');
-    }, []);
+	const userIsLoggedIn = !!token;
+	const userPermissions = permissions;
+	const userName = name;
+	const userLastName = lastName;
 
-    const loginHandler = (token, options, name, expirationTime) => {
-        setToken(token);
-        setOptions(options);
-        setName(name);
+	const logoutHandler = useCallback(() => {
+		setToken(null);
+		sessionStorage.removeItem('token');
+		sessionStorage.removeItem('permissions');
+		sessionStorage.removeItem('name');
+		sessionStorage.removeItem('last_name');
+	}, []);
 
-        sessionStorage.setItem('token', token);
-        sessionStorage.setItem('options', JSON.stringify(options));
-        sessionStorage.setItem('name', name);
-    };
+	const loginHandler = (
+		token,
+		permissions,
+		name,
+		last_name,
+		expirationTime
+	) => {
+		setToken(token);
+		setPermissions(permissions);
+		setName(name);
+		setLastName(last_name);
 
-    // useEffect(() => {
-    //   if (tokenData) {
-    //     logoutTimer = setTimeout(logoutHandler, tokenData.duration);
-    //   }
-    // }, [tokenData, logoutHandler]);
+		sessionStorage.setItem('token', token);
+		sessionStorage.setItem('permissions', JSON.stringify(permissions));
+		sessionStorage.setItem('name', name);
+		sessionStorage.setItem('last_name', last_name);
+	};
 
-    const contextValue = {
-        token: token,
-        options: userOptions,
-        name: userName,
-        isLoggedIn: userIsLoggedIn,
-        login: loginHandler,
-        logout: logoutHandler,
-    };
+	// useEffect(() => {
+	//   if (tokenData) {
+	//     logoutTimer = setTimeout(logoutHandler, tokenData.duration);
+	//   }
+	// }, [tokenData, logoutHandler]);
 
-    return (
-        <AuthContext.Provider value={contextValue}>
-            {props.children}
-        </AuthContext.Provider>
-    );
+	const contextValue = {
+		token: token,
+		permissions: userPermissions,
+		name: userName,
+		lastName: userLastName,
+		isLoggedIn: userIsLoggedIn,
+		login: loginHandler,
+		logout: logoutHandler,
+	};
+
+	return (
+		<AuthContext.Provider value={contextValue}>
+			{props.children}
+		</AuthContext.Provider>
+	);
 };
 
 export default AuthContext;

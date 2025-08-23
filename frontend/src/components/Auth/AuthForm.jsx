@@ -127,11 +127,11 @@ const AuthForm = () => {
 				// const expirationTime = new Date(
 				//   new Date().getTime() + +data.expiresIn * 1000
 				// );
-				console.log(data);
 				authContext.login(
 					data.token,
-					data.options || [],
+					data.permissions || [],
 					data.name || '',
+					data.last_name || '',
 					null
 				);
 				navigate('principal');

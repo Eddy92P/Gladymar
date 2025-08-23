@@ -236,14 +236,12 @@ class OutputSerializer(serializers.ModelSerializer):
 
 class ProductChannelPriceSerializer(serializers.ModelSerializer):
     """Serializer for ProductChannelPrice model"""
-    product_name = serializers.CharField(source='product.name', read_only=True)
-    selling_channel_name = serializers.CharField(source='selling_channel.name', read_only=True)
     
     class Meta:
         model = ProductChannelPrice
         fields = [
             'id', 'product', 'selling_channel', 'price', 
-            'start_date', 'end_date', 'product_name', 'selling_channel_name'
+            'start_date', 'end_date'
         ]
         read_only_fields = ['id']
         
