@@ -114,26 +114,31 @@ WSGI_APPLICATION = 'app.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'HOST': os.getenv('DB_HOST'),
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'OPTIONS': {
-            'connect_timeout': 10,
-            'application_name': 'gladymar_app',
-        },
-        'CONN_MAX_AGE': 0,
-        'TEST': {
-            'NAME': 'test_gladydb',
-            'SERIALIZE': False,
-        },
-        'ATOMIC_REQUESTS': True,
-        'AUTOCOMMIT': True,
+# Use SQLite in-memory database for tests, PostgreSQL for development/production
+if 'test' in sys.argv:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'HOST': os.getenv('DB_HOST'),
+            'NAME': os.getenv('DB_NAME'),
+            'USER': os.getenv('DB_USER'),
+            'PASSWORD': os.getenv('DB_PASSWORD'),
+            'OPTIONS': {
+                'connect_timeout': 10,
+                'application_name': 'gladymar_app',
+            },
+            'CONN_MAX_AGE': 0,
+            'ATOMIC_REQUESTS': True,
+            'AUTOCOMMIT': True,
+        }
+    }
 
 
 # Password validation
@@ -203,6 +208,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
 SPECTACULAR_SETTINGS = {

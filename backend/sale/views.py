@@ -6,6 +6,9 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
+
+from django_filters.rest_framework import DjangoFilterBackend
+
 from .serializers import *
 from core.models import *
 
@@ -206,8 +209,9 @@ class PurchaseViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['id', 'buyer__first_name', 'buyer__last_name', 'supplier__name', 'purchase_type']
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = ['id', 'buyer__first_name', 'buyer__last_name', 'supplier__name', 'invoice_number']
+    filterset_fields = ['purchase_type', 'status', 'purchase_date']
     pagination_class = PersonalizedPagination
 
     def perform_create(self, serializer):
@@ -231,8 +235,9 @@ class SaleViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['id']
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = ['id', 'client__name', 'selling_channel__name', 'seller__first_name', 'seller__last_name']
+    filterset_fields = ['sale_type', 'status', 'sale_date']
     pagination_class = PersonalizedPagination
 
     def perform_create(self, serializer):
@@ -255,8 +260,9 @@ class PaymentViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['id']
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = ['id', 'payment_method']
+    filterset_fields = ['transaction_type', 'payment_date']
     pagination_class = PersonalizedPagination
 
     def get_queryset(self):

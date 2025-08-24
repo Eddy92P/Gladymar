@@ -75,8 +75,12 @@ class PrivatePaymentApiTests(TestCase):
         
     def test_create_payment(self):
         """Test for create a payment."""
+        # Generate unique transaction_id to avoid conflicts
+        unique_suffix = str(uuid.uuid4())[:8]
+        unique_transaction_id = int(unique_suffix, 16) % 10000
+        
         payload = {
-            'transaction_id': 2,
+            'transaction_id': unique_transaction_id,
             'payment_method': 'tarjeta',
             'transaction_type': 'venta',
             'amount': 150.00,
@@ -108,8 +112,12 @@ class PrivatePaymentApiTests(TestCase):
     def test_full_update_payment(self):
         """Test for full update a payment."""
         payment = create_payment()
+        # Generate unique transaction_id to avoid conflicts
+        unique_suffix = str(uuid.uuid4())[:8]
+        unique_transaction_id = int(unique_suffix, 16) % 10000
+        
         payload = {
-            'transaction_id': 3,
+            'transaction_id': unique_transaction_id,
             'payment_method': 'efectivo',
             'transaction_type': 'compra',
             'amount': 500.00,
