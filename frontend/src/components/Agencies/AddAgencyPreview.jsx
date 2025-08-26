@@ -1,6 +1,8 @@
 import React from 'react';
 
 import { Grid, TextField, Box } from '@mui/material';
+import Alert from '@mui/material/Alert';
+
 import { makeStyles } from '@mui/styles';
 
 const useStyles = makeStyles({
@@ -19,6 +21,9 @@ function AddAgencyPreview(props) {
 	return (
 		<>
 			<Box>
+				{props.message && (
+					<Alert severity="error">{props.message}</Alert>
+				)}
 				<Box mt={4}>
 					<h6>1. Datos de Agencia</h6>
 					<Grid container spacing={2} mt={1} mb={2}>

@@ -6,6 +6,9 @@ import React, {
 	useContext,
 	useMemo,
 } from 'react';
+
+import Alert from '@mui/material/Alert';
+
 import AuthContext from '../../store/auth-context';
 import { api, config } from '../../Constants';
 import { validateNameLength, validateAddressLength } from '../../Validations';
@@ -49,6 +52,7 @@ function AddAgency() {
 	const [disabled, setDisabled] = useState(true);
 	const [cityChoices, setCityChoices] = useState([]);
 	const [city, setCity] = useState(null);
+	const [errorMessage, setErrorMessage] = useState('');
 
 	const nameReducer = (state, action) => {
 		if (action.type === 'INPUT_FOCUS') {
@@ -185,6 +189,7 @@ function AddAgency() {
 			const data = await response.json();
 
 			if (!response.ok) {
+				setErrorMessage('Ocurrió un problema.');
 				setIsForm(true);
 
 				if (data.name) {
@@ -220,6 +225,7 @@ function AddAgency() {
 			const data = await response.json();
 
 			if (!response.ok) {
+				setErrorMessage('Ocurrió un problema.');
 				setIsForm(true);
 
 				if (data.name) {
@@ -271,6 +277,9 @@ function AddAgency() {
 				<ListHeader title={title} text={title} visible={false} />
 				{isForm ? (
 					<div className={classes.listContainer}>
+						{errorMessage && (
+							<Alert severity="error">{errorMessage}</Alert>
+						)}
 						<FormControl fullWidth onSubmit={handleSubmit}>
 							<Box mt={4}>
 								<h6>1. Datos de Agencia</h6>
@@ -389,6 +398,7 @@ function AddAgency() {
 							name={nameState.value}
 							location={locationState.value}
 							city={city}
+							message={message}
 						/>
 						<Box
 							mt={2}

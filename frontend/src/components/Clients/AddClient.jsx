@@ -6,6 +6,9 @@ import React, {
 	useContext,
 	useMemo,
 } from 'react';
+
+import Alert from '@mui/material/Alert';
+
 import AuthContext from '../../store/auth-context';
 import { api, config } from '../../Constants';
 import {
@@ -55,6 +58,7 @@ function AddClient() {
 	const [disabled, setDisabled] = useState(true);
 	const [clientTypeChoices, setClientTypeChoices] = useState([]);
 	const [clientType, setClientType] = useState(null);
+	const [errorMessage, setErrorMessage] = useState('');
 
 	const nameReducer = (state, action) => {
 		if (action.type === 'INPUT_FOCUS') {
@@ -299,6 +303,7 @@ function AddClient() {
 			const data = await response.json();
 
 			if (!response.ok) {
+				setErrorMessage('Ocurrió un problema.');
 				setIsForm(true);
 
 				if (data.name) {
@@ -355,6 +360,7 @@ function AddClient() {
 			const data = await response.json();
 
 			if (!response.ok) {
+				setErrorMessage('Ocurrió un problema.');
 				setIsForm(true);
 
 				if (data.name) {
@@ -443,6 +449,9 @@ function AddClient() {
 				<ListHeader title={title} text={title} visible={false} />
 				{isForm ? (
 					<div className={classes.listContainer}>
+						{errorMessage && (
+							<Alert severity="error">{errorMessage}</Alert>
+						)}
 						<FormControl fullWidth onSubmit={handleSubmit}>
 							<Box mt={4}>
 								<h6>1. Datos personales</h6>
@@ -619,6 +628,7 @@ function AddClient() {
 							email={emailState.value}
 							address={addressState.value}
 							clientType={clientType}
+							message={message}
 						/>
 						<Box
 							mt={2}
