@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Grid, TextField, Box } from '@mui/material';
 import { makeStyles } from '@mui/styles';
+import Alert from '@mui/material/Alert';
 
 const useStyles = makeStyles({
 	textStyle: {
@@ -19,6 +20,9 @@ function AddClientPreview(props) {
 	return (
 		<>
 			<Box>
+				{props.message && (
+					<Alert severity="error">{props.message}</Alert>
+				)}
 				<Box mt={4}>
 					<h6>1. Datos personales</h6>
 					<Grid container spacing={2} mt={1} mb={2}>
