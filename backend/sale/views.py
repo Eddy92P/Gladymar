@@ -2,6 +2,7 @@
 Views for warehouse API.
 """
 from rest_framework import viewsets, filters
+from rest_framework.decorators import action
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import LimitOffsetPagination
@@ -38,6 +39,15 @@ class AgencyViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve agencies ordered by id."""
         return self.queryset.order_by('-id')
+    
+    @action(detail=False, methods=['get'])
+    def choices(self, request):
+        """Get city choices."""
+        choices = [
+            {'value': choice[0], 'label': choice[1]} 
+            for choice in Agency.CITY_CHOICES
+        ]
+        return Response(choices)
 
 
 class WarehouseViewSet(viewsets.ModelViewSet):
@@ -112,12 +122,21 @@ class ClientViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
-    search_fields = ['id', 'name', 'phone', 'nit']
+    search_fields = ['id', 'name', 'phone', 'email','nit']
     pagination_class = PersonalizedPagination
 
     def get_queryset(self):
         """Retrieve clients ordered by id."""
         return self.queryset.order_by('-id')
+
+    @action(detail=False, methods=['get'])
+    def choices(self, request):
+        """Get client type choices."""
+        choices = [
+            {'value': choice[0], 'label': choice[1]} 
+            for choice in Client.CLIENT_TYPE_CHOICES
+        ]
+        return Response(choices)
 
 
 class SupplierViewSet(viewsets.ModelViewSet):

@@ -7,7 +7,10 @@ import AuthPage from './pages/AuthPage';
 import MainPage from './pages/MainPage';
 import DashboardPage from './pages/DashboardPage';
 import ClientPage from './pages/ClientPage';
+import AddClientPage from './pages/AddClientPage';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import AgencyPage from './pages/AgencyPage';
+import AddAgencyPage from './pages/AddAgencyPage';
 
 function App() {
 	const authCtx = useContext(AuthContext);
@@ -41,6 +44,23 @@ function App() {
 						/>
 						<Route path="dashboard" element={<DashboardPage />} />
 						<Route path="clientes" element={<ClientPage />} />
+						<Route
+							path="clientes/agregar_cliente"
+							element={<AddClientPage />}
+						/>
+						<Route
+							path="clientes/editar_cliente/:id"
+							element={<AddClientPage />}
+						/>
+						<Route path="agencias" element={<AgencyPage />} />
+						<Route
+							path="agencias/agregar_agencia"
+							element={<AddAgencyPage />}
+						/>
+						<Route
+							path="agencias/editar_agencia/:id"
+							element={<AddAgencyPage />}
+						/>
 					</Route>
 					<Route
 						path="*"

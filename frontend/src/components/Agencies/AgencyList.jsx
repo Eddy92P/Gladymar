@@ -19,7 +19,7 @@ const useStyles = makeStyles({
 	},
 });
 
-const ClientList = () => {
+const AgencyList = () => {
 	const classes = useStyles();
 	const authContext = useContext(AuthContext);
 
@@ -38,28 +38,13 @@ const ClientList = () => {
 			sortable: true,
 		},
 		{
-			name: 'Teléfono',
-			selector: row => row.phone,
-			sortable: true,
-		},
-		{
-			name: 'NIT/CI',
-			selector: row => row.nit,
-			sortable: true,
-		},
-		{
-			name: 'Correo Electrónico',
-			selector: row => row.email,
-			sortable: true,
-		},
-		{
 			name: 'Dirección',
-			selector: row => row.address,
+			selector: row => row.location,
 			sortable: true,
 		},
 		{
-			name: 'Tipo',
-			selector: row => row.clientType,
+			name: 'Ciudad',
+			selector: row => row.city,
 			sortable: true,
 		},
 		{
@@ -82,13 +67,13 @@ const ClientList = () => {
 
 		let url =
 			config.url.HOST +
-			api.API_URL_CLIENTS +
+			api.API_URL_AGENCIES +
 			`?limit=${pageSize}&offset=${(page - 1) * pageSize}`;
 		if (filter) {
 			url += `&search=${filter}`;
 		}
 
-		const fetchClients = async () => {
+		const fetchAgencies = async () => {
 			try {
 				const response = await fetch(url, {
 					method: 'GET',
@@ -111,11 +96,8 @@ const ClientList = () => {
 						return {
 							id: listData.id,
 							name: listData.name,
-							phone: listData.phone,
-							nit: listData.nit,
-							email: listData.email,
-							address: listData.address,
-							clientType: listData.client_type,
+							location: listData.location,
+							city: listData.city,
 						};
 					});
 					setList(parsedList);
@@ -130,7 +112,7 @@ const ClientList = () => {
 			}
 		};
 
-		fetchClients();
+		fetchAgencies();
 
 		return () => {
 			isMounted = false;
@@ -139,13 +121,13 @@ const ClientList = () => {
 	}, [filter, authContext.token, page, pageSize]);
 
 	const handleAddClient = () => {
-		navigate('agregar_cliente');
+		navigate('agregar_agencia');
 	};
 
 	const handleButtonClick = (e, id) => {
 		e.preventDefault();
-		const client = list.find(x => x.id === id);
-		navigate(`editar_cliente/${id}`, { state: { clientData: client } });
+		const agency = list.find(x => x.id === id);
+		navigate(`editar_agencia/${id}`, { state: { agencyData: agency } });
 	};
 
 	const handleFilterChange = filterText => {
@@ -167,7 +149,7 @@ const ClientList = () => {
 	return (
 		<Fragment>
 			<ListHeader
-				title="Clientes"
+				title="Agencias"
 				text="Agregar"
 				onClick={handleAddClient}
 				visible={true}
@@ -184,4 +166,4 @@ const ClientList = () => {
 	);
 };
 
-export default ClientList;
+export default AgencyList;

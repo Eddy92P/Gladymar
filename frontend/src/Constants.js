@@ -22,6 +22,8 @@ const apiUrl = {
 	API_URL_ENTRIES: '/api/sale/entries/',
 	API_URL_OUTPUTS: '/api/sale/outputs/',
 	API_URL_CLIENTS: '/api/sale/clients/',
+	API_URL_CLIENT_CHOICES: '/api/sale/clients/choices/',
+	API_URL_CITY_CHOICES: '/api/sale/agencies/choices/',
 	API_URL_PRODUCT_CHANNEL: '/api/sale/product-channel-prices/',
 	API_URL_SELLING_CHANNEL: '/api/sale/selling-channels/',
 	API_URL_PURCHASES: '/api/sale/purchases/',

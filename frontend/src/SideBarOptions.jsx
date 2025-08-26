@@ -5,13 +5,13 @@ import {
 	Category,
 	Workspaces,
 } from '@mui/icons-material';
-import ProductIcon from '../public/box.png';
-import SupplierIcon from '../public/supplier.png';
-import SellingChannelIcon from '../public/network-connection.png';
-import PurchaseIcon from '../public/buy-button.png';
-import DoubleEntryIcon from '../public/double-entry.png';
-import SaleIcon from '../public/coupon.png';
-import PaymentIcon from '../public/wallet.png';
+import ProductIcon from '/box.png';
+import SupplierIcon from '/supplier.png';
+import SellingChannelIcon from '/network-connection.png';
+import PurchaseIcon from '/buy-button.png';
+import DoubleEntryIcon from '/double-entry.png';
+import SaleIcon from '/coupon.png';
+import PaymentIcon from '/wallet.png';
 
 export const options = [
 	{

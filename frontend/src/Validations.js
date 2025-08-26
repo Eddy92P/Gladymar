@@ -31,8 +31,8 @@ export const validateLastNameLength = lastName => {
 export const validatePhoneNumber = phoneNumber => {
 	const validNumber = new RegExp('^s*-?[0-9]{1,10}s*$');
 	return (
-		phoneNumber.trim().length > 6 &&
-		phoneNumber.trim().length <= 20 &&
+		phoneNumber.trim().length > 7 &&
+		phoneNumber.trim().length < 9 &&
 		validNumber.test(phoneNumber)
 	);
 };
@@ -49,7 +49,7 @@ export const validateDateBirth = birthDate => {
 	return validDateBirth.test(birthDate);
 };
 
-export const validateAddressLenght = address => {
+export const validateAddressLength = address => {
 	return address.trim().length > 10 && address.trim().length <= 200;
 };
 

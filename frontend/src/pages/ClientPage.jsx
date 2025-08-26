@@ -1,5 +1,7 @@
+import ClientList from '../components/Clients/ClientList';
+
 const ClientPage = () => {
-	return <div>Client</div>;
+	return <ClientList />;
 };
 
 export default ClientPage;
