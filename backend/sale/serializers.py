@@ -23,6 +23,11 @@ class AgencySerializer(serializers.ModelSerializer):
 class WarehouseSerializer(serializers.ModelSerializer):
     """Serializer for Warehouse model"""
     agency = AgencySerializer(read_only=True)
+    agency_id = serializers.PrimaryKeyRelatedField(
+        queryset=Agency.objects.all(),
+        source='agency',
+        write_only=True
+    )
 
     class Meta:
         model = Warehouse
@@ -32,6 +37,12 @@ class WarehouseSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     """Serializer for Category model"""
+    warehouse = WarehouseSerializer(read_only=True)
+    warehouse_id = serializers.PrimaryKeyRelatedField(
+        queryset=Warehouse.objects.all(),
+        source='warehouse',
+        write_only=True
+    )
 
     class Meta:
         model = Category
@@ -41,6 +52,12 @@ class CategorySerializer(serializers.ModelSerializer):
         
 class BatchSerializer(serializers.ModelSerializer):
     """Serializer for Batch model"""
+    category = CategorySerializer(read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(),
+        source='category',
+        write_only=True
+    )
 
     class Meta:
         model = Batch
@@ -50,6 +67,12 @@ class BatchSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     """Serializer for Product model"""
+    batch = BatchSerializer(read_only=True)
+    batch_id = serializers.PrimaryKeyRelatedField(
+        queryset=Batch.objects.all(),
+        source='batch',
+        write_only=True
+    )
 
     class Meta:
         model = Product

@@ -85,7 +85,7 @@ class PrivateWarehouseApiTests(TestCase):
     def test_create_warehouse(self):
         """Test creating a warehouse."""
         payload = {
-            'agency': Agency.objects.create(
+            'agency_id': Agency.objects.create(
                 name='Test Agency',
                 location='Test Agency Location',
                 city='La Paz',
@@ -116,19 +116,19 @@ class PrivateWarehouseApiTests(TestCase):
         """Test full update of a warehouse."""
         warehouse = create_warehouse(name='Original Name', location='Original Location')
         payload = {
-            'agency': warehouse.agency.id,
+            'agency_id': warehouse.agency.id,
             'name': 'New Name', 
-            'location': 'New Location'
+            'location': 'New Location',
         }
         url = detail_url(warehouse.id)
         res = self.client.put(url, payload)
         warehouse.refresh_from_db()
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         for key, value in payload.items():
-            if key != 'agency':
-                self.assertEqual(getattr(warehouse, key), value)
-            else:
+            if key == 'agency_id':
                 self.assertEqual(warehouse.agency.id, value)
+            else:
+                self.assertEqual(getattr(warehouse, key), value)
 
     def test_not_delete_warehouse(self):
         """Test that a warehouse cannot be deleted via API."""

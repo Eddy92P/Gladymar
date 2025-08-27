@@ -195,7 +195,7 @@ class PrivateProductApiTests(TestCase):
         supplier = create_supplier()
         payload = {
             'name': f'Test Product with Image {unique_suffix}',
-            'batch': batch.id,
+            'batch_id': batch.id,
             'stock': 50,
             'code': f'TEST001_{unique_suffix}',
             'unit_of_measurement': 'Unit',
@@ -229,7 +229,7 @@ class PrivateProductApiTests(TestCase):
         supplier = create_supplier()
         payload = {
             'name': f'Test Product without Image {unique_suffix}',
-            'batch': batch.id,
+            'batch_id': batch.id,
             'stock': 25,
             'code': f'TEST002_{unique_suffix}',
             'unit_of_measurement': 'Unit',
@@ -321,7 +321,7 @@ class PrivateProductApiTests(TestCase):
         supplier = create_supplier()
         payload = {
             'name': f'Test Product {unique_suffix}',
-            'batch': batch.id,
+            'batch_id': batch.id,
             'stock': 10,
             'code': f'TEST003_{unique_suffix}',
             'unit_of_measurement': 'Unit',
@@ -363,7 +363,7 @@ class PrivateProductApiTests(TestCase):
         supplier_ids = list(product.suppliers.values_list('id', flat=True))
         payload = {
             'name': 'Updated Name',
-            'batch': product.batch.id,
+            'batch_id': product.batch.id,
             'stock': 100,
             'code': f'TEST004_{unique_suffix}',
             'unit_of_measurement': 'Unit',

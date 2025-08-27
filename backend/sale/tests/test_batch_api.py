@@ -107,14 +107,14 @@ class PrivateBatchApiTests(TestCase):
         category = create_category()
         payload = {
             'name': 'Test batch',
-            'category': category.id,
+            'category_id': category.id,
         }
         res = self.client.post(BATCH_URL, payload)
         batch = Batch.objects.get(id=res.data['id'])
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(batch.name, payload['name'])
-        self.assertEqual(batch.category.id, payload['category'])
+        self.assertEqual(batch.category.id, payload['category_id'])
         
     def test_partial_update_batch(self):
         """Test partial update of a batch."""
@@ -131,14 +131,14 @@ class PrivateBatchApiTests(TestCase):
         """Test full update of a batch."""
         category = create_category()
         batch = create_batch(name='Original Name')
-        payload = {'name': 'New Name', 'category': category.id}
+        payload = {'name': 'New Name', 'category_id': category.id}
         url = detail_url(batch.id)
         res = self.client.put(url, payload)
         batch.refresh_from_db()
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(batch.name, payload['name'])
-        self.assertEqual(batch.category.id, payload['category'])
+        self.assertEqual(batch.category.id, payload['category_id'])
         
     def test_not_delete_batch(self):
         """Test that a batch cannot be deleted via API."""
