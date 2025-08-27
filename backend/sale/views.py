@@ -58,7 +58,7 @@ class WarehouseViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
-    search_fields = ['id', 'name']
+    search_fields = ['id', 'name', 'agency__name']
     pagination_class = PersonalizedPagination
 
     def get_queryset(self):

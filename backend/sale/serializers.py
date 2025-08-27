@@ -22,6 +22,7 @@ class AgencySerializer(serializers.ModelSerializer):
 
 class WarehouseSerializer(serializers.ModelSerializer):
     """Serializer for Warehouse model"""
+    agency = AgencySerializer(read_only=True)
 
     class Meta:
         model = Warehouse

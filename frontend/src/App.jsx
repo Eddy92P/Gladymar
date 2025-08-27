@@ -11,6 +11,8 @@ import AddClientPage from './pages/AddClientPage';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import AgencyPage from './pages/AgencyPage';
 import AddAgencyPage from './pages/AddAgencyPage';
+import WarehousePage from './pages/WarehousePage';
+import AddWarehousePage from './pages/AddWarehousePage';
 
 function App() {
 	const authCtx = useContext(AuthContext);
@@ -60,6 +62,15 @@ function App() {
 						<Route
 							path="agencias/editar_agencia/:id"
 							element={<AddAgencyPage />}
+						/>
+						<Route path="almacenes" element={<WarehousePage />} />
+						<Route
+							path="almacenes/agregar_almacen"
+							element={<AddWarehousePage />}
+						/>
+						<Route
+							path="almacenes/editar_almacen/:id"
+							element={<AddWarehousePage />}
 						/>
 					</Route>
 					<Route
