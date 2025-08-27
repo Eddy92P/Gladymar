@@ -1,7 +1,15 @@
-import ClientList from '../components/Clients/ClientList';
+import { lazy } from 'react';
+
+import LoadingPage from './LoadingPage';
+
+const ClientList = lazy(() => import('../components/Clients/ClientList'));
 
 const ClientPage = () => {
-	return <ClientList />;
+	return (
+		<LoadingPage>
+			<ClientList />
+		</LoadingPage>
+	);
 };
 
 export default ClientPage;

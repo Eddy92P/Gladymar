@@ -1,7 +1,15 @@
-import BatchList from '../components/Batches/BatchList';
+import { lazy } from 'react';
+
+import LoadingPage from './LoadingPage';
+
+const BatchList = lazy(() => import('../components/Batches/BatchList'));
 
 const BatchPage = () => {
-	return <BatchList />;
+	return (
+		<LoadingPage>
+			<BatchList />
+		</LoadingPage>
+	);
 };
 
 export default BatchPage;

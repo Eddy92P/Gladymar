@@ -1,7 +1,17 @@
-import CategoryList from '../components/Categories/CategoryList';
+import { lazy } from 'react';
+
+import LoadingPage from './LoadingPage';
+
+const CategoryList = lazy(
+	() => import('../components/Categories/CategoryList')
+);
 
 const CategoryPage = () => {
-	return <CategoryList />;
+	return (
+		<LoadingPage>
+			<CategoryList />
+		</LoadingPage>
+	);
 };
 
 export default CategoryPage;

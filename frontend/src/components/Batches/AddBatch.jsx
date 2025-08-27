@@ -32,7 +32,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 function AddBatch() {
 	const url = config.url.HOST + api.API_URL_BATCHES;
-	const urlCategoryChoices = config.url.HOST + api.API_URL_CATEGORIES;
+	const urlCategoryChoices = config.url.HOST + api.API_URL_ALL_CATEGORIES;
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');
@@ -127,7 +127,7 @@ function AddBatch() {
 				});
 				if (response.ok) {
 					const data = await response.json();
-					const choices = data.rows || [];
+					const choices = data || [];
 					setCategoryChoices(choices);
 					if (batchData.category && choices.length > 0) {
 						const matchingChoice = choices.find(

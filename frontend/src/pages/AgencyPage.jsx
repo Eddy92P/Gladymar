@@ -1,7 +1,15 @@
-import AgencyList from '../components/Agencies/AgencyList';
+import { lazy } from 'react';
+
+import LoadingPage from './LoadingPage';
+
+const AgencyList = lazy(() => import('../components/Agencies/AgencyList'));
 
 const AgencyPage = () => {
-	return <AgencyList />;
+	return (
+		<LoadingPage>
+			<AgencyList />
+		</LoadingPage>
+	);
 };
 
 export default AgencyPage;

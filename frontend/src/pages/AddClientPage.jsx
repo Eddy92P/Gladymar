@@ -1,7 +1,15 @@
-import AddClient from '../components/Clients/AddClient';
+import { lazy } from 'react';
+
+import LoadingPage from './LoadingPage';
+
+const AddClient = lazy(() => import('../components/Clients/AddClient'));
 
 const AddClientPage = () => {
-	return <AddClient />;
+	return (
+		<LoadingPage>
+			<AddClient />
+		</LoadingPage>
+	);
 };
 
 export default AddClientPage;

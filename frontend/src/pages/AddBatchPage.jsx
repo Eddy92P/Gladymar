@@ -1,7 +1,15 @@
-import AddBatch from '../components/Batches/AddBatch';
+import { lazy } from 'react';
+
+import LoadingPage from './LoadingPage';
+
+const AddBatch = lazy(() => import('../components/Batches/AddBatch'));
 
 const AddBatchPage = () => {
-	return <AddBatch />;
+	return (
+		<LoadingPage>
+			<AddBatch />
+		</LoadingPage>
+	);
 };
 
 export default AddBatchPage;

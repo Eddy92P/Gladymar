@@ -1,7 +1,15 @@
-import Dashboard from '../components/Dashboard/Dashboard';
+import { lazy } from 'react';
+
+import LoadingPage from './LoadingPage';
+
+const Dashboard = lazy(() => import('../components/Dashboard/Dashboard'));
 
 const DashboardPage = () => {
-   return <Dashboard />;
+	return (
+		<LoadingPage>
+			<Dashboard />
+		</LoadingPage>
+	);
 };
 
 export default DashboardPage;
