@@ -24,24 +24,24 @@ import {
 } from '@mui/material';
 import classes from '../UI/List/List.module.css';
 
-import AddCategoryPreview from './AddCategoryPreview';
-import AddCategoryModal from './AddCategoryModal';
+import AddBatchPreview from './AddBatchPreview';
+import AddBatchModal from './AddBatchModal';
 import ListHeader from '../UI/List/ListHeader';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 
-function AddCategory() {
-	const url = config.url.HOST + api.API_URL_CATEGORIES;
-	const urlWarehouseChoices = config.url.HOST + api.API_URL_WAREHOUSES;
+function AddBatch() {
+	const url = config.url.HOST + api.API_URL_BATCHES;
+	const urlCategoryChoices = config.url.HOST + api.API_URL_CATEGORIES;
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
 
-	const categoryData = useMemo(
-		() => location.state?.categoryData || [],
-		[location.state?.categoryData]
+	const batchData = useMemo(
+		() => location.state?.batchData || [],
+		[location.state?.batchData]
 	);
 
 	const [formIsValid, setFormIsValid] = useState(false);
@@ -50,8 +50,8 @@ function AddCategory() {
 	const [title, setTitle] = useState('');
 	const [buttonText, setButtonText] = useState('');
 	const [disabled, setDisabled] = useState(true);
-	const [warehouseChoices, setWarehouseChoices] = useState([]);
-	const [warehouse, setWarehouse] = useState(null);
+	const [categoryChoices, setCategoryChoices] = useState([]);
+	const [category, setCategory] = useState(null);
 	const [errorMessage, setErrorMessage] = useState('');
 
 	const nameReducer = (state, action) => {
@@ -80,7 +80,7 @@ function AddCategory() {
 	};
 
 	const [nameState, dispatchName] = useReducer(nameReducer, {
-		value: categoryData.name ? categoryData.name : '',
+		value: batchData.name ? batchData.name : '',
 		isValid: true,
 		feedbackText: '',
 	});
@@ -91,8 +91,8 @@ function AddCategory() {
 		dispatchName({ type: 'INPUT_CHANGE', val: e.target.value });
 	};
 
-	const warehouseInputChangeHandler = (event, option) => {
-		setWarehouse(option);
+	const categoryInputChangeHandler = (event, option) => {
+		setCategory(option);
 	};
 
 	const handlerCancel = () => {
@@ -108,10 +108,10 @@ function AddCategory() {
 		if (isForm) {
 			setIsForm(!isForm);
 		}
-		if (formIsValid && !isForm && categoryData.length === 0) {
+		if (formIsValid && !isForm && batchData.length === 0) {
 			handleSubmit();
 		}
-		if (formIsValid && !isForm && categoryData.length !== 0) {
+		if (formIsValid && !isForm && batchData.length !== 0) {
 			handleEdit();
 		}
 	};
@@ -119,7 +119,7 @@ function AddCategory() {
 	useEffect(() => {
 		const fetchCategoryChoices = async () => {
 			try {
-				const response = await fetch(urlWarehouseChoices, {
+				const response = await fetch(urlCategoryChoices, {
 					headers: {
 						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
@@ -128,13 +128,13 @@ function AddCategory() {
 				if (response.ok) {
 					const data = await response.json();
 					const choices = data.rows || [];
-					setWarehouseChoices(choices);
-					if (categoryData.warehouse && choices.length > 0) {
+					setCategoryChoices(choices);
+					if (batchData.category && choices.length > 0) {
 						const matchingChoice = choices.find(
-							choice => choice.id === categoryData.warehouse.id
+							choice => choice.id === batchData.category.id
 						);
 						if (matchingChoice) {
-							setWarehouse(matchingChoice);
+							setCategory(matchingChoice);
 						}
 					}
 				}
@@ -144,7 +144,7 @@ function AddCategory() {
 		};
 
 		fetchCategoryChoices();
-	}, [urlWarehouseChoices, authContext.token, categoryData.warehouse]);
+	}, [urlCategoryChoices, authContext.token, batchData.category]);
 
 	const handleSubmit = async () => {
 		try {
@@ -152,7 +152,7 @@ function AddCategory() {
 				method: 'POST',
 				body: JSON.stringify({
 					name: nameState.value,
-					warehouse_id: warehouse.id,
+					category_id: category.id,
 				}),
 				headers: {
 					Authorization: `Token ${authContext.token}`,
@@ -182,11 +182,11 @@ function AddCategory() {
 	};
 	const handleEdit = async () => {
 		try {
-			const response = await fetch(`${url}${categoryData.id}/`, {
+			const response = await fetch(`${url}${batchData.id}/`, {
 				method: 'PUT',
 				body: JSON.stringify({
 					name: nameState.value,
-					warehouse_id: warehouse.id,
+					category_id: category.id,
 				}),
 
 				headers: {
@@ -216,7 +216,7 @@ function AddCategory() {
 		}
 	};
 	useEffect(() => {
-		if (nameState.value && warehouse) {
+		if (nameState.value && category) {
 			const isValid = nameIsValid;
 
 			setFormIsValid(isValid);
@@ -224,18 +224,16 @@ function AddCategory() {
 		} else {
 			setDisabled(true);
 		}
-	}, [nameState.value, warehouse, nameIsValid]);
+	}, [nameState.value, category, nameIsValid]);
 
 	useEffect(() => {
-		setTitle(
-			categoryData.length !== 0 ? 'Editar Categoria' : 'Agregar Categoria'
-		);
-		if (categoryData.length !== 0) {
+		setTitle(batchData.length !== 0 ? 'Editar Lote' : 'Agregar Lote');
+		if (batchData.length !== 0) {
 			setButtonText('Guardar Cambios');
 		} else {
 			setButtonText(!isForm ? 'Finalizar' : 'Siguiente');
 		}
-	}, [isForm, categoryData]);
+	}, [isForm, batchData]);
 
 	return (
 		<>
@@ -248,7 +246,7 @@ function AddCategory() {
 						)}
 						<FormControl fullWidth onSubmit={handleSubmit}>
 							<Box mt={4}>
-								<h6>1. Datos de la Categoría</h6>
+								<h6>1. Datos del Lote</h6>
 								<Grid container spacing={2} mt={1} mb={2}>
 									<Grid size={{ xs: 12, sm: 4 }}>
 										<TextField
@@ -269,8 +267,8 @@ function AddCategory() {
 									<Grid size={{ xs: 6, sm: 3 }}>
 										<Autocomplete
 											disablePortal
-											value={warehouse}
-											options={warehouseChoices}
+											value={category}
+											options={categoryChoices}
 											getOptionLabel={option =>
 												option ? option.name || '' : ''
 											}
@@ -282,12 +280,12 @@ function AddCategory() {
 											renderInput={params => (
 												<TextField
 													{...params}
-													label="Almacén"
+													label="Categoría"
 													required
 												/>
 											)}
 											onChange={
-												warehouseInputChangeHandler
+												categoryInputChangeHandler
 											}
 										/>
 									</Grid>
@@ -343,9 +341,9 @@ function AddCategory() {
 					</div>
 				) : (
 					<div className={classes.listContainer}>
-						<AddCategoryPreview
+						<AddBatchPreview
 							name={nameState.value}
-							warehouse={warehouse.name}
+							category={category.name}
 							message={message}
 						/>
 						<Box
@@ -396,10 +394,10 @@ function AddCategory() {
 						</Box>
 					</div>
 				)}
-				{showModal && <AddCategoryModal editCategory={categoryData} />}
+				{showModal && <AddBatchModal editBatch={batchData} />}
 			</Fragment>
 		</>
 	);
 }
 
-export default AddCategory;
+export default AddBatch;

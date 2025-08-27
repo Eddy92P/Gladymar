@@ -15,6 +15,8 @@ import WarehousePage from './pages/WarehousePage';
 import AddWarehousePage from './pages/AddWarehousePage';
 import CategoryPage from './pages/CategoryPage';
 import AddCategoryPage from './pages/AddCategoryPage';
+import BatchPage from './pages/BatchPage';
+import AddBatchPage from './pages/AddBatchPage';
 
 function App() {
 	const authCtx = useContext(AuthContext);
@@ -82,6 +84,15 @@ function App() {
 						<Route
 							path="categorias/editar_categoria/:id"
 							element={<AddCategoryPage />}
+						/>
+						<Route path="lotes" element={<BatchPage />} />
+						<Route
+							path="lotes/agregar_lote"
+							element={<AddBatchPage />}
+						/>
+						<Route
+							path="lotes/editar_lote/:id"
+							element={<AddBatchPage />}
 						/>
 					</Route>
 					<Route

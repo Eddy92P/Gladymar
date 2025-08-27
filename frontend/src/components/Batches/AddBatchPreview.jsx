@@ -16,7 +16,7 @@ const useStyles = makeStyles({
 	},
 });
 
-function AddCategoryPreview(props) {
+function AddBatchPreview(props) {
 	const classes = useStyles();
 	return (
 		<>
@@ -25,7 +25,7 @@ function AddCategoryPreview(props) {
 					<Alert severity="error">{props.message}</Alert>
 				)}
 				<Box mt={4}>
-					<h6>1. Datos de la Categoría</h6>
+					<h6>1. Datos del Lote</h6>
 					<Grid container spacing={2} mt={1} mb={2}>
 						<Grid item md={3}>
 							<TextField
@@ -47,8 +47,8 @@ function AddCategoryPreview(props) {
 						</Grid>
 						<Grid item md={3}>
 							<TextField
-								label="Almacen"
-								value={props.warehouse}
+								label="Categoría"
+								value={props.category}
 								fullWidth
 								variant="standard"
 								sx={{
@@ -69,4 +69,4 @@ function AddCategoryPreview(props) {
 		</>
 	);
 }
-export default AddCategoryPreview;
+export default AddBatchPreview;
