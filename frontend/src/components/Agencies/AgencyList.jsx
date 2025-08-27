@@ -2,6 +2,7 @@ import List from '../UI/List/List';
 
 import { api, config } from '../../Constants';
 import ListHeader from '../UI/List/ListHeader';
+import Filter from '../UI/List/Filter';
 import { Fragment, useEffect, useState, useContext } from 'react';
 
 import AuthContext from '../../store/auth-context';
@@ -25,7 +26,7 @@ const AgencyList = () => {
 
 	const [list, setList] = useState([]);
 	const [error, setError] = useState(null);
-	const [filter, setFilter] = useState('');
+	const [filterText, setFilterText] = useState('');
 	const [rowCount, setRowCount] = useState(0);
 	const [page, setPage] = useState(0);
 	const [pageSize, setPageSize] = useState(5);
@@ -69,8 +70,8 @@ const AgencyList = () => {
 			config.url.HOST +
 			api.API_URL_AGENCIES +
 			`?limit=${pageSize}&offset=${(page - 1) * pageSize}`;
-		if (filter) {
-			url += `&search=${filter}`;
+		if (filterText) {
+			url += `&search=${filterText}`;
 		}
 
 		const fetchAgencies = async () => {
@@ -118,7 +119,7 @@ const AgencyList = () => {
 			isMounted = false;
 			controller.abort();
 		};
-	}, [filter, authContext.token, page, pageSize]);
+	}, [filterText, authContext.token, page, pageSize]);
 
 	const handleAddClient = () => {
 		navigate('agregar_agencia');
@@ -128,10 +129,6 @@ const AgencyList = () => {
 		e.preventDefault();
 		const agency = list.find(x => x.id === id);
 		navigate(`editar_agencia/${id}`, { state: { agencyData: agency } });
-	};
-
-	const handleFilterChange = filterText => {
-		setFilter(filterText);
 	};
 
 	const handlePageChange = newPage => {
@@ -160,7 +157,9 @@ const AgencyList = () => {
 				rowCount={rowCount}
 				parsedList={list}
 				contentHeader={contentHeader}
-				onFilterChange={handleFilterChange}
+				filter={
+					<Filter onFilter={e => setFilterText(e.target.value)} />
+				}
 			/>
 		</Fragment>
 	);

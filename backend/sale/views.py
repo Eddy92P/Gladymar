@@ -121,8 +121,9 @@ class ClientViewSet(viewsets.ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
-    filter_backends = [filters.SearchFilter]
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
     search_fields = ['id', 'name', 'phone', 'email','nit']
+    filterset_fields = ['client_type']
     pagination_class = PersonalizedPagination
 
     def get_queryset(self):

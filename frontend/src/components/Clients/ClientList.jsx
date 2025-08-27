@@ -2,6 +2,7 @@ import List from '../UI/List/List';
 
 import { api, config } from '../../Constants';
 import ListHeader from '../UI/List/ListHeader';
+import ClientFilter from '../UI/List/ClientFilter';
 import { Fragment, useEffect, useState, useContext } from 'react';
 
 import AuthContext from '../../store/auth-context';
@@ -20,15 +21,18 @@ const useStyles = makeStyles({
 });
 
 const ClientList = () => {
+	const urlClientChoices = config.url.HOST + api.API_URL_CLIENT_CHOICES;
 	const classes = useStyles();
 	const authContext = useContext(AuthContext);
 
 	const [list, setList] = useState([]);
 	const [error, setError] = useState(null);
-	const [filter, setFilter] = useState('');
+	const [filterTab, setFilterTab] = useState('');
 	const [rowCount, setRowCount] = useState(0);
 	const [page, setPage] = useState(0);
 	const [pageSize, setPageSize] = useState(5);
+	const [clientTypeChoices, setClientTypeChoices] = useState([]);
+	const [filterText, setFilterText] = useState('');
 	const navigate = useNavigate();
 
 	const contentHeader = [
@@ -77,6 +81,27 @@ const ClientList = () => {
 	];
 
 	useEffect(() => {
+		const fetchClientTypeChoices = async () => {
+			try {
+				const response = await fetch(urlClientChoices, {
+					headers: {
+						Authorization: `Token ${authContext.token}`,
+						'Content-Type': 'application/json',
+					},
+				});
+				if (response.ok) {
+					const choices = await response.json();
+					setClientTypeChoices(choices);
+				}
+			} catch (error) {
+				console.error('Error fetching client choices:', error);
+			}
+		};
+
+		fetchClientTypeChoices();
+	}, [urlClientChoices, authContext.token]);
+
+	useEffect(() => {
 		let isMounted = true;
 		const controller = new AbortController();
 
@@ -84,8 +109,12 @@ const ClientList = () => {
 			config.url.HOST +
 			api.API_URL_CLIENTS +
 			`?limit=${pageSize}&offset=${(page - 1) * pageSize}`;
-		if (filter) {
-			url += `&search=${filter}`;
+		if (filterText) {
+			url += `&search=${filterText}`;
+		}
+
+		if (filterTab) {
+			url += `&client_type=${filterTab}`;
 		}
 
 		const fetchClients = async () => {
@@ -136,7 +165,7 @@ const ClientList = () => {
 			isMounted = false;
 			controller.abort();
 		};
-	}, [filter, authContext.token, page, pageSize]);
+	}, [filterText, authContext.token, page, pageSize, filterTab]);
 
 	const handleAddClient = () => {
 		navigate('agregar_cliente');
@@ -148,8 +177,8 @@ const ClientList = () => {
 		navigate(`editar_cliente/${id}`, { state: { clientData: client } });
 	};
 
-	const handleFilterChange = filterText => {
-		setFilter(filterText);
+	const handleTabChange = filterTab => {
+		setFilterTab(filterTab);
 	};
 
 	const handlePageChange = newPage => {
@@ -178,7 +207,13 @@ const ClientList = () => {
 				rowCount={rowCount}
 				parsedList={list}
 				contentHeader={contentHeader}
-				onFilterChange={handleFilterChange}
+				filter={
+					<ClientFilter
+						choices={clientTypeChoices}
+						onFilter={e => setFilterText(e.target.value)}
+						onTabChange={handleTabChange}
+					/>
+				}
 			/>
 		</Fragment>
 	);

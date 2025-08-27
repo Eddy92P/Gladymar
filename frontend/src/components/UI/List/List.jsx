@@ -7,17 +7,12 @@ import DataTable from 'react-data-table-component';
 import Filter from './Filter';
 
 const List = props => {
-	const [filterText, setFilterText] = useState('');
 	const [page, setPage] = useState(0);
 	const [pageSize, setPageSize] = useState(5);
 
 	const subHeaderComponentMemo = useMemo(() => {
-		return <Filter onFilter={e => setFilterText(e.target.value)} />;
-	}, []);
-
-	useEffect(() => {
-		props.onFilterChange(filterText);
-	}, [filterText, props.onFilterChange]);
+		return props.filter ? props.filter : null;
+	}, [props.filter]);
 
 	useEffect(() => {
 		props.onPageChange(page);
