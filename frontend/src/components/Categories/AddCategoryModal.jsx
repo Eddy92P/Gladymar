@@ -43,12 +43,12 @@ function AddWarehouseModal(props) {
 	};
 	useEffect(() => {
 		setDescriptionText(
-			props.editWarehouse.length !== 0 ? 'editado' : 'agregado'
+			props.editCategory.length !== 0 ? 'editada' : 'agregada'
 		);
 		setMessageText(
-			props.editWarehouse.length !== 0
+			props.editCategory.length !== 0
 				? 'Todos los cambios fueron registrados.'
-				: ' El Almacén fue agregado exitosamente.'
+				: ' La Categoria fue agregada exitosamente.'
 		);
 	}, [props]);
 	return (
@@ -64,7 +64,7 @@ function AddWarehouseModal(props) {
 				/>
 			</Box>
 			<DialogTitle style={{ textAlign: 'center' }}>
-				Almacén {descriptionText} exitosamente.
+				Categoria {descriptionText} exitosamente.
 			</DialogTitle>
 			<DialogContent>
 				<DialogContentText

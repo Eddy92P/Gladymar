@@ -11,7 +11,7 @@ import Alert from '@mui/material/Alert';
 
 import AuthContext from '../../store/auth-context';
 import { api, config } from '../../Constants';
-import { validateNameLength, validateAddressLength } from '../../Validations';
+import { validateNameLength } from '../../Validations';
 
 import {
 	Grid,
@@ -24,24 +24,24 @@ import {
 } from '@mui/material';
 import classes from '../UI/List/List.module.css';
 
-import AddWarehousePreview from './AddWarehousePreview';
-import AddWarehouseModal from './AddWarehouseModal';
+import AddCategoryPreview from './AddCategoryPreview';
+import AddCategoryModal from './AddCategoryModal';
 import ListHeader from '../UI/List/ListHeader';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 
-function AddWarehouse() {
-	const url = config.url.HOST + api.API_URL_WAREHOUSES;
-	const urlAgencyChoices = config.url.HOST + api.API_URL_AGENCIES;
+function AddCategory() {
+	const url = config.url.HOST + api.API_URL_CATEGORIES;
+	const urlWarehouseChoices = config.url.HOST + api.API_URL_WAREHOUSES;
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
 
-	const warehouseData = useMemo(
-		() => location.state?.warehouseData || [],
-		[location.state?.warehouseData]
+	const categoryData = useMemo(
+		() => location.state?.categoryData || [],
+		[location.state?.categoryData]
 	);
 
 	const [formIsValid, setFormIsValid] = useState(false);
@@ -50,8 +50,8 @@ function AddWarehouse() {
 	const [title, setTitle] = useState('');
 	const [buttonText, setButtonText] = useState('');
 	const [disabled, setDisabled] = useState(true);
-	const [agencyChoices, setAgencyChoices] = useState([]);
-	const [agency, setAgency] = useState(null);
+	const [warehouseChoices, setWarehouseChoices] = useState([]);
+	const [warehouse, setWarehouse] = useState(null);
 	const [errorMessage, setErrorMessage] = useState('');
 
 	const nameReducer = (state, action) => {
@@ -78,48 +78,21 @@ function AddWarehouse() {
 		}
 		return { value: '', isValid: false };
 	};
-	const locationReducer = (state, action) => {
-		if (action.type === 'INPUT_FOCUS') {
-			return {
-				value: state.value,
-				isValid: validateAddressLength(state.value),
-				feedbackText: 'Ingrese una dirección valida',
-			};
-		}
-		if (action.type === 'INPUT_CHANGE') {
-			return {
-				value: action.val,
-				isValid: validateAddressLength(action.val),
-				feedbackText: 'Ingrese una dirección valida',
-			};
-		}
-		return { value: '', isValid: false };
-	};
 
 	const [nameState, dispatchName] = useReducer(nameReducer, {
-		value: warehouseData.name ? warehouseData.name : '',
-		isValid: true,
-		feedbackText: '',
-	});
-	const [locationState, dispatchLocation] = useReducer(locationReducer, {
-		value: warehouseData.location ? warehouseData.location : '',
+		value: categoryData.name ? categoryData.name : '',
 		isValid: true,
 		feedbackText: '',
 	});
 
 	const { isValid: nameIsValid } = nameState;
-	const { isValid: locationIsValid } = locationState;
 
 	const nameInputChangeHandler = e => {
 		dispatchName({ type: 'INPUT_CHANGE', val: e.target.value });
 	};
 
-	const locationInputChangeHandler = e => {
-		dispatchLocation({ type: 'INPUT_CHANGE', val: e.target.value });
-	};
-
-	const agencyInputChangeHandler = (event, option) => {
-		setAgency(option);
+	const warehouseInputChangeHandler = (event, option) => {
+		setWarehouse(option);
 	};
 
 	const handlerCancel = () => {
@@ -135,18 +108,18 @@ function AddWarehouse() {
 		if (isForm) {
 			setIsForm(!isForm);
 		}
-		if (formIsValid && !isForm && warehouseData.length === 0) {
+		if (formIsValid && !isForm && categoryData.length === 0) {
 			handleSubmit();
 		}
-		if (formIsValid && !isForm && warehouseData.length !== 0) {
+		if (formIsValid && !isForm && categoryData.length !== 0) {
 			handleEdit();
 		}
 	};
 
 	useEffect(() => {
-		const fetchAgencyChoices = async () => {
+		const fetchCategoryChoices = async () => {
 			try {
-				const response = await fetch(urlAgencyChoices, {
+				const response = await fetch(urlWarehouseChoices, {
 					headers: {
 						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
@@ -155,32 +128,32 @@ function AddWarehouse() {
 				if (response.ok) {
 					const data = await response.json();
 					const choices = data.rows || [];
-					setAgencyChoices(choices);
-					if (warehouseData.agency && choices.length > 0) {
+					setWarehouseChoices(choices);
+					if (categoryData.warehouse && choices.length > 0) {
 						const matchingChoice = choices.find(
-							choice => choice.id === warehouseData.agency.id
+							choice => choice.id === categoryData.warehouse.id
 						);
 						if (matchingChoice) {
-							setAgency(matchingChoice);
+							setWarehouse(matchingChoice);
 						}
 					}
 				}
 			} catch (error) {
-				console.error('Error fetching agency choices:', error);
+				console.error('Error fetching warehouse choices:', error);
 			}
 		};
 
-		fetchAgencyChoices();
-	}, [urlAgencyChoices, authContext.token, warehouseData.agency]);
+		fetchCategoryChoices();
+	}, [urlWarehouseChoices, authContext.token, categoryData.warehouse]);
 
 	const handleSubmit = async () => {
+		console.log(warehouse.id);
 		try {
 			const response = await fetch(url, {
 				method: 'POST',
 				body: JSON.stringify({
 					name: nameState.value,
-					location: locationState.value,
-					agency_id: agency.id,
+					warehouse_id: warehouse.id,
 				}),
 				headers: {
 					Authorization: `Token ${authContext.token}`,
@@ -210,12 +183,11 @@ function AddWarehouse() {
 	};
 	const handleEdit = async () => {
 		try {
-			const response = await fetch(`${url}${warehouseData.id}/`, {
+			const response = await fetch(`${url}${categoryData.id}/`, {
 				method: 'PUT',
 				body: JSON.stringify({
 					name: nameState.value,
-					location: locationState.value,
-					agency_id: agency.id,
+					warehouse_id: warehouse.id,
 				}),
 
 				headers: {
@@ -245,32 +217,26 @@ function AddWarehouse() {
 		}
 	};
 	useEffect(() => {
-		if (nameState.value && locationState.value && agency) {
-			const isValid = nameIsValid && locationIsValid;
+		if (nameState.value && warehouse) {
+			const isValid = nameIsValid;
 
 			setFormIsValid(isValid);
 			setDisabled(!isValid);
 		} else {
 			setDisabled(true);
 		}
-	}, [
-		nameState.value,
-		locationState.value,
-		agency,
-		nameIsValid,
-		locationIsValid,
-	]);
+	}, [nameState.value, warehouse, nameIsValid]);
 
 	useEffect(() => {
 		setTitle(
-			warehouseData.length !== 0 ? 'Editar Almacen' : 'Agregar Almacen'
+			categoryData.length !== 0 ? 'Editar Categoria' : 'Agregar Categoria'
 		);
-		if (warehouseData.length !== 0) {
+		if (categoryData.length !== 0) {
 			setButtonText('Guardar Cambios');
 		} else {
 			setButtonText(!isForm ? 'Finalizar' : 'Siguiente');
 		}
-	}, [isForm, warehouseData]);
+	}, [isForm, categoryData]);
 
 	return (
 		<>
@@ -283,7 +249,7 @@ function AddWarehouse() {
 						)}
 						<FormControl fullWidth onSubmit={handleSubmit}>
 							<Box mt={4}>
-								<h6>1. Datos de Almacén</h6>
+								<h6>1. Datos de la Categoría</h6>
 								<Grid container spacing={2} mt={1} mb={2}>
 									<Grid size={{ xs: 12, sm: 4 }}>
 										<TextField
@@ -301,29 +267,11 @@ function AddWarehouse() {
 											fullWidth
 										/>
 									</Grid>
-									<Grid size={{ xs: 12, sm: 4 }}>
-										<TextField
-											label="Ubicación"
-											variant="outlined"
-											onChange={
-												locationInputChangeHandler
-											}
-											value={locationState.value}
-											error={!locationIsValid}
-											helperText={
-												!locationIsValid
-													? locationState.feedbackText
-													: ''
-											}
-											required
-											fullWidth
-										/>
-									</Grid>
 									<Grid size={{ xs: 6, sm: 3 }}>
 										<Autocomplete
 											disablePortal
-											value={agency}
-											options={agencyChoices}
+											value={warehouse}
+											options={warehouseChoices}
 											getOptionLabel={option =>
 												option ? option.name || '' : ''
 											}
@@ -335,11 +283,13 @@ function AddWarehouse() {
 											renderInput={params => (
 												<TextField
 													{...params}
-													label="Agencia"
+													label="Almacén"
 													required
 												/>
 											)}
-											onChange={agencyInputChangeHandler}
+											onChange={
+												warehouseInputChangeHandler
+											}
 										/>
 									</Grid>
 								</Grid>
@@ -394,10 +344,9 @@ function AddWarehouse() {
 					</div>
 				) : (
 					<div className={classes.listContainer}>
-						<AddWarehousePreview
+						<AddCategoryPreview
 							name={nameState.value}
-							location={locationState.value}
-							agency={agency.name}
+							warehouse={warehouse.name}
 							message={message}
 						/>
 						<Box
@@ -448,12 +397,10 @@ function AddWarehouse() {
 						</Box>
 					</div>
 				)}
-				{showModal && (
-					<AddWarehouseModal editWarehouse={warehouseData} />
-				)}
+				{showModal && <AddCategoryModal editCategory={categoryData} />}
 			</Fragment>
 		</>
 	);
 }
 
-export default AddWarehouse;
+export default AddCategory;

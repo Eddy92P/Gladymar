@@ -13,6 +13,8 @@ import AgencyPage from './pages/AgencyPage';
 import AddAgencyPage from './pages/AddAgencyPage';
 import WarehousePage from './pages/WarehousePage';
 import AddWarehousePage from './pages/AddWarehousePage';
+import CategoryPage from './pages/CategoryPage';
+import AddCategoryPage from './pages/AddCategoryPage';
 
 function App() {
 	const authCtx = useContext(AuthContext);
@@ -71,6 +73,15 @@ function App() {
 						<Route
 							path="almacenes/editar_almacen/:id"
 							element={<AddWarehousePage />}
+						/>
+						<Route path="categorias" element={<CategoryPage />} />
+						<Route
+							path="categorias/agregar_categoria"
+							element={<AddCategoryPage />}
+						/>
+						<Route
+							path="categorias/editar_categoria/:id"
+							element={<AddCategoryPage />}
 						/>
 					</Route>
 					<Route
