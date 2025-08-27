@@ -2,6 +2,7 @@
 Serializers for warehouse app
 """
 
+from itertools import product
 from django.db import transaction
 from rest_framework import serializers
 from core.models import *
@@ -278,123 +279,22 @@ class ProductChannelPriceSerializer(serializers.ModelSerializer):
                 'end_date': "La fecha de fin no puede ser anterior a la fecha de inicio."
             })
             
+        if ProductChannelPrice.objects.filter(product=data['product'], selling_channel=data['selling_channel']).exists():
+            raise serializers.ValidationError(
+                f"El producto {data['product'].id} ya está asignado a este selling channel."
+            )
+            
         return data
     
     
 class SellingChannelSerializer(serializers.ModelSerializer):
     """Serializer for Selling Channel model."""
-    products = ProductSerializer(many=True, read_only=True, source='product')
-    product_prices = ProductChannelPriceSerializer(many=True, read_only=True, source='productchannelprice_set')
-    product_prices_data = serializers.ListField(
-        child=serializers.DictField(),
-        write_only=True,
-    )
 
     class Meta:
         model = SellingChannel
-        fields = ['id', 'name', 'products', 'product_prices', 'product_prices_data', 'created_at', 'updated_at']
+        fields = '__all__'
         read_only_fields = ['id', 'created_at', 'updated_at']
 
-    def validate_product_prices_data(self, value):
-        """Validate product prices data."""
-        if value:
-            for item_data in value:
-                # Create a copy of item_data for validation
-                validation_data = item_data.copy()
-
-                # Validate required fields manually
-                if 'product' not in validation_data:
-                    raise serializers.ValidationError("El campo 'product' es requerido.")
-                if 'price' not in validation_data:
-                    raise serializers.ValidationError("El campo 'price' es requerido.")
-
-                # Validate price is positive
-                if validation_data.get('price') and validation_data['price'] <= 0:
-                    raise serializers.ValidationError("El precio debe ser mayor a 0.")
-
-                # Validate dates if provided
-                start_date = validation_data.get('start_date')
-                end_date = validation_data.get('end_date')
-                
-                if start_date and end_date and start_date > end_date:
-                    raise serializers.ValidationError({
-                        'end_date': "La fecha de fin no puede ser anterior a la fecha de inicio."
-                    })
-        return value
-        
-    def validate(self, data):
-        """Validate product prices data."""
-        product_prices_data = data.get('product_prices_data', [])
-        
-        # Validate that all products in product_prices_data have valid data
-        if product_prices_data:
-            product_ids = set()
-            for item in product_prices_data:
-                if 'product' in item:
-                    product_ids.add(item['product'])
-            
-            # Check for duplicate products
-            if len(product_ids) != len(product_prices_data):
-                raise serializers.ValidationError({
-                    'product_prices_data': "No puede haber productos duplicados en la lista de precios."
-                })
-        
-        return data
-
-    @transaction.atomic
-    def create(self, validated_data):
-        try:
-            items_data = validated_data.pop('product_prices_data', [])
-            
-            # Create selling channel without products first
-            selling_channel = SellingChannel.objects.create(**validated_data)
-            
-            # Create product prices (this will automatically establish the many-to-many relationship)
-            for item_data in items_data:
-                # Convert product ID to Product instance
-                product_id = item_data.pop('product')
-                product = Product.objects.get(id=product_id)
-                ProductChannelPrice.objects.create(selling_channel=selling_channel, product=product, **item_data)
-                
-        except Exception as e:
-            raise e
-
-        return selling_channel
-
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        items_data = validated_data.pop('product_prices_data', [])
-
-        try:
-            # Update basic fields
-            for attr, value in validated_data.items():
-                setattr(instance, attr, value)
-            instance.save()
-
-            # Update product prices if provided
-            if items_data is not None:
-                existing_items = instance.productchannelprice_set.all()
-
-                for item in existing_items:
-                    if item.id not in [item_data.get('id') for item_data in items_data if item_data.get('id')]:
-                        item.delete()
-                for item_data in items_data:
-                    if item_data.get('id'):
-                        item = existing_items.get(id=item_data['id'])
-                        for attr, value in item_data.items():
-                            if attr != 'id':
-                                setattr(item, attr, value)
-                        item.save()
-                    else:
-                        # Convert product ID to Product instance
-                        product_id = item_data.pop('product')
-                        product = Product.objects.get(id=product_id)
-                        ProductChannelPrice.objects.create(selling_channel=instance, product=product, **item_data)
-        except Exception as e:
-            raise e
-
-        return instance
-    
 
 class PaymentSerializer(serializers.ModelSerializer):
     """Serializer for Payment model."""
