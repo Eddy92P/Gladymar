@@ -73,7 +73,6 @@ class UpdateTransactionServiceTest(TestCase):
             'batch': batch,
             'stock': 50,
             'code': f'TEST-{unique_suffix}',
-            'unit_of_measurement': 'Unit',
             'minimum_stock': 10,
             'maximum_stock': 200,
             'minimum_sale_price': 10.00,
@@ -210,7 +209,6 @@ class UpdateTransactionServiceTest(TestCase):
         
     def test_update_purchase_balance_due_payment_exceeds(self):
         """Test for update balance due when a payment is done for a sale but the payment exceeds the balance."""
-        unique_suffix = str(uuid.uuid4())[:8]
         sale = Sale.objects.create(
             client=create_client(),
             selling_channel=create_selling_channel(),

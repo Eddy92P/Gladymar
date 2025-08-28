@@ -60,7 +60,6 @@ class TestIncreaseProductStockService(TestCase):
             'batch': batch,
             'stock': 50,
             'code': f'TEST-{unique_suffix}',
-            'unit_of_measurement': 'Unit',
             'minimum_stock': 10,
             'maximum_stock': 200,
             'minimum_sale_price': 10.00,

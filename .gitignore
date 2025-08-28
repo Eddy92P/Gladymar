@@ -64,6 +64,7 @@ db.sqlite3-journal
 # Media files (uploaded by users)
 media/
 products/
+!frontend/src/components/Products/
 
 # Flask stuff:
 instance/

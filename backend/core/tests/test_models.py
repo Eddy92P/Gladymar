@@ -218,7 +218,6 @@ class ModelTest(TestCase):
             name='Test Product',
             stock=10,
             code='1234567890',
-            unit_of_measurement='Test Unit',
             description='Test Description',
             minimum_stock=10,
             maximum_stock=20,
@@ -228,7 +227,6 @@ class ModelTest(TestCase):
         self.assertEqual(product.name, 'Test Product')
         self.assertEqual(product.stock, 10)
         self.assertEqual(product.code, '1234567890')
-        self.assertEqual(product.unit_of_measurement, 'Test Unit')
         self.assertEqual(product.description, 'Test Description')
         self.assertEqual(product.minimum_stock, 10)
         self.assertEqual(product.maximum_stock, 20)
@@ -257,7 +255,6 @@ class ModelTest(TestCase):
                 name='Test Product',
                 stock=20,
                 code='1234567890',
-                unit_of_measurement='Test Unit',
                 minimum_stock=20,
                 maximum_stock=10,
                 minimum_sale_price=10,
@@ -286,7 +283,6 @@ class ModelTest(TestCase):
                 name='Test Product',
                 stock=10,
                 code='1234567890',
-                unit_of_measurement='Test Unit',
                 minimum_stock=10,
                 maximum_stock=20,
                 minimum_sale_price=20,
@@ -362,7 +358,6 @@ class ModelTest(TestCase):
                 name='Test Product',
                 stock=10,
                 code='1234567890',
-                unit_of_measurement='Test Unit',
                 description='Test Description',
                 minimum_stock=10,
                 maximum_stock=20,
@@ -440,7 +435,6 @@ class ModelTest(TestCase):
                 name='Test Product',
                 stock=10,
                 code='1234567890',
-                unit_of_measurement='Test Unit',
                 description='Test Description',
                 minimum_stock=10,
                 maximum_stock=20,
@@ -526,7 +520,6 @@ class ModelTest(TestCase):
                 name='Test Product',
                 stock=10,
                 code='1234567890',
-                unit_of_measurement='Test Unit',
                 description='Test Description',
                 minimum_stock=10,
                 maximum_stock=20,
