@@ -17,7 +17,7 @@ export const validatePasswordLength = password => {
 
 export const validationIsString = text => {
 	const validString = new RegExp('[a-zA-Z]+');
-	return validString.test(text);
+	return validString.test(text) && text.length > 0;
 };
 
 export const validateNameLength = name => {
@@ -76,4 +76,13 @@ export const validateCosto = costo => {
 
 export const validatePercentageVisa = percentageVisa => {
 	return percentageVisa >= 0 && percentageVisa <= 100;
+};
+
+export const validateCode = code => {
+	const codeRegex = /^[a-zA-Z0-9\s_-]+$/;
+	return codeRegex.test(code) && code.length > 0;
+};
+
+export const validatePositiveNumber = number => {
+	return parseInt(number) >= 0;
 };

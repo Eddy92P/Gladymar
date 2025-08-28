@@ -117,6 +117,78 @@ function AddProductPreview(props) {
 								className={classes.textStyle}
 							/>
 						</Grid>
+						<Grid item md={3}>
+							<TextField
+								label="Stock minimo"
+								value={props.minimum_stock}
+								fullWidth
+								variant="standard"
+								sx={{
+									'& .MuiInput-underline:before': {
+										borderBottom: 'none',
+									},
+									'& .MuiInput-underline:after': {
+										borderBottom: 'none',
+									},
+								}}
+								disabled
+								className={classes.textStyle}
+							/>
+						</Grid>
+						<Grid item md={3}>
+							<TextField
+								label="Stock máximo"
+								value={props.maximum_stock}
+								fullWidth
+								variant="standard"
+								sx={{
+									'& .MuiInput-underline:before': {
+										borderBottom: 'none',
+									},
+									'& .MuiInput-underline:after': {
+										borderBottom: 'none',
+									},
+								}}
+								disabled
+								className={classes.textStyle}
+							/>
+						</Grid>
+						<Grid item md={3}>
+							<TextField
+								label="Precio de venta minimo"
+								value={props.minimum_sale_price}
+								fullWidth
+								variant="standard"
+								sx={{
+									'& .MuiInput-underline:before': {
+										borderBottom: 'none',
+									},
+									'& .MuiInput-underline:after': {
+										borderBottom: 'none',
+									},
+								}}
+								disabled
+								className={classes.textStyle}
+							/>
+						</Grid>
+						<Grid item md={3}>
+							<TextField
+								label="Precio de venta máximo"
+								value={props.maximum_sale_price}
+								fullWidth
+								variant="standard"
+								sx={{
+									'& .MuiInput-underline:before': {
+										borderBottom: 'none',
+									},
+									'& .MuiInput-underline:after': {
+										borderBottom: 'none',
+									},
+								}}
+								disabled
+								className={classes.textStyle}
+							/>
+						</Grid>
 					</Grid>
 				</Box>
 			</Box>
