@@ -316,6 +316,7 @@ class Product(models.Model):
             )
         ]
     )
+    unit_of_measurement = models.CharField(max_length=10, null=False, blank=False)
     description = models.TextField(null=True, blank=True)
     image = models.ImageField(upload_to='products/', null=True, blank=True)
     minimum_stock = models.PositiveIntegerField(default=0)

@@ -101,6 +101,11 @@ class BatchViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve batches ordered by id."""
         return self.queryset.order_by('-id')
+    
+    @action(detail=False, methods=["get"], url_path="all")
+    def all_categories(self, request):
+        queryset = self.filter_queryset(self.get_queryset()).values("id", "name")
+        return Response(list(queryset))
 
 
 class ProductViewSet(viewsets.ModelViewSet):

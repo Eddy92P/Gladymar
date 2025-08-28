@@ -102,6 +102,7 @@ def create_product(**params):
         'batch': create_batch(),
         'stock': 100,
         'code': f'Sample Code {unique_suffix}',
+        'unit_of_measurement': 'Unit',
         'description': 'Sample Description',
         'image': None,
         'minimum_stock': 10,

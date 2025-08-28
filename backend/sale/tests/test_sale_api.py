@@ -89,6 +89,7 @@ def create_product(**params):
         'batch': create_batch(),
         'name': f'TestProduct{unique_suffix}',
         'code': f'CODE{unique_suffix}',
+        'unit_of_measurement': 'UN',
         'description': 'Test product description',
         'minimum_stock': 10,
         'maximum_stock': 100,
