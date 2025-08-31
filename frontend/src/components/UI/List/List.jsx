@@ -24,6 +24,13 @@ const List = props => {
 		selectAllRowsItemText: 'Todos',
 	};
 
+	const ExpandedComponent = ({ data }) => (
+		<div style={{ padding: '10px' }}>
+			<strong>Detalles de {data.title}</strong>
+			<p>Año: {data.year}</p>
+		</div>
+	);
+
 	return (
 		<Fragment>
 			<div className={classes.listContainer}>
@@ -47,6 +54,20 @@ const List = props => {
 						<div style={{ padding: '20px', textAlign: 'center' }}>
 							<h5>No hay registros disponibles</h5>
 						</div>
+					}
+					expandableRows={props.expandable}
+					expandableRowsComponent={
+						props.expandable
+							? ({ data }) => (
+									<div style={{ padding: 16 }}>
+										<strong>Detalles de {data.col1}</strong>
+										<p>
+											Aquí puedes renderizar un
+											subelemento, incluso otro DataTable.
+										</p>
+									</div>
+								)
+							: undefined
 					}
 					persistTableHead
 				/>

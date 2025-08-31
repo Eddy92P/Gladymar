@@ -1,6 +1,7 @@
 """
 Database models for the application.
 """
+import os
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.validators import RegexValidator
@@ -332,6 +333,14 @@ class Product(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.code}"
+    
+    def delete_image(self):
+        """Delete the image file from storage."""
+        if self.image:
+            if os.path.exists(self.image.path):
+                os.remove(self.image.path)
+            self.image = None
+            self.save(update_fields=['image'])
     
     def save(self, *args, **kwargs):
         if self.minimum_stock > self.maximum_stock:

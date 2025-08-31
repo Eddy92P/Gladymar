@@ -17,6 +17,10 @@ import CategoryPage from './pages/CategoryPage';
 import AddCategoryPage from './pages/AddCategoryPage';
 import BatchPage from './pages/BatchPage';
 import AddBatchPage from './pages/AddBatchPage';
+import ProductPage from './pages/ProductPage';
+import AddProductPage from './pages/AddProductPage';
+import SupplierPage from './pages/SupplierPage';
+import AddSupplierPage from './pages/AddSupplierPage';
 
 function App() {
 	const authCtx = useContext(AuthContext);
@@ -93,6 +97,24 @@ function App() {
 						<Route
 							path="lotes/editar_lote/:id"
 							element={<AddBatchPage />}
+						/>
+						<Route path="productos" element={<ProductPage />} />
+						<Route
+							path="productos/agregar_producto"
+							element={<AddProductPage />}
+						/>
+						<Route
+							path="productos/editar_producto/:id"
+							element={<AddProductPage />}
+						/>
+						<Route path="proveedores" element={<SupplierPage />} />
+						<Route
+							path="proveedores/agregar_proveedor"
+							element={<AddSupplierPage />}
+						/>
+						<Route
+							path="proveedores/editar_proveedor/:id"
+							element={<AddSupplierPage />}
 						/>
 					</Route>
 					<Route

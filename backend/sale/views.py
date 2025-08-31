@@ -1,6 +1,7 @@
 """
 Views for warehouse API.
 """
+import os
 from rest_framework import viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.authentication import TokenAuthentication
@@ -122,6 +123,23 @@ class ProductViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve products ordered by id."""
         return self.queryset.order_by('-id')
+    
+    def update(self, request, *args, **kwargs):
+        """Custom update method to handle image deletion."""
+        instance = self.get_object()
+        
+        # Check if image should be deleted (not present in request data or explicitly set to null/empty)
+        should_delete_image = (
+            'image' not in request.data or 
+            request.data.get('image') is None or 
+            request.data.get('image') == ''
+        )
+        
+        if should_delete_image and instance.image:
+            # Delete the old image file from storage
+            instance.delete_image()
+        
+        return super().update(request, *args, **kwargs)
 
 
 class ClientViewSet(viewsets.ModelViewSet):

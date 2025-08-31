@@ -2,6 +2,7 @@
 Serializers for warehouse app
 """
 
+import os
 from itertools import product
 from django.db import transaction
 from rest_framework import serializers
@@ -91,7 +92,40 @@ class ProductSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({
                     'minimum_sale_price': "El precio de venta mínimo no puede ser mayor al máximo."
                 })
+                
+        if data.get('stock') and data.get('maximum_stock'):
+            if data['stock'] > data['maximum_stock']:
+                raise serializers.ValidationError({
+                    'stock': "El stock no puede ser mayor al máximo."
+                })
+                
+        if data.get('stock') and data.get('minimum_stock'):
+            if data['stock'] < data['minimum_stock']:
+                raise serializers.ValidationError({
+                    'stock': "El stock no puede ser menor al mínimo."
+                })
+        
+        # Validate image file if provided
+        image = data.get('image')
+        if image:
+            # Check file type
+            allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
+            if image.content_type not in allowed_types:
+                raise serializers.ValidationError({
+                    'image': "Formato de archivo no soportado. Use JPG, PNG o GIF."
+                })
+        
         return data
+    
+    def update(self, instance, validated_data):
+        """Custom update method to handle image deletion."""
+        # If image is explicitly set to None, clear the field
+        if 'image' in validated_data and validated_data['image'] is None:
+            # Delete the old image file if it exists
+            instance.delete_image()
+            validated_data['image'] = None
+        
+        return super().update(instance, validated_data)
 
 
 class SupplierSerializer(serializers.ModelSerializer):

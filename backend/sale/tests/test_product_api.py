@@ -408,3 +408,52 @@ class PrivateProductApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(res.data['minimum_sale_price'][0], 'El precio de venta mínimo no puede ser mayor al máximo.')
         
+    def test_stock_greater_than_maximum(self):
+        """Test stock can't be greater than maximum stock."""
+        unique_suffix = str(uuid.uuid4())[:8]
+        batch = create_batch()
+        supplier = create_supplier()
+        payload = {
+            'name': f'Test Product with Image {unique_suffix}',
+            'batch_id': batch.id,
+            'stock': 50,
+            'code': f'TEST001_{unique_suffix}',
+            'unit_of_measurement': 'Unit',
+            'description': 'Test product with image',
+            'image': '',
+            'minimum_stock': 10,
+            'maximum_stock': 20,
+            'minimum_sale_price': 120.00,
+            'maximum_sale_price': 200.00,
+            'supplier': [supplier.id],
+        }
+        
+        res = self.client.post(PRODUCT_URL, payload)
+        
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res.data['stock'][0], 'El stock no puede ser mayor al máximo.')
+        
+    def test_stock_lower_than_minimum(self):
+        """Test stock can't be lower than minimum stock."""
+        unique_suffix = str(uuid.uuid4())[:8]
+        batch = create_batch()
+        supplier = create_supplier()
+        payload = {
+            'name': f'Test Product with Image {unique_suffix}',
+            'batch_id': batch.id,
+            'stock': 10,
+            'code': f'TEST001_{unique_suffix}',
+            'unit_of_measurement': 'Unit',
+            'description': 'Test product with image',
+            'image': '',
+            'minimum_stock': 50,
+            'maximum_stock': 100,
+            'minimum_sale_price': 120.00,
+            'maximum_sale_price': 200.00,
+            'supplier': [supplier.id],
+        }
+        
+        res = self.client.post(PRODUCT_URL, payload)
+        
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(res.data['stock'][0], 'El stock no puede ser menor al mínimo.')
