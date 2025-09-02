@@ -211,11 +211,21 @@ class PrivateSellingChannelApiTests(TestCase):
         selling_channel = create_selling_channel(name='Old Name')
         
         payload = {
-            'name': 'Fully Updated Name',
+            "product_channel_price": [
+                {
+                "product": create_product().id,
+                "selling_channel": create_selling_channel().id,
+                "price": 10.00,
+                "start_date": "2025-09-02",
+                "end_date": "2025-09-02"
+                }
+            ],
+            "name": "string",
         }
         
         url = detail_url(selling_channel.id)
         res = self.client.put(url, payload, format='json')
+        print(res.data)
         
         selling_channel.refresh_from_db()
         self.assertEqual(res.status_code, status.HTTP_200_OK)

@@ -112,6 +112,9 @@ const SuppliersList = () => {
 							nit: listData.nit,
 							email: listData.email,
 							address: listData.address,
+							products: Array.isArray(listData.products)
+								? listData.products
+								: [],
 						};
 					});
 					setList(parsedList);

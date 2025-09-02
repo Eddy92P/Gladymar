@@ -323,11 +323,56 @@ class ProductChannelPriceSerializer(serializers.ModelSerializer):
     
 class SellingChannelSerializer(serializers.ModelSerializer):
     """Serializer for Selling Channel model."""
+    product_channel_price = ProductChannelPriceSerializer(many=True, required=False)
 
     class Meta:
         model = SellingChannel
-        fields = '__all__'
+        fields = ['id', 'product_channel_price', 'name', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+        
+    @transaction.atomic
+    def create(self, validated_data):
+        products_channel_data = validated_data.pop('product_channel_price', [])
+        try:
+            selling_channel = SellingChannel.objects.create(**validated_data)
+
+            for product_channel_data in products_channel_data:
+                ProductChannelPrice.objects.create(selling_channel=selling_channel, **product_channel_data)
+        except Exception as e:
+            raise e
+        
+        return selling_channel
+    
+    def update(self, instance, validated_data):
+        products_channel_data = validated_data.pop('product_channel_price', None)
+        try:
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+
+            if products_channel_data is not None:
+                existing_items = instance.productchannelprice_set.all()
+
+                for item in existing_items:
+                    if item.id not in [item_data.get('id') for item_data in products_channel_data if item_data.get('id')]:
+                        item.delete()
+                for item_data in products_channel_data:
+                    if item_data.get('id'):
+                        item = existing_items.get(id=item_data['id'])
+                        for attr, value in item_data.items():
+                            if attr != 'id':
+                                setattr(item, attr, value)
+                        item.save()
+                    else:
+                        # Remove selling_channel from item_data to avoid conflict
+                        item_data_copy = item_data.copy()
+                        item_data_copy.pop('selling_channel', None)
+                        ProductChannelPrice.objects.create(selling_channel=instance, **item_data_copy)
+        except Exception as e:
+            raise e
+        
+        return instance
+        
 
 
 class PaymentSerializer(serializers.ModelSerializer):
@@ -385,6 +430,7 @@ class PurchaseSerializer(serializers.ModelSerializer):
             'invoice_number',
             'total',
             'balance_due',
+            'status',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
         
@@ -471,11 +517,13 @@ class SaleSerializer(serializers.ModelSerializer):
         queryset=Client.objects.all(),
         write_only=True,
     )
+    payments = NestedPaymentSerializer(required=False)
     
     class Meta:
         model = Sale
         fields = [
             'id',
+            'payments',
             'selling_channel',
             'selling_channels',
             'sale_items',
@@ -505,9 +553,14 @@ class SaleSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         try:
             items_data = validated_data.pop('sale_items', [])
+            payment_data = validated_data.pop('payments', None)
             sale = Sale.objects.create(**validated_data)
             for item_data in items_data:
                 SaleItem.objects.create(sale=sale, **item_data)
+
+            if payment_data:
+                payment = Payment.objects.create(transaction_id=sale.id, **payment_data)
+                UpdateTransactionService(sale.id, payment.amount, payment.transaction_type).update_transaction_balance_due()
         except Exception as e:
             raise e
 

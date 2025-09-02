@@ -10,7 +10,7 @@ import { api, config } from '../../Constants';
 // Context
 import AuthContext from '../../store/auth-context';
 
-const AddProductList = ({ onClose }) => {
+const AddProductList = ({ onClose, onProductList, addedProducts = [] }) => {
 	const [list, setList] = useState([]);
 	const [error, setError] = useState('');
 	const [filterText, setFilterText] = useState('');
@@ -48,6 +48,7 @@ const AddProductList = ({ onClose }) => {
 				if (isMounted) {
 					const parsedList = data.rows.map(listData => {
 						return {
+							id: listData.id,
 							name: listData.name,
 							code: listData.code,
 						};
@@ -87,7 +88,9 @@ const AddProductList = ({ onClose }) => {
 			<TableList
 				data={list}
 				open={showModal}
+				onProductList={onProductList}
 				onClose={handleCloseModal}
+				addedProducts={addedProducts}
 				filterComponent={
 					<Filter onFilter={e => setFilterText(e.target.value)} />
 				}

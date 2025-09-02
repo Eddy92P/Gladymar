@@ -16,7 +16,21 @@ import {
 	FormControl,
 	Box,
 	Typography,
+	Paper,
+	Table,
+	TableBody,
+	TableCell,
+	TableContainer,
+	TableHead,
+	TableRow,
+	IconButton,
+	Tooltip,
+	Alert,
 } from '@mui/material';
+import CancelIcon from '@mui/icons-material/Cancel';
+import { tableCellClasses } from '@mui/material/TableCell';
+import { styled } from '@mui/material/styles';
+import { red } from '@mui/material/colors';
 
 // Validations and Constants
 import {
@@ -40,8 +54,19 @@ import AuthContext from '../../store/auth-context';
 // CSS classes
 import classes from '../UI/List/List.module.css';
 
+// Styled components defined outside the component
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+	[`&.${tableCellClasses.head}`]: {
+		backgroundColor: '#74353c',
+		color: theme.palette.common.white,
+	},
+	[`&.${tableCellClasses.body}`]: {
+		fontSize: 14,
+	},
+}));
+
 export const AddSupplier = () => {
-	const url = config.url.HOST + api.API_URL_BATCHES;
+	const url = config.url.HOST + api.API_URL_SUPPLIERS;
 
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);
@@ -62,6 +87,9 @@ export const AddSupplier = () => {
 	const [disabled, setDisabled] = useState(true);
 	const [errorMessage, setErrorMessage] = useState('');
 	const [showProductsModal, setShowProductsModal] = useState(false);
+	const [productsList, setProductsList] = useState(
+		supplierData.products ? supplierData.products : []
+	);
 
 	const nameReducer = (state, action) => {
 		if (action.type === 'INPUT_FOCUS') {
@@ -195,25 +223,25 @@ export const AddSupplier = () => {
 	});
 
 	const [phoneState, dispatchPhone] = useReducer(phoneReducer, {
-		value: supplierData.name ? supplierData.name : '',
+		value: supplierData.phone ? supplierData.phone : '',
 		isValid: true,
 		feedbackText: '',
 	});
 
 	const [nitState, dispatchNit] = useReducer(nitReducer, {
-		value: supplierData.name ? supplierData.name : '',
+		value: supplierData.nit ? supplierData.nit : '',
 		isValid: true,
 		feedbackText: '',
 	});
 
 	const [emailState, dispatchEmail] = useReducer(emailReducer, {
-		value: supplierData.name ? supplierData.name : '',
+		value: supplierData.email ? supplierData.email : '',
 		isValid: true,
 		feedbackText: '',
 	});
 
 	const [addressState, dispatchAddress] = useReducer(addressReducer, {
-		value: supplierData.name ? supplierData.name : '',
+		value: supplierData.address ? supplierData.address : '',
 		isValid: true,
 		feedbackText: '',
 	});
@@ -274,7 +302,8 @@ export const AddSupplier = () => {
 					phone: phoneState.value,
 					nit: nitState.value,
 					email: emailState.value,
-					addressState: addressState.value,
+					address: addressState.value,
+					product: productsList.map(product => product.id),
 				}),
 				headers: {
 					Authorization: `Token ${authContext.token}`,
@@ -313,6 +342,7 @@ export const AddSupplier = () => {
 					nit: nitState.value,
 					email: emailState.value,
 					addressState: addressState.value,
+					product: productsList.map(product => product.id),
 				}),
 
 				headers: {
@@ -340,6 +370,10 @@ export const AddSupplier = () => {
 			setIsLoading(false);
 			setMessage(e.message);
 		}
+	};
+
+	const handleRemoveProduct = (e, id) => {
+		setProductsList(productsList.filter(product => product.id !== id));
 	};
 
 	useEffect(() => {
@@ -386,7 +420,8 @@ export const AddSupplier = () => {
 		}
 	}, [isForm, supplierData]);
 
-	const AddProductModal = React.memo(<AddProductList />);
+	// Definir columnas estáticas para evitar renderizar objetos anidados
+	const columns = ['name', 'code'];
 
 	return (
 		<>
@@ -417,7 +452,7 @@ export const AddSupplier = () => {
 											fullWidth
 										/>
 									</Grid>
-									<Grid size={{ xs: 12, sm: 4 }}>
+									<Grid size={{ xs: 12, sm: 3 }}>
 										<TextField
 											label="Teléfono"
 											variant="outlined"
@@ -433,7 +468,7 @@ export const AddSupplier = () => {
 											fullWidth
 										/>
 									</Grid>
-									<Grid size={{ xs: 12, sm: 4 }}>
+									<Grid size={{ xs: 12, sm: 3 }}>
 										<TextField
 											label="NIT"
 											variant="outlined"
@@ -449,7 +484,7 @@ export const AddSupplier = () => {
 											fullWidth
 										/>
 									</Grid>
-									<Grid size={{ xs: 12, sm: 4 }}>
+									<Grid size={{ xs: 12, sm: 3 }}>
 										<TextField
 											label="Correo Electrónico"
 											variant="outlined"
@@ -483,6 +518,85 @@ export const AddSupplier = () => {
 									</Grid>
 								</Grid>
 							</Box>
+							{productsList.length > 0 && (
+								<Box sx={{ mt: 2, flexGrow: 1 }}>
+									<h5>Productos</h5>
+									<TableContainer component={Paper}>
+										<Table
+											sx={{ minWidth: 650 }}
+											aria-label="simple table"
+										>
+											<TableHead>
+												<TableRow>
+													<StyledTableCell>
+														Nombre
+													</StyledTableCell>
+													<StyledTableCell>
+														Código
+													</StyledTableCell>
+													<StyledTableCell></StyledTableCell>
+												</TableRow>
+											</TableHead>
+											<TableBody>
+												{productsList.map(
+													(item, rowIndex) => (
+														<TableRow
+															key={`row-${rowIndex}`}
+														>
+															{columns
+																.filter(
+																	value =>
+																		value !==
+																		'id'
+																)
+																.map(
+																	(
+																		value,
+																		colIndex
+																	) => (
+																		<TableCell
+																			key={`cell-${rowIndex}-${colIndex}`}
+																		>
+																			{
+																				item[
+																					value
+																				]
+																			}
+																		</TableCell>
+																	)
+																)}
+															<TableCell align="center">
+																<Tooltip
+																	title={
+																		'Quitar'
+																	}
+																	placement="top"
+																>
+																	<IconButton
+																		aria-label="add"
+																		onClick={e =>
+																			handleRemoveProduct(
+																				e,
+																				item.id
+																			)
+																		}
+																	>
+																		<CancelIcon
+																			sx={{
+																				color: red[500],
+																			}}
+																		/>
+																	</IconButton>
+																</Tooltip>
+															</TableCell>
+														</TableRow>
+													)
+												)}
+											</TableBody>
+										</Table>
+									</TableContainer>
+								</Box>
+							)}
 						</FormControl>
 						<Box
 							mt={2}
@@ -550,6 +664,7 @@ export const AddSupplier = () => {
 							nit={nitState.value}
 							email={emailState.value}
 							address={addressState.value}
+							products={productsList}
 							message={message}
 						/>
 						<Box
@@ -602,9 +717,12 @@ export const AddSupplier = () => {
 				)}
 				{showProductsModal && (
 					<AddProductList
+						onProductList={setProductsList}
 						onClose={() => setShowProductsModal(false)}
+						addedProducts={productsList}
 					/>
 				)}
+
 				{showModal && <AddSupplierModal editSupplier={supplierData} />}
 			</Fragment>
 		</>

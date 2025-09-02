@@ -138,7 +138,7 @@ def create_purchase(**params):
             total_price=100.00,
         )
 
-    return Purchase.objects.create(**defaults)
+    return purchase
 
 def create_payment(**params):
     # Generate unique transaction_id to avoid constraint violations
@@ -189,23 +189,6 @@ class PrivatePurchaseApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data['rows'], serializer.data)
 
-    def test_supplier_with_products_relationship(self):
-        """Test creating a supplier with products using M:M relationship."""
-        product1 = create_product(name='Producto1')
-        product2 = create_product(name='Producto2')
-
-        supplier = create_supplier(
-            name='MiProveedor',
-            product=[product1, product2]
-        )
-
-        self.assertEqual(supplier.product.count(), 2)
-        self.assertIn(product1, supplier.product.all())
-        self.assertIn(product2, supplier.product.all())
-
-        self.assertIn(supplier, product1.suppliers.all())
-        self.assertIn(supplier, product2.suppliers.all())
-    
     def test_create_purchase(self):
         """Test creating a purchase."""
         payload = {

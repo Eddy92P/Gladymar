@@ -180,7 +180,7 @@ class PrivatePurchaseApiTests(TestCase):
             'balance_due': 100.00,
             'status': 'generado',
             'sale_type': 'contado',
-            'sale_date': '2025-10-10',
+            'sale_date': '2024-01-01',
             'sale_items': [
                 {
                     'product': create_product().id,
@@ -188,7 +188,13 @@ class PrivatePurchaseApiTests(TestCase):
                     'unit_price': 10.00,
                     'total_price': 100.00,
                 }
-            ]
+            ],
+            'payments': {
+                'payment_method': 'efectivo',
+                'transaction_type': 'venta',
+                'amount': 100.00,
+                'payment_date': '2024-01-01',
+            }
         }
 
         res = self.client.post(SALE_URL, payload, format='json')
@@ -223,7 +229,7 @@ class PrivatePurchaseApiTests(TestCase):
             'balance_due': 100.00,
             'status': 'generado',
             'sale_type': 'contado',
-            'sale_date': '2025-10-10',
+            'sale_date': '2024-01-01',
             'sale_items': [
                 {
                     'product': create_product().id,

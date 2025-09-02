@@ -48,8 +48,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         blank=False, 
         validators=[
             RegexValidator(
-                regex=r'^[a-zA-Z]+$',
-                message="El nombre solo puede contener letras."
+                regex=r'^[a-zA-ZÀ-ÿ\s]+$',
+                message="El nombre solo puede contener letras y espacios."
             )
         ]
     )
@@ -59,8 +59,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         blank=False, 
         validators=[
             RegexValidator(
-                regex=r'^[a-zA-Z]+$',
-                message="El apellido solo puede contener letras."
+                regex=r'^[a-zA-ZÀ-ÿ\s]+$',
+                message="El apellido solo puede contener letras y espacios."
             )
         ]
     )
@@ -371,8 +371,8 @@ class Supplier(models.Model):
         blank=False, 
         validators=[
             RegexValidator(
-                regex=r'^[a-zA-Z]+$',
-                message="El nombre solo puede contener letras."
+                regex=r'^[a-zA-ZÀ-ÿ\s]+$',
+                message="El nombre solo puede contener letras y espacios."
             )
         ]
     )

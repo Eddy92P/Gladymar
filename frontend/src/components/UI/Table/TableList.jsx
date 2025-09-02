@@ -40,7 +40,14 @@ const StyledDialog = styled(Dialog)({
 	},
 });
 
-const TableList = ({ data, open: externalOpen, onClose, filterComponent }) => {
+const TableList = ({
+	data,
+	open: externalOpen,
+	onClose,
+	filterComponent,
+	onProductList,
+	addedProducts = [],
+}) => {
 	const [open, setOpen] = useState(externalOpen || false);
 	const theme = useTheme();
 	const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
@@ -57,6 +64,17 @@ const TableList = ({ data, open: externalOpen, onClose, filterComponent }) => {
 		if (onClose) {
 			onClose();
 		}
+	};
+
+	const handleAddProduct = (e, id) => {
+		e.preventDefault();
+		const product = data.find(product => product.id === id);
+		onProductList(prev => [...prev, product]);
+	};
+
+	// Función para verificar si un producto ya fue agregado
+	const isProductAdded = productId => {
+		return addedProducts.some(product => product.id === productId);
 	};
 
 	// Si no hay datos, mostrar mensaje
@@ -154,21 +172,48 @@ const TableList = ({ data, open: externalOpen, onClose, filterComponent }) => {
 						<TableBody>
 							{data.map((item, rowIndex) => (
 								<TableRow key={`row-${rowIndex}`}>
-									{columns.map((value, colIndex) => (
-										<TableCell
-											key={`cell-${rowIndex}-${colIndex}`}
-										>
-											{item[value]}
-										</TableCell>
-									))}
+									{columns
+										.filter(value => value !== 'id')
+										.map((value, colIndex) => (
+											<TableCell
+												key={`cell-${rowIndex}-${colIndex}`}
+											>
+												{item[value]}
+											</TableCell>
+										))}
 									<TableCell align="center">
 										<Tooltip
-											title="Add Product"
+											title={
+												isProductAdded(item.id)
+													? 'Producto ya agregado'
+													: 'Agregar'
+											}
 											placement="top"
 										>
-											<IconButton aria-label="add">
-												<AddCircleIcon color="success" />
-											</IconButton>
+											<span>
+												<IconButton
+													aria-label="add"
+													onClick={e =>
+														handleAddProduct(
+															e,
+															item.id
+														)
+													}
+													disabled={isProductAdded(
+														item.id
+													)}
+												>
+													<AddCircleIcon
+														color={
+															isProductAdded(
+																item.id
+															)
+																? 'disabled'
+																: 'success'
+														}
+													/>
+												</IconButton>
+											</span>
 										</Tooltip>
 									</TableCell>
 								</TableRow>
