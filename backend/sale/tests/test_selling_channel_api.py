@@ -225,7 +225,6 @@ class PrivateSellingChannelApiTests(TestCase):
         
         url = detail_url(selling_channel.id)
         res = self.client.put(url, payload, format='json')
-        print(res.data)
         
         selling_channel.refresh_from_db()
         self.assertEqual(res.status_code, status.HTTP_200_OK)

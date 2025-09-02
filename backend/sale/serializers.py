@@ -126,11 +126,20 @@ class ProductSerializer(serializers.ModelSerializer):
             validated_data['image'] = None
         
         return super().update(instance, validated_data)
+    
+    
+class ProductMinimumSerializer(serializers.ModelSerializer):
+    """Serializer to get products only to read in sales, purchases and suppliers."""
+    
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'code']
+        read_only_fields = ['id', 'name', 'code']
 
 
 class SupplierSerializer(serializers.ModelSerializer):
     """Serializer for Supplier model"""
-    products = ProductSerializer(many=True, read_only=True, source='product')
+    products = ProductMinimumSerializer(many=True, read_only=True, source='product')
     product = serializers.PrimaryKeyRelatedField(
         many=True, 
         queryset=Product.objects.all(),

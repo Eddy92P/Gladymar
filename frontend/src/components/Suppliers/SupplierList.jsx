@@ -1,4 +1,4 @@
-import List from '../UI/List/List';
+import DetailedProductList from '../UI/List/DetailedProductList';
 
 import { api, config } from '../../Constants';
 import ListHeader from '../UI/List/ListHeader';
@@ -169,7 +169,7 @@ const SuppliersList = () => {
 				onClick={handleAddBatch}
 				visible={true}
 			/>
-			<List
+			<DetailedProductList
 				onPageSizeChange={handlePageSizeChange}
 				onPageChange={handlePageChange}
 				rowCount={rowCount}
