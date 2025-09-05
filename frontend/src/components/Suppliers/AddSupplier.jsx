@@ -322,6 +322,30 @@ export const AddSupplier = () => {
 						errorMessage: data.name[0],
 					});
 				}
+				if (data.phone) {
+					dispatchPhone({
+						type: 'INPUT_ERROR',
+						errorMessage: data.phone[0],
+					});
+				}
+				if (data.nit) {
+					dispatchNit({
+						type: 'INPUT_ERROR',
+						errorMessage: data.nit[0],
+					});
+				}
+				if (data.email) {
+					dispatchName({
+						type: 'INPUT_ERROR',
+						errorMessage: data.email[0],
+					});
+				}
+				if (data.address) {
+					dispatchName({
+						type: 'INPUT_ERROR',
+						errorMessage: data.address[0],
+					});
+				}
 			} else {
 				setIsLoading(true);
 				setShowModal(true);
@@ -360,6 +384,30 @@ export const AddSupplier = () => {
 					dispatchName({
 						type: 'INPUT_ERROR',
 						errorMessage: data.name[0],
+					});
+				}
+				if (data.phone) {
+					dispatchPhone({
+						type: 'INPUT_ERROR',
+						errorMessage: data.phone[0],
+					});
+				}
+				if (data.nit) {
+					dispatchNit({
+						type: 'INPUT_ERROR',
+						errorMessage: data.nit[0],
+					});
+				}
+				if (data.email) {
+					dispatchName({
+						type: 'INPUT_ERROR',
+						errorMessage: data.email[0],
+					});
+				}
+				if (data.address) {
+					dispatchName({
+						type: 'INPUT_ERROR',
+						errorMessage: data.address[0],
 					});
 				}
 			} else {

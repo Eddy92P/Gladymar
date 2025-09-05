@@ -304,6 +304,8 @@ class OutputSerializer(serializers.ModelSerializer):
 
 class ProductChannelPriceSerializer(serializers.ModelSerializer):
     """Serializer for ProductChannelPrice model"""
+    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+    selling_channel = serializers.PrimaryKeyRelatedField(queryset=SellingChannel.objects.all())
     
     class Meta:
         model = ProductChannelPrice
@@ -312,6 +314,18 @@ class ProductChannelPriceSerializer(serializers.ModelSerializer):
             'start_date', 'end_date'
         ]
         read_only_fields = ['id']
+        
+    def validate_start_date(self, value):
+        """Convert empty string to None for optional date field"""
+        if value == '':
+            return None
+        return value
+    
+    def validate_end_date(self, value):
+        """Convert empty string to None for optional date field"""
+        if value == '':
+            return None
+        return value
         
     def validate(self, data):
         start_date = data.get('start_date')
@@ -322,17 +336,56 @@ class ProductChannelPriceSerializer(serializers.ModelSerializer):
                 'end_date': "La fecha de fin no puede ser anterior a la fecha de inicio."
             })
             
-        if ProductChannelPrice.objects.filter(product=data['product'], selling_channel=data['selling_channel']).exists():
+        # Only validate duplicate product-channel assignment if selling_channel is provided
+        selling_channel = data.get('selling_channel')
+        if selling_channel and ProductChannelPrice.objects.filter(product=data['product'], selling_channel=selling_channel).exists():
             raise serializers.ValidationError(
                 f"El producto {data['product'].id} ya está asignado a este selling channel."
             )
+            
+        return data
+
+
+class NestedProductChannelPriceSerializer(serializers.ModelSerializer):
+    """Serializer for ProductChannelPrice model when used in nested context"""
+    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), write_only=True)
+    products = ProductSerializer(read_only=True, source='product')
+    
+    class Meta:
+        model = ProductChannelPrice
+        fields = [
+            'id', 'product', 'products', 'price', 
+            'start_date', 'end_date'
+        ]
+        read_only_fields = ['id']
+        
+    def validate_start_date(self, value):
+        """Convert empty string to None for optional date field"""
+        if value == '':
+            return None
+        return value
+    
+    def validate_end_date(self, value):
+        """Convert empty string to None for optional date field"""
+        if value == '':
+            return None
+        return value
+        
+    def validate(self, data):
+        start_date = data.get('start_date')
+        end_date = data.get('end_date')
+        
+        if start_date and end_date and start_date > end_date:
+            raise serializers.ValidationError({
+                'end_date': "La fecha de fin no puede ser anterior a la fecha de inicio."
+            })
             
         return data
     
     
 class SellingChannelSerializer(serializers.ModelSerializer):
     """Serializer for Selling Channel model."""
-    product_channel_price = ProductChannelPriceSerializer(many=True, required=False)
+    product_channel_price = NestedProductChannelPriceSerializer(many=True, required=False)
 
     class Meta:
         model = SellingChannel
@@ -360,7 +413,7 @@ class SellingChannelSerializer(serializers.ModelSerializer):
             instance.save()
 
             if products_channel_data is not None:
-                existing_items = instance.productchannelprice_set.all()
+                existing_items = instance.product_channel_price.all()
 
                 for item in existing_items:
                     if item.id not in [item_data.get('id') for item_data in products_channel_data if item_data.get('id')]:
@@ -373,15 +426,13 @@ class SellingChannelSerializer(serializers.ModelSerializer):
                                 setattr(item, attr, value)
                         item.save()
                     else:
-                        # Remove selling_channel from item_data to avoid conflict
                         item_data_copy = item_data.copy()
                         item_data_copy.pop('selling_channel', None)
                         ProductChannelPrice.objects.create(selling_channel=instance, **item_data_copy)
         except Exception as e:
             raise e
-        
+
         return instance
-        
 
 
 class PaymentSerializer(serializers.ModelSerializer):

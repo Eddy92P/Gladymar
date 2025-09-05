@@ -43,17 +43,46 @@ const DetailedProductList = props => {
 						<TableRow>
 							<TableCell>Código</TableCell>
 							<TableCell>Nombre</TableCell>
+							{data.products[0].products && (
+								<TableCell>Precio</TableCell>
+							)}
+							{data.products[0].products && (
+								<TableCell>Fecha Inicio</TableCell>
+							)}
+							{data.products[0].products && (
+								<TableCell>Fecha Fin</TableCell>
+							)}
 						</TableRow>
 					</TableHead>
 					<TableBody>
 						{data.products.map((item, rowIndex) => (
 							<TableRow key={`row-${rowIndex}`}>
 								<TableCell key={`cell-${rowIndex}-1`}>
-									{item.code}
+									{item.products?.code
+										? item.products.code
+										: item.code}
 								</TableCell>
 								<TableCell key={`cell-${rowIndex}-2`}>
-									{item.name}
+									{item.products?.name
+										? item.products.name
+										: item.name}
 								</TableCell>
+								{item.price && (
+									<TableCell key={`cell-${rowIndex}-3`}>
+										{item.price}
+									</TableCell>
+								)}
+								{item.start_date !== undefined && (
+									<TableCell key={`cell-${rowIndex}-4`}>
+										{item.start_date}
+									</TableCell>
+								)}
+
+								{item.end_date !== undefined && (
+									<TableCell key={`cell-${rowIndex}-5`}>
+										{item.end_date}
+									</TableCell>
+								)}
 							</TableRow>
 						))}
 					</TableBody>

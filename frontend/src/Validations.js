@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 export const validateEmail = email => {
 	const validEmail = new RegExp('[a-z0-9]+@[a-z]+\\.[a-z]{2,3}');
 	return validEmail.test(email);
@@ -85,4 +87,16 @@ export const validateCode = code => {
 
 export const validatePositiveNumber = number => {
 	return parseInt(number) >= 0;
+};
+
+export const validateActualDate = date => {
+	// If date is empty, it's valid (optional field)
+	if (!date || date.trim() === '') return true;
+	// Check if it's a valid date and not before today
+	return dayjs(date).isValid() && !dayjs(date).isBefore(dayjs(), 'day');
+};
+
+export const validateEndDate = (endDate, startDate) => {
+	if (!endDate || !startDate) return true;
+	return !dayjs(endDate).isBefore(dayjs(startDate), 'day');
 };

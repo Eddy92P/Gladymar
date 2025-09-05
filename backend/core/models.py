@@ -423,7 +423,7 @@ class SellingChannel(models.Model):
 
 class ProductChannelPrice(models.Model):
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
-    selling_channel = models.ForeignKey(SellingChannel, on_delete=models.PROTECT)
+    selling_channel = models.ForeignKey(SellingChannel, on_delete=models.PROTECT, related_name='product_channel_price')
     price = models.DecimalField(max_digits=10, decimal_places=2)
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
