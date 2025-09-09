@@ -182,6 +182,11 @@ class SupplierViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve suppliers ordered by id."""
         return self.queryset.order_by('-id')
+    
+    @action(detail=False, methods=["get"], url_path="all")
+    def all_suppliers(self, request):
+        queryset = self.filter_queryset(self.get_queryset()).values("id", "name")
+        return Response(list(queryset))
 
 
 class EntryViewSet(viewsets.ModelViewSet):

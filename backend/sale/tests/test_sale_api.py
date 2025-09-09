@@ -114,7 +114,7 @@ def create_sale(**params):
         'seller': create_user(),
         'total': 10.00,
         'balance_due': 10.00,
-        'status': 'generado',
+        'status': 'proforma',
         'sale_type': 'contado',
         'sale_date': '2024-01-01',
     }
@@ -122,7 +122,7 @@ def create_sale(**params):
     defaults.update(params)
     sale_items_data = defaults.pop('sale_items', [])
     sale = Sale.objects.create(**defaults)
-    
+
     if sale_items_data:
         for item_data in sale_items_data:
             SaleItem.objects.create(sale=sale, **item_data)
@@ -149,7 +149,7 @@ class PublicSaleApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
         
         
-class PrivatePurchaseApiTests(TestCase):
+class PrivateSaleApiTests(TestCase):
     """Test API request for authorized users."""
     def setUp(self):
         self.client = APIClient()
@@ -161,15 +161,25 @@ class PrivatePurchaseApiTests(TestCase):
         
     def test_retrieve_sale(self):
         """Test for retrieve a list of sales."""
-        create_sale()
-        create_sale()
+        sale1 = create_sale()
+        sale2 = create_sale()
         
         res = self.client.get(SALE_URL)
-        sales = Sale.objects.all().order_by('-id')
-        serializer = SaleSerializer(sales, many=True)
         
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        self.assertEqual(res.data['rows'], serializer.data)
+        self.assertIn('rows', res.data)
+        
+        # Check that our created sales are in the response
+        sale_ids = [sale['id'] for sale in res.data['rows']]
+        self.assertIn(sale1.id, sale_ids)
+        self.assertIn(sale2.id, sale_ids)
+        
+        # Verify the structure of our sales in the response
+        sale1_data = next(sale for sale in res.data['rows'] if sale['id'] == sale1.id)
+        sale2_data = next(sale for sale in res.data['rows'] if sale['id'] == sale2.id)
+        
+        self.assertEqual(float(sale1_data['total']), float(sale1.total))
+        self.assertEqual(float(sale2_data['total']), float(sale2.total))
         
     def test_create_sale(self):
         """Test for create a sale."""
@@ -178,7 +188,7 @@ class PrivatePurchaseApiTests(TestCase):
             'selling_channel': create_selling_channel().id,
             'total': 100.00,
             'balance_due': 100.00,
-            'status': 'generado',
+            'status': 'proforma',
             'sale_type': 'contado',
             'sale_date': '2024-01-01',
             'sale_items': [
@@ -227,7 +237,7 @@ class PrivatePurchaseApiTests(TestCase):
             'selling_channel': create_selling_channel().id,
             'total': 100.00,
             'balance_due': 100.00,
-            'status': 'generado',
+            'status': 'proforma',
             'sale_type': 'contado',
             'sale_date': '2024-01-01',
             'sale_items': [

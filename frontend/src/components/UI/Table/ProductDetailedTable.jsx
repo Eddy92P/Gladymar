@@ -72,6 +72,8 @@ const ProductDetailedTable = ({
 		const newProduct = {
 			...product,
 			price: { value: '', isValid: false, feedbackText: '' },
+			quantity: { value: '', isValid: true, feedbackText: '' },
+			totalPrice: { value: '', isValid: true, feedbackText: '' },
 			startDate: { value: '', isValid: true, feedbackText: '' },
 			endDate: { value: '', isValid: true, feedbackText: '' },
 		};

@@ -102,32 +102,6 @@ export const options = [
 		),
 	},
 	{
-		key: 'entries',
-		label: 'Entradas',
-		path: 'entradas',
-		permission: 'core.view_entry',
-		icon: () => (
-			<img
-				src={DoubleEntryIcon}
-				alt="Entradas"
-				style={{ width: '24px', height: '24px' }}
-			/>
-		),
-	},
-	{
-		key: 'outputs',
-		label: 'Salidas',
-		path: 'salidas',
-		permission: 'core.view_output',
-		icon: () => (
-			<img
-				src={DoubleEntryIcon}
-				alt="Salidas"
-				style={{ width: '24px', height: '24px' }}
-			/>
-		),
-	},
-	{
 		key: 'sales',
 		label: 'Ventas',
 		path: 'ventas',
@@ -149,6 +123,32 @@ export const options = [
 			<img
 				src={PaymentIcon}
 				alt="Pagos"
+				style={{ width: '24px', height: '24px' }}
+			/>
+		),
+	},
+	{
+		key: 'entries',
+		label: 'Entradas',
+		path: 'entradas',
+		permission: 'core.view_entry',
+		icon: () => (
+			<img
+				src={DoubleEntryIcon}
+				alt="Entradas"
+				style={{ width: '24px', height: '24px' }}
+			/>
+		),
+	},
+	{
+		key: 'outputs',
+		label: 'Salidas',
+		path: 'salidas',
+		permission: 'core.view_output',
+		icon: () => (
+			<img
+				src={DoubleEntryIcon}
+				alt="Salidas"
 				style={{ width: '24px', height: '24px' }}
 			/>
 		),

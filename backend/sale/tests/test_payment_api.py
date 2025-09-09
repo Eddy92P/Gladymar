@@ -3,10 +3,10 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from core.models import Payment
+from core.models import Payment, Sale, Purchase, Client, SellingChannel, Supplier
 from sale.serializers import PaymentSerializer
 import uuid
-from datetime import datetime
+from datetime import datetime, date
 
 PAYMENT_URL = reverse('sale:payment-list')
 
@@ -27,18 +27,93 @@ def create_user(**params):
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
 
-def create_payment(**params):
-    # Generate unique transaction_id to avoid constraint violations
-    unique_suffix = str(uuid.uuid4())[:8]
+def create_client(**params):
+    """Create and return a sample Client."""
+    unique_suffix = str(uuid.uuid4())[:4]
     defaults = {
-        'transaction_id': int(unique_suffix, 16) % 10000,  # Generate unique transaction_id
-        'payment_method': 'tarjeta',
-        'transaction_type': 'venta',
-        'amount': 100.00,
-        'payment_date': datetime.now().date(),
+        'name': f'Test Client {unique_suffix}',
+        'nit': f'1234567{unique_suffix}',
+        'phone': '12345678',
+        'address': 'Test Address',
+        'email': f'c{unique_suffix}@test.com',
+        'client_type': 'showroom'
     }
     defaults.update(params)
+    return Client.objects.create(**defaults)
+
+def create_supplier(**params):
+    """Create and return a sample Supplier."""
+    unique_suffix = str(uuid.uuid4())[:4]
+    defaults = {
+        'name': f'Test Supplier {unique_suffix}',
+        'nit': f'1234567{unique_suffix}',
+        'phone': '12345678',
+        'email': f's{unique_suffix}@test.com',
+        'address': 'Test Address',
+    }
+    defaults.update(params)
+    return Supplier.objects.create(**defaults)
+
+def create_selling_channel(**params):
+    """Create and return a sample SellingChannel."""
+    unique_suffix = str(uuid.uuid4())[:4]
+    defaults = {
+        'name': f'Test Channel {unique_suffix}',
+    }
+    defaults.update(params)
+    return SellingChannel.objects.create(**defaults)
+
+def create_sale(**params):
+    """Create and return a sample Sale."""
+    defaults = {
+        'client': create_client(),
+        'selling_channel': create_selling_channel(),
+        'seller': create_user(),
+        'total': 10.00,
+        'balance_due': 10.00,
+        'status': 'generado',
+        'sale_type': 'contado',
+        'sale_date': date(2024, 1, 1),
+    }
+    defaults.update(params)
+    return Sale.objects.create(**defaults)
+
+def create_purchase(**params):
+    """Create and return a sample Purchase."""
+    unique_suffix = str(uuid.uuid4())[:4]
+    defaults = {
+        'buyer': create_user(),
+        'supplier': create_supplier(),
+        'purchase_type': 'contado',
+        'purchase_date': date(2024, 1, 1),
+        'invoice_number': f'123456{unique_suffix}',
+        'total': 100.00,
+        'balance_due': 0.00,
+    }
+    defaults.update(params)
+    return Purchase.objects.create(**defaults)
+
+def create_payment(**params):
+    """Create and return a sample Payment."""
+    # Create a sale by default if no transaction_id is provided
+    if 'transaction_id' not in params:
+        sale = create_sale()
+        defaults = {
+            'transaction_id': sale.id,
+            'payment_method': 'tarjeta',
+            'transaction_type': 'venta',
+            'amount': 100.00,
+            'payment_date': date(2024, 1, 2),  # One day after sale_date
+        }
+    else:
+        defaults = {
+            'payment_method': 'tarjeta',
+            'transaction_type': 'venta',
+            'amount': 100.00,
+            'payment_date': date(2024, 1, 2),
+        }
     
+    defaults.update(params)
     return Payment.objects.create(**defaults)
 
 
@@ -75,16 +150,15 @@ class PrivatePaymentApiTests(TestCase):
         
     def test_create_payment(self):
         """Test for create a payment."""
-        # Generate unique transaction_id to avoid conflicts
-        unique_suffix = str(uuid.uuid4())[:8]
-        unique_transaction_id = int(unique_suffix, 16) % 10000
+        # Create a sale to use as transaction
+        sale = create_sale()
         
         payload = {
-            'transaction_id': unique_transaction_id,
+            'transaction_id': sale.id,
             'payment_method': 'tarjeta',
             'transaction_type': 'venta',
             'amount': 150.00,
-            'payment_date': datetime.now().date(),
+            'payment_date': date(2024, 1, 2),  # One day after sale_date
         }
         
         res = self.client.post(PAYMENT_URL, payload)
@@ -112,16 +186,15 @@ class PrivatePaymentApiTests(TestCase):
     def test_full_update_payment(self):
         """Test for full update a payment."""
         payment = create_payment()
-        # Generate unique transaction_id to avoid conflicts
-        unique_suffix = str(uuid.uuid4())[:8]
-        unique_transaction_id = int(unique_suffix, 16) % 10000
+        # Create a purchase to use as transaction
+        purchase = create_purchase()
         
         payload = {
-            'transaction_id': unique_transaction_id,
+            'transaction_id': purchase.id,
             'payment_method': 'efectivo',
             'transaction_type': 'compra',
             'amount': 500.00,
-            'payment_date': datetime.now().date(),
+            'payment_date': date(2024, 1, 2),  # One day after purchase_date
         }
 
         url = detail_url(payment.id)

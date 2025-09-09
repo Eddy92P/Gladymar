@@ -23,6 +23,9 @@ import SupplierPage from './pages/SupplierPage';
 import AddSupplierPage from './pages/AddSupplierPage';
 import SellingChannelPage from './pages/SellingChannelPage';
 import AddSellingChannelPage from './pages/AddSellingChannelPage';
+import PurchasePage from './pages/PurchasePage';
+import AddPurchasePage from './pages/AddPurchasePage';
+import PurchaseDetailPage from './pages/PurchaseDetailPage';
 
 function App() {
 	const authCtx = useContext(AuthContext);
@@ -129,6 +132,15 @@ function App() {
 						<Route
 							path="canales-venta/editar_canal_venta/:id"
 							element={<AddSellingChannelPage />}
+						/>
+						<Route path="compras" element={<PurchasePage />} />
+						<Route
+							path="compras/agregar_compra"
+							element={<AddPurchasePage />}
+						/>
+						<Route
+							path="compras/editar_compra/:id"
+							element={<PurchaseDetailPage />}
 						/>
 					</Route>
 					<Route

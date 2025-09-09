@@ -96,7 +96,7 @@ class UpdateTransactionServiceTest(TestCase):
             ),
             purchase_type='contado',
             purchase_date='2025-05-05',
-            invoice_number='12345678',
+            invoice_number=f'INV-{unique_suffix}',
             total=100,
             balance_due=100,
         )
@@ -129,7 +129,7 @@ class UpdateTransactionServiceTest(TestCase):
             ),
             purchase_type='contado',
             purchase_date='2025-05-05',
-            invoice_number='12345678',
+            invoice_number=f'INV-{unique_suffix}',
             total=100,
             balance_due=100,
         )
@@ -162,7 +162,7 @@ class UpdateTransactionServiceTest(TestCase):
             ),
             purchase_type='full_payment',
             purchase_date='2025-05-05',
-            invoice_number='12345678',
+            invoice_number=f'INV-{unique_suffix}',
             total=100,
             balance_due=100,
         )

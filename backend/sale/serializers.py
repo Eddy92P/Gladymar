@@ -13,6 +13,15 @@ from sale.services.output_service import DecreaseProductStockService
 from sale.services.update_transaction_service import UpdateTransactionService
 
 
+class UserSerializer(serializers.ModelSerializer):
+    """Serializer for User model"""
+    
+    class Meta:
+        model = User
+        exclude = ['password']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
 class AgencySerializer(serializers.ModelSerializer):
     """Serializer for Agency model"""
 
@@ -442,6 +451,26 @@ class PaymentSerializer(serializers.ModelSerializer):
         model = Payment
         fields = ['id', 'transaction_id', 'payment_method', 'transaction_type', 'amount', 'payment_date', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+        
+    def validate(self, data):
+        # For partial updates, get missing fields from the instance
+        transaction_type = data.get('transaction_type')
+        transaction_id = data.get('transaction_id')
+        payment_date = data.get('payment_date')
+        
+        # Only validate if we have all required fields
+        if transaction_type and transaction_id and payment_date:
+            if transaction_type == 'compra':
+                transaction_date = Purchase.objects.get(id=transaction_id).purchase_date
+            elif transaction_type == 'venta':
+                transaction_date = Sale.objects.get(id=transaction_id).sale_date
+            
+            if payment_date < transaction_date:
+                raise serializers.ValidationError({
+                        "payment_date": "La fecha de pago no puede ser anterior a la fecha de compra/venta."
+                })
+
+        return data
 
 
 class PurchaseItemSerializer(serializers.ModelSerializer):
@@ -476,23 +505,37 @@ class PurchaseSerializer(serializers.ModelSerializer):
         write_only=True,
     )
     payments = NestedPaymentSerializer(required=False)
+    buyer = UserSerializer(read_only=True)
 
     class Meta:
         model = Purchase
         fields = [
             'id',
+            'buyer',
             'payments',
             'purchase_items',
             'supplier',
             'suppliers',
             'purchase_type',
             'purchase_date',
+            'purchase_end_date',
             'invoice_number',
             'total',
             'balance_due',
             'status',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def to_representation(self, instance):
+        """Custom representation to include payments in GET requests."""
+        data = super().to_representation(instance)
+        # Get payments for this purchase
+        payments = Payment.objects.filter(
+            transaction_id=instance.id,
+            transaction_type='compra'
+        )
+        data['payments'] = NestedPaymentSerializer(payments, many=True).data
+        return data
         
     def validate(self, data):
         if data.get('purchase_date') and data.get('payments'):
@@ -509,47 +552,26 @@ class PurchaseSerializer(serializers.ModelSerializer):
         try:
             items_data = validated_data.pop('purchase_items', [])
             payment_data = validated_data.pop('payments', None)
+            payment_amount = payment_data['amount']
+            purchase_total_amount = validated_data['balance_due']
+            if purchase_total_amount - payment_amount < 0:
+                raise serializers.ValidationError({
+                    "payments": {
+                        "amount": "El pago no puede ser mayor al costo total."
+                    }
+                })
+            validated_data['balance_due'] -= payment_amount
             purchase = Purchase.objects.create(**validated_data)
             for item_data in items_data:
                 PurchaseItem.objects.create(purchase=purchase, **item_data)
 
-            if payment_data:
-                payment = Payment.objects.create(transaction_id=purchase.id, **payment_data)
-                UpdateTransactionService(purchase.id, payment.amount, payment.transaction_type).update_transaction_balance_due()
+            Payment.objects.create(transaction_id=purchase.id, **payment_data)
         except Exception as e:
             raise e
         
         return purchase
 
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        items_data = validated_data.pop('purchase_items', None)
-        try:
-            for attr, value in validated_data.items():
-                setattr(instance, attr, value)
-            instance.save()
 
-            if items_data is not None:
-                existing_items = instance.purchase_items.all()
-
-                for item in existing_items:
-                    if item.id not in [item_data.get('id') for item_data in items_data if item_data.get('id')]:
-                        item.delete()
-                for item_data in items_data:
-                    if item_data.get('id'):
-                        item = existing_items.get(id=item_data['id'])
-                        for attr, value in item_data.items():
-                            if attr != 'id':
-                                setattr(item, attr, value)
-                        item.save()
-                    else:
-                        PurchaseItem.objects.create(purchase=instance, **item_data)
-        except Exception as e:
-            raise e
-
-        return instance
-    
-    
 class SaleItemSerializer(serializers.ModelSerializer):
     """Serializer for Sale Item model."""
     products = ProductSerializer(read_only=True, source='product')
@@ -557,13 +579,13 @@ class SaleItemSerializer(serializers.ModelSerializer):
         queryset=Product.objects.all(),
         write_only=True,
     )
-    
+
     class Meta:
         model = SaleItem
         fields = ['product', 'products', 'quantity', 'unit_price', 'total_price']
         read_only_fields = ['id']
-    
-    
+
+
 class SaleSerializer(serializers.ModelSerializer):
     """Serializer for Sale model."""
     selling_channels = SellingChannelSerializer(read_only=True, source='selling_channel')
@@ -578,7 +600,7 @@ class SaleSerializer(serializers.ModelSerializer):
         write_only=True,
     )
     payments = NestedPaymentSerializer(required=False)
-    
+
     class Meta:
         model = Sale
         fields = [
@@ -592,13 +614,15 @@ class SaleSerializer(serializers.ModelSerializer):
             'status',
             'sale_type',
             'sale_date',
+            'sale_perform_date',
+            'sale_done_date',
             'client',
             'clients',
             'created_at',
             'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
-        
+
     def validate(self, data):
         if data.get('sale_date') and data.get('payments'):
             if data['payments']['payment_date'] < data['sale_date']:
@@ -608,7 +632,7 @@ class SaleSerializer(serializers.ModelSerializer):
                     }
                 })
         return data
-        
+
     @transaction.atomic
     def create(self, validated_data):
         try:
@@ -651,5 +675,5 @@ class SaleSerializer(serializers.ModelSerializer):
                         SaleItem.objects.create(sale=instance, **item_data)
         except Exception as e:
             raise e
-        
+
         return instance

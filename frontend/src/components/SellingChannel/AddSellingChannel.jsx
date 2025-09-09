@@ -28,6 +28,7 @@ import {
 	Alert,
 } from '@mui/material';
 import CancelIcon from '@mui/icons-material/Cancel';
+import SearchIcon from '@mui/icons-material/Search';
 import { tableCellClasses } from '@mui/material/TableCell';
 import { styled } from '@mui/material/styles';
 import { red } from '@mui/material/colors';
@@ -829,8 +830,9 @@ export const AddSellingChannel = () => {
 								}}
 								onClick={() => setShowProductsModal(true)}
 								color="success"
+								startIcon={<SearchIcon />}
 							>
-								Agregar Productos
+								Buscar Productos
 							</Button>
 							{isForm && (
 								<Typography

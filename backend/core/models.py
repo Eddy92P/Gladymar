@@ -442,10 +442,12 @@ class Purchase(models.Model):
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
     purchase_type = models.CharField(max_length=25, choices=PURCHASE_TYPE_CHOICES, default='contado')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='realizado')
-    purchase_date = models.DateField()
+    purchase_date = models.DateField(null=False, blank=False)
+    purchase_end_date=models.DateField(null=True, blank=True)
     invoice_number = models.CharField(
-        max_length=50, 
-        null=False, 
+        max_length=50,
+        unique=True,
+        null=False,
         blank=False,
         validators=[
             RegexValidator(
@@ -458,11 +460,6 @@ class Purchase(models.Model):
     balance_due = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            self.balance_due = self.total
-        super().save(*args, **kwargs)
     
     
 class PurchaseItem(models.Model):
@@ -516,6 +513,12 @@ class EntryItem(models.Model):
 class Output(models.Model):
     warehouse_keeper = models.ForeignKey(User, on_delete=models.PROTECT)
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
+    sale = models.OneToOneField(
+        'Sale',
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True
+    )
     output_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -535,7 +538,7 @@ class OutputItem(models.Model):
 
 class Sale(models.Model):
     STATUS_CHOICES = (
-        ('generado', 'Generada'),
+        ('proforma', 'Proforma'),
         ('realizado', 'Realizada'),
         ('terminado', 'Terminada'),
         ('rechazado', 'Rechazada')
@@ -552,16 +555,13 @@ class Sale(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='generado')
     sale_type = models.CharField(max_length=25, choices=SALE_TYPE_CHOICES, default='contado')
     sale_date = models.DateField(null=False, blank=False)
+    sale_perform_date = models.DateField(null=True, blank=True)
+    sale_done_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.seller.first_name} {self.seller.last_name} - ${self.total}"
-    
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            self.balance_due = self.total
-        super().save(*args, **kwargs)
     
 
 class SaleItem(models.Model):
