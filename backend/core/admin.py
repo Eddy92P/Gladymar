@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
 
-from core import models
+from core.models import *
 
 
 class UserAdmin(BaseUserAdmin):
@@ -45,4 +45,16 @@ class UserAdmin(BaseUserAdmin):
     )
 
 
-admin.site.register(models.User, UserAdmin)
+admin.site.register(User, UserAdmin)
+admin.site.register(Agency)
+admin.site.register(Client)
+admin.site.register(Warehouse)
+admin.site.register(Category)
+admin.site.register(Product)
+admin.site.register(Supplier)
+admin.site.register(SellingChannel)
+admin.site.register(Purchase)
+admin.site.register(Entry)
+admin.site.register(Output)
+admin.site.register(Sale)
+admin.site.register(Payment)

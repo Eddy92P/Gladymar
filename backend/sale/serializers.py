@@ -511,6 +511,7 @@ class PurchaseSerializer(serializers.ModelSerializer):
         model = Purchase
         fields = [
             'id',
+            'agency',
             'buyer',
             'payments',
             'purchase_items',
@@ -605,6 +606,7 @@ class SaleSerializer(serializers.ModelSerializer):
         model = Sale
         fields = [
             'id',
+            'agency',
             'payments',
             'selling_channel',
             'selling_channels',

@@ -49,6 +49,11 @@ class AgencyViewSet(viewsets.ModelViewSet):
             for choice in Agency.CITY_CHOICES
         ]
         return Response(choices)
+    
+    @action(detail=False, methods=["get"], url_path="all")
+    def all_agencies(self, request):
+        queryset = self.filter_queryset(self.get_queryset()).values("id", "name")
+        return Response(list(queryset))
 
 
 class WarehouseViewSet(viewsets.ModelViewSet):

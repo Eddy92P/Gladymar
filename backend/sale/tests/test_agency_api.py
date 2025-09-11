@@ -22,6 +22,7 @@ def create_user(**params):
         'phone': '12345678',
         'address': 'Test Address',
         'email': f't{unique_suffix}@test.com',
+        'agency': create_agency(),
     }
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)

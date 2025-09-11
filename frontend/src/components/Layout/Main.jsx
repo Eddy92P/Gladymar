@@ -135,6 +135,10 @@ export default function Main() {
 		setDrawerOpen(false);
 	};
 
+	const handleLogout = () => {
+		authContext.logout();
+	};
+
 	return (
 		<Box sx={{ display: 'flex', height: '100vh' }}>
 			<CssBaseline />
@@ -216,29 +220,13 @@ export default function Main() {
 						}}
 					>
 						<MenuItem onClick={handleClose}>
-							<Avatar /> Profile
+							<Avatar /> Perfil
 						</MenuItem>
-						<MenuItem onClick={handleClose}>
-							<Avatar /> My account
-						</MenuItem>
-						<Divider />
-						<MenuItem onClick={handleClose}>
-							<ListItemIcon>
-								<PersonAdd fontSize="small" />
-							</ListItemIcon>
-							Add another account
-						</MenuItem>
-						<MenuItem onClick={handleClose}>
-							<ListItemIcon>
-								<Settings fontSize="small" />
-							</ListItemIcon>
-							Settings
-						</MenuItem>
-						<MenuItem onClick={handleClose}>
+						<MenuItem onClick={handleLogout}>
 							<ListItemIcon>
 								<Logout fontSize="small" />
 							</ListItemIcon>
-							Logout
+							Cerrar Sesión
 						</MenuItem>
 					</Menu>
 				</Toolbar>

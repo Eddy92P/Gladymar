@@ -999,46 +999,54 @@ function AddProduct() {
 												fullWidth
 											/>
 										</Grid>
-										<Grid size={{ xs: 12, sm: 2 }}>
-											<TextField
-												label="Precio mínimo de venta"
-												variant="outlined"
-												onChange={
-													minimumSalePriceInputChangeHandler
-												}
-												value={
-													minimumSalePriceState.value
-												}
-												error={!minimumSalePriceIsValid}
-												helperText={
-													!minimumSalePriceIsValid
-														? minimumSalePriceState.feedbackText
-														: ''
-												}
-												required
-												fullWidth
-											/>
-										</Grid>
-										<Grid size={{ xs: 12, sm: 2 }}>
-											<TextField
-												label="Precio máximo de venta"
-												variant="outlined"
-												onChange={
-													maximumSalePriceInputChangeHandler
-												}
-												value={
-													maximumSalePriceState.value
-												}
-												error={!maximumSalePriceIsValid}
-												helperText={
-													!maximumSalePriceIsValid
-														? maximumSalePriceState.feedbackText
-														: ''
-												}
-												required
-												fullWidth
-											/>
-										</Grid>
+										{authContext.isSuperuser && (
+											<Grid size={{ xs: 12, sm: 2 }}>
+												<TextField
+													label="Precio mínimo de venta"
+													variant="outlined"
+													onChange={
+														minimumSalePriceInputChangeHandler
+													}
+													value={
+														minimumSalePriceState.value
+													}
+													error={
+														!minimumSalePriceIsValid
+													}
+													helperText={
+														!minimumSalePriceIsValid
+															? minimumSalePriceState.feedbackText
+															: ''
+													}
+													required
+													fullWidth
+												/>
+											</Grid>
+										)}
+										{authContext.isSuperuser && (
+											<Grid size={{ xs: 12, sm: 2 }}>
+												<TextField
+													label="Precio máximo de venta"
+													variant="outlined"
+													onChange={
+														maximumSalePriceInputChangeHandler
+													}
+													value={
+														maximumSalePriceState.value
+													}
+													error={
+														!maximumSalePriceIsValid
+													}
+													helperText={
+														!maximumSalePriceIsValid
+															? maximumSalePriceState.feedbackText
+															: ''
+													}
+													required
+													fullWidth
+												/>
+											</Grid>
+										)}
 									</Grid>
 									<h6>3. Datos Adicionales</h6>
 									<Grid container spacing={2} mt={1} mb={2}>

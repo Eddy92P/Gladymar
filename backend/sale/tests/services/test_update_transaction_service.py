@@ -11,7 +11,15 @@ import uuid
 
 def create_user(**params):
     """Create and return a sample user."""
+    from core.models import Agency
+    
     unique_suffix = str(uuid.uuid4())[:4]
+    agency = Agency.objects.create(
+        name=f'Test Agency {unique_suffix}',
+        location=f'Test Location {unique_suffix}',
+        city='La Paz',
+    )
+    
     defaults = {
         'first_name': 'Test',
         'last_name': 'User',
@@ -19,6 +27,7 @@ def create_user(**params):
         'phone': '12345678',
         'address': 'Test Address',
         'email': f't{unique_suffix}@test.com',
+        'agency': agency,
     }
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
@@ -85,7 +94,9 @@ class UpdateTransactionServiceTest(TestCase):
     def test_update_purchase_balance_due(self):
         """Test for update balance due when a payment is done for a purchase."""
         unique_suffix = str(uuid.uuid4())[:8]
+        agency = create_user().agency
         purchase = Purchase.objects.create(
+            agency=agency,
             buyer=create_user(),
             supplier = Supplier.objects.create(
                 name=f'Test Supplier{unique_suffix}',
@@ -118,7 +129,9 @@ class UpdateTransactionServiceTest(TestCase):
     def test_update_purchase_balance_due_payment_exceeds(self):
         """Test for update balance due when a payment is done for a purchase but the payment exceeds the balance."""
         unique_suffix = str(uuid.uuid4())[:8]
+        agency = create_user().agency
         purchase = Purchase.objects.create(
+            agency=agency,
             buyer=create_user(),
             supplier = Supplier.objects.create(
                 name=f'Test Supplier{unique_suffix}',
@@ -151,7 +164,9 @@ class UpdateTransactionServiceTest(TestCase):
     def test_update_purchase_balance_due_done(self):
         """Test for update balance due when a payment is done for all the amount for a purchase."""
         unique_suffix = str(uuid.uuid4())[:8]
+        agency = create_user().agency
         purchase = Purchase.objects.create(
+            agency=agency,
             buyer=create_user(),
             supplier = Supplier.objects.create(
                 name=f'Test Supplier{unique_suffix}',
@@ -183,7 +198,9 @@ class UpdateTransactionServiceTest(TestCase):
         
     def test_update_sale_balance_due(self):
         """Test for update balance due when a payment is done for a sale."""
+        agency = create_user().agency
         sale = Sale.objects.create(
+            agency=agency,
             client=create_client(),
             selling_channel=create_selling_channel(),
             seller=create_user(),
@@ -209,7 +226,9 @@ class UpdateTransactionServiceTest(TestCase):
         
     def test_update_purchase_balance_due_payment_exceeds(self):
         """Test for update balance due when a payment is done for a sale but the payment exceeds the balance."""
+        agency = create_user().agency
         sale = Sale.objects.create(
+            agency=agency,
             client=create_client(),
             selling_channel=create_selling_channel(),
             seller=create_user(),
@@ -235,7 +254,9 @@ class UpdateTransactionServiceTest(TestCase):
         
     def test_update_sale_balance_due_done(self):
         """Test for update balance due when a payment is done for all the amount for a sale."""
+        agency = create_user().agency
         sale = Sale.objects.create(
+            agency=agency,
             client=create_client(),
             selling_channel=create_selling_channel(),
             seller=create_user(),

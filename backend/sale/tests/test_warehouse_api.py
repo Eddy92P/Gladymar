@@ -12,7 +12,15 @@ WAREHOUSE_URL = reverse('sale:warehouse-list')
 
 def create_user(**params):
     """Create and return a sample user."""
+    from core.models import Agency
+    
     unique_suffix = str(uuid.uuid4())[:4]
+    agency = Agency.objects.create(
+        name=f'Test Agency {unique_suffix}',
+        location=f'Test Location {unique_suffix}',
+        city='La Paz',
+    )
+    
     defaults = {
         'first_name': 'Test',
         'last_name': 'User',
@@ -20,6 +28,7 @@ def create_user(**params):
         'phone': '12345678',
         'address': 'Test Address',
         'email': f't{unique_suffix}@test.com',
+        'agency': agency,
     }
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)

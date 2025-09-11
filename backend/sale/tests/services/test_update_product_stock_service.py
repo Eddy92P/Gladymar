@@ -21,6 +21,17 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 import uuid
 
+def create_agency(**params):
+    """Create and return a sample agency."""
+    unique_suffix = str(uuid.uuid4())[:8]
+    defaults = {
+        'name': f'Test Agency {unique_suffix}',
+        'location': f'Test Agency Location {unique_suffix}',
+        'city': 'La Paz',
+    }
+    defaults.update(params)
+    return Agency.objects.create(**defaults)
+
 def create_user(**params):
     """Create and return a sample user."""
     unique_suffix = str(uuid.uuid4())[:4]
@@ -31,6 +42,7 @@ def create_user(**params):
         'phone': '12345678',
         'address': 'Test Address',
         'email': f't{unique_suffix}@test.com',
+        'agency': create_agency(),
     }
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)

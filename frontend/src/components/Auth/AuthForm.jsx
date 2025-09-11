@@ -132,9 +132,10 @@ const AuthForm = () => {
 					data.permissions || [],
 					data.name || '',
 					data.last_name || '',
+					data.is_superuser,
 					null
 				);
-				navigate('principal');
+				navigate('/');
 			} catch (error) {
 				setIsLoading(false);
 				setMessage(error.message);

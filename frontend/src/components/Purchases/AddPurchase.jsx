@@ -54,6 +54,7 @@ import ListHeader from '../UI/List/ListHeader';
 
 // Context
 import AuthContext from '../../store/auth-context';
+import { StoreContext } from '../../store/store-context';
 
 // CSS classes
 import classes from '../UI/List/List.module.css';
@@ -86,6 +87,7 @@ export const AddPurchase = () => {
 
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);
+	const storeContext = useContext(StoreContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
 
@@ -436,6 +438,7 @@ export const AddPurchase = () => {
 			const response = await fetch(url, {
 				method: 'POST',
 				body: JSON.stringify({
+					agency: storeContext.agency,
 					supplier: supplier.id,
 					purchase_date: purchaseDateState.value.format('YYYY-MM-DD'),
 					invoice_number: invoiceNumberState.value,

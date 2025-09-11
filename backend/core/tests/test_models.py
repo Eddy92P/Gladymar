@@ -9,6 +9,11 @@ class ModelTest(TestCase):
         """Test creating a user with an email is successful"""
         email = 'test@example.com'
         password = 'testpass123'
+        agency = Agency.objects.create(
+            name='Test Agency',
+            location='Test Agency Location',
+            city='LP',
+        )
         user = get_user_model().objects.create_user(
             email=email,
             password=password,
@@ -17,6 +22,7 @@ class ModelTest(TestCase):
             ci='1234567',
             phone='12345678',
             address='Test Address',
+            agency=agency,
         )
         
         self.assertEqual(user.email, email)
@@ -30,6 +36,11 @@ class ModelTest(TestCase):
             ['TEST3@EXAMPLE.COM', 'TEST3@example.com'],
             ['test4@example.COM', 'test4@example.com'],
         ]
+        agency = Agency.objects.create(
+            name='Test Agency',
+            location='Test Agency Location',
+            city='LP',
+        )
         for i, (email, expected) in enumerate(sample_emails):
             user = get_user_model().objects.create_user(
                 email, 
@@ -39,6 +50,7 @@ class ModelTest(TestCase):
                 ci=f'123456{i+1}',
                 phone='12345678',
                 address='Test Address',
+                agency=agency,
             )
             self.assertEqual(user.email, expected)
     
@@ -57,14 +69,25 @@ class ModelTest(TestCase):
             
     def test_create_superuser(self):
         """Test creating a superuser"""
+        agency = Agency.objects.create(
+            name='Test Agency',
+            location='Test Agency Location',
+            city='LP',
+        )
         user = get_user_model().objects.create_superuser(
             'test@example.com',
             'testpass123',
+            agency=agency,
         )
         self.assertTrue(user.is_superuser)
     
     def test_create_seller(self):
         """Test creating a seller"""
+        agency = Agency.objects.create(
+            name='Test Agency',
+            location='Test Agency Location',
+            city='LP',
+        )
         user = get_user_model().objects.create_user(
             'test@example.com',
             'testpass123',
@@ -73,6 +96,7 @@ class ModelTest(TestCase):
             ci='1234567',
             phone='12345678',
             address='Test Address',
+            agency=agency,
         )
         seller = Seller.objects.create(user=user, commission=10)
         self.assertEqual(seller.user, user)
@@ -295,6 +319,11 @@ class ModelTest(TestCase):
     
     def test_create_entry(self):
         """Test creating a Entry."""
+        agency = Agency.objects.create(
+            name='Test Agency Entry',
+            location='Test Agency Location',
+            city='LP',
+        )
         entry = Entry.objects.create(
             warehouse_keeper=get_user_model().objects.create_user(
                 email='testuser@example.com',
@@ -305,6 +334,7 @@ class ModelTest(TestCase):
                 phone='12345678',
                 address='Test Address',
                 user_type=4,
+                agency=agency,
             ),
             supplier=Supplier.objects.create(
                 name='Test Supplier',
@@ -321,6 +351,11 @@ class ModelTest(TestCase):
         
     def test_create_entry_item(self):
         """Test creating a EntryItem."""
+        agency = Agency.objects.create(
+            name='Test Agency Entry Item',
+            location='Test Agency Location',
+            city='LP',
+        )
         entry_item = EntryItem.objects.create(
             entry=Entry.objects.create(
                 warehouse_keeper=get_user_model().objects.create_user(
@@ -332,6 +367,7 @@ class ModelTest(TestCase):
                     phone='12345678',
                     address='Test Address',
                     user_type=4,
+                    agency=agency,
                 ),
                 supplier=Supplier.objects.create(
                     name='Test Supplier',
@@ -379,6 +415,11 @@ class ModelTest(TestCase):
         
     def test_create_output(self):
         """Test creating a Output."""
+        agency = Agency.objects.create(
+            name='Test Agency Output',
+            location='Test Agency Location',
+            city='LP',
+        )
         output = Output.objects.create(
             warehouse_keeper=get_user_model().objects.create_user(
                 'test@example.com',
@@ -388,6 +429,7 @@ class ModelTest(TestCase):
                 ci='1234567',
                 phone='12345678',
                 address='Test Address',
+                agency=agency,
             ),
             client=Client.objects.create(
                 name='Test Client',
@@ -402,6 +444,11 @@ class ModelTest(TestCase):
         
     def test_create_output_item(self):
         """Test creating a OutputItem."""
+        agency = Agency.objects.create(
+            name='Test Agency Output Item',
+            location='Test Agency Location',
+            city='LP',
+        )
         output_item = OutputItem.objects.create(
             output=Output.objects.create(
                 warehouse_keeper=get_user_model().objects.create_user(
@@ -412,6 +459,7 @@ class ModelTest(TestCase):
                     ci='1234567',
                     phone='12345678',
                     address='Test Address',
+                    agency=agency,
                 ),
                 client=Client.objects.create(
                     name='Test Client',
@@ -453,7 +501,13 @@ class ModelTest(TestCase):
         
     def test_create_sale(self):
         """Test creating a Sale."""
+        agency = Agency.objects.create(
+            name='Test Agency Sale',
+            location='Test Agency Location',
+            city='LP',
+        )
         sale = Sale.objects.create(
+            agency=agency,
             client=Client.objects.create(
                 name='Test Client',
                 phone='75871256',
@@ -472,6 +526,7 @@ class ModelTest(TestCase):
                 ci='1234567',
                 phone='12345678',
                 address='Test Address',
+                agency=agency,
             ),
             total=100,
             status='pending',
@@ -482,8 +537,14 @@ class ModelTest(TestCase):
         
     def test_create_sale_item(self):
         """Test creating a SaleItem."""
+        agency = Agency.objects.create(
+            name='Test Agency Sale Item',
+            location='Test Agency Location',
+            city='LP',
+        )
         sale_item = SaleItem.objects.create(
             sale=Sale.objects.create(
+                agency=agency,
                 client=Client.objects.create(
                     name='Test Client',
                     phone='75871256',
@@ -502,6 +563,7 @@ class ModelTest(TestCase):
                     ci='1234567',
                     phone='12345678',
                     address='Test Address',
+                    agency=agency,
                 ),
                 total=100,
                 status='pending',

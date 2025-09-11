@@ -16,12 +16,21 @@ ME_URL = reverse('user:me')
 
 def create_user(**params):
     """Create and return a user with an email and password."""
+    from core.models import Agency
+    
+    agency = Agency.objects.create(
+        name='Test Agency',
+        location='Test Location',
+        city='La Paz',
+    )
+    
     defaults = {
         'first_name': 'Test',
         'last_name': 'User',
         'ci': '1234567',
         'phone': '12345678',
         'address': 'Test Address',
+        'agency': agency,
     }
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
@@ -35,6 +44,14 @@ class PublicUserApiTests(TestCase):
 
     def test_create_user_success(self):
         """Test creating a user is successful."""
+        from core.models import Agency
+        
+        agency = Agency.objects.create(
+            name='Test Agency',
+            location='Test Location',
+            city='La Paz',
+        )
+        
         payload = {
             'email': 'test1@example.com',
             'password': 'testpass',
@@ -43,6 +60,7 @@ class PublicUserApiTests(TestCase):
             'ci': '1234567',
             'phone': '12345678',
             'address': 'Test Address',
+            'agency': agency.id,
         }
         res = self.client.post(CREATE_USER_URL, payload)
 
@@ -165,12 +183,13 @@ class PrivateUserApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, {
+            'email': self.user.email,
             'first_name': self.user.first_name,
             'last_name': self.user.last_name,
-            'email': self.user.email,
             'ci': self.user.ci,
             'phone': self.user.phone,
             'address': self.user.address,
+            'agency': self.user.agency.id,
             'permissions': [],
         })
 

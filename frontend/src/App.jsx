@@ -2,6 +2,7 @@ import { useContext } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 
 import AuthContext from './store/auth-context';
+import { StoreContext } from './store/store-context';
 
 import AuthPage from './pages/AuthPage';
 import MainPage from './pages/MainPage';
@@ -26,9 +27,11 @@ import AddSellingChannelPage from './pages/AddSellingChannelPage';
 import PurchasePage from './pages/PurchasePage';
 import AddPurchasePage from './pages/AddPurchasePage';
 import PurchaseDetailPage from './pages/PurchaseDetailPage';
+import SelectAgency from './components/Agencies/SelectAgency';
 
 function App() {
 	const authCtx = useContext(AuthContext);
+	const storeContext = useContext(StoreContext);
 
 	return (
 		<Routes>
@@ -43,15 +46,9 @@ function App() {
 			)}
 			{authCtx.isLoggedIn && (
 				<>
-					<Route
-						path="/"
-						element={
-							<Navigate
-								to="/principal/dashboard"
-								replace={true}
-							/>
-						}
-					/>
+					{!storeContext.agency && (
+						<Route path="/" element={<SelectAgency />} />
+					)}
 					<Route path="/principal" element={<MainPage />}>
 						<Route
 							index

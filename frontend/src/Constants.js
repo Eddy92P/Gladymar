@@ -14,6 +14,7 @@ const prod = {
 const apiUrl = {
 	API_URL_LOGIN: '/api/user/token/',
 	API_URL_AGENCIES: '/api/sale/agencies/',
+	API_URL_ALL_AGENCIES: '/api/sale/agencies/all',
 	API_URL_WAREHOUSES: '/api/sale/warehouses/',
 	API_URL_CATEGORIES: '/api/sale/categories/',
 	API_URL_ALL_CATEGORIES: '/api/sale/categories/all',

@@ -23,6 +23,7 @@ def create_user(**params):
         'phone': '12345678',
         'address': 'Test Address',
         'email': f't{unique_suffix}@test.com',
+        'agency': create_agency(),
     }
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
@@ -109,6 +110,7 @@ def create_selling_channel(**params):
 def create_sale(**params):
     """Create and return a sample Sale."""
     defaults = {
+        'agency': create_agency(),
         'client': create_client(),
         'selling_channel': create_selling_channel(),
         'seller': create_user(),
@@ -183,7 +185,9 @@ class PrivateSaleApiTests(TestCase):
         
     def test_create_sale(self):
         """Test for create a sale."""
+        agency = create_agency()
         payload = {
+            'agency': agency.id,
             'client': create_client().id,
             'selling_channel': create_selling_channel().id,
             'total': 100.00,
@@ -233,6 +237,7 @@ class PrivateSaleApiTests(TestCase):
         """Test for full update a sale."""
         sale = create_sale()
         payload = {
+            'agency': sale.agency.id,
             'client': create_client().id,
             'selling_channel': create_selling_channel().id,
             'total': 100.00,

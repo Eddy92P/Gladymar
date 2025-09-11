@@ -32,6 +32,49 @@ class UserManager(BaseUserManager):
 
         return user
 
+    
+class Agency(models.Model):
+    CITY_CHOICES = (
+        ('La Paz', 'LP'),
+        ('Cochabamba', 'CBBA'),
+        ('Santa Cruz', 'SCZ'),
+        ('Tarija', 'TJA'),
+        ('Oruro', 'OR'),
+        ('Potosi', 'PT'),
+        ('Chuquisaca', 'CH'),
+        ('Beni', 'BE'),
+        ('Pando', 'PD'),
+    )
+    name = models.CharField(
+        max_length=255, 
+        unique=True, 
+        null=False, 
+        blank=False, 
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z0-9\s_-]+$',
+                message="El nombre solo puede contener letras, números, espacios, guiones y guiones bajos."
+            )
+        ]
+    )
+    location = models.CharField(
+        max_length=255,
+        null=False, 
+        blank=False, 
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z0-9\s_-]+$',
+                message="La ubicación solo puede contener letras, números, espacios, guiones y guiones bajos."
+            )
+        ]
+    )
+    city = models.CharField(max_length=15, choices=CITY_CHOICES, default='Potosi')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name}"
+
 
 class User(AbstractBaseUser, PermissionsMixin):
     """Custom user model that supports using email instead of username."""
@@ -41,6 +84,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 		(3, 'vendedor'),
 		(4, 'administrador')
 	)
+    agency = models.ForeignKey(
+        Agency,
+        on_delete=models.PROTECT,
+        related_name='users', 
+        blank=True,
+        null=True
+    )
     user_type = models.IntegerField(choices=CHOICES, default=4)
     first_name = models.CharField(
         max_length=255, 
@@ -177,46 +227,6 @@ class Client(models.Model):
 
     def __str__(self):
         return self.name
-    
-    
-class Agency(models.Model):
-    CITY_CHOICES = (
-        ('La Paz', 'LP'),
-        ('Cochabamba', 'CBBA'),
-        ('Santa Cruz', 'SCZ'),
-        ('Tarija', 'TJA'),
-        ('Oruro', 'OR'),
-        ('Potosi', 'PT'),
-        ('Chuquisaca', 'CH'),
-        ('Beni', 'BE'),
-        ('Pando', 'PD'),
-    )
-    name = models.CharField(
-        max_length=255, 
-        unique=True, 
-        null=False, 
-        blank=False, 
-        validators=[
-            RegexValidator(
-                regex=r'^[a-zA-Z0-9\s_-]+$',
-                message="El nombre solo puede contener letras, números, espacios, guiones y guiones bajos."
-            )
-        ]
-    )
-    location = models.CharField(
-        max_length=255,
-        null=False, 
-        blank=False, 
-        validators=[
-            RegexValidator(
-                regex=r'^[a-zA-Z0-9\s_-]+$',
-                message="La ubicación solo puede contener letras, números, espacios, guiones y guiones bajos."
-            )
-        ]
-    )
-    city = models.CharField(max_length=15, choices=CITY_CHOICES, default='Potosi')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
 
 class Warehouse(models.Model):
@@ -438,6 +448,7 @@ class Purchase(models.Model):
         ('contado', 'Pago al contado'),
         ('credito', 'Pago a crédito')
     )
+    agency = models.ForeignKey(Agency, on_delete=models.PROTECT, related_name='purchases')
     buyer = models.ForeignKey(User, on_delete=models.PROTECT)
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
     purchase_type = models.CharField(max_length=25, choices=PURCHASE_TYPE_CHOICES, default='contado')
@@ -547,6 +558,7 @@ class Sale(models.Model):
         ('contado', 'Pago al contado'),
         ('credito', 'Pago a crédito')
     )
+    agency = models.ForeignKey(Agency, on_delete=models.PROTECT, related_name='sales')
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
     selling_channel = models.ForeignKey(SellingChannel, on_delete=models.PROTECT)
     seller = models.ForeignKey(User, on_delete=models.PROTECT)
@@ -599,3 +611,6 @@ class Payment(models.Model):
                 name='unique_transaction'
             )
         ]
+        
+    def __str__(self):
+        return f"{self.payment_method}"

@@ -23,6 +23,7 @@ def create_user(**params):
         'phone': '12345678',
         'address': 'Test Address',
         'email': f't{unique_suffix}@test.com',
+        'agency': create_agency(),
     }
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
@@ -113,6 +114,7 @@ def create_purchase(**params):
     """Create and return a sample Purchase."""
     unique_suffix = str(uuid.uuid4())[:4]
     defaults = {
+        'agency': create_agency(),
         'buyer': create_user(),
         'supplier': create_supplier(),
         'purchase_type': 'contado',
@@ -191,7 +193,9 @@ class PrivatePurchaseApiTests(TestCase):
 
     def test_create_purchase(self):
         """Test creating a purchase."""
+        agency = create_agency()
         payload = {
+            'agency': agency.id,
             'supplier': create_supplier().id,
             'purchase_type': 'contado',
             'purchase_date': '2024-01-01',
