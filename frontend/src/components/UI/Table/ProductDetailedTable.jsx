@@ -73,6 +73,8 @@ const ProductDetailedTable = ({
 			...product,
 			price: { value: '', isValid: false, feedbackText: '' },
 			quantity: { value: '', isValid: true, feedbackText: '' },
+			subTotalPrice: { value: '', isValid: true, feedbackText: '' },
+			discount: { value: 0, isValid: true, feedbackText: '' },
 			totalPrice: { value: '', isValid: true, feedbackText: '' },
 			startDate: { value: '', isValid: true, feedbackText: '' },
 			endDate: { value: '', isValid: true, feedbackText: '' },

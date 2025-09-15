@@ -1,6 +1,7 @@
 """
 Database models for the application.
 """
+from email.policy import default
 import os
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
@@ -555,6 +556,7 @@ class Sale(models.Model):
         ('rechazado', 'Rechazada')
     )
     SALE_TYPE_CHOICES = (
+        ('proforma', 'Proforma'),
         ('contado', 'Pago al contado'),
         ('credito', 'Pago a crédito')
     )
@@ -564,7 +566,7 @@ class Sale(models.Model):
     seller = models.ForeignKey(User, on_delete=models.PROTECT)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     balance_due = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='generado')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='proforma')
     sale_type = models.CharField(max_length=25, choices=SALE_TYPE_CHOICES, default='contado')
     sale_date = models.DateField(null=False, blank=False)
     sale_perform_date = models.DateField(null=True, blank=True)
@@ -581,6 +583,8 @@ class SaleItem(models.Model):
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    sub_total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    discount = models.FloatField(default=0.0)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):

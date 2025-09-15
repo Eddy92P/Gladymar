@@ -139,7 +139,7 @@ export const AddPurchase = () => {
 			return {
 				value: action.val,
 				isValid: validatePositiveNumber(action.val),
-				feedbackText: 'Ingrese nombre valido',
+				feedbackText: 'Ingrese pago valido',
 			};
 		}
 		if (action.type === 'INPUT_ERROR') {
@@ -525,7 +525,7 @@ export const AddPurchase = () => {
 
 						if (purchase_item.total_price) {
 							const errorMessage = Array.isArray(
-								purchase_item.price
+								purchase_item.total_price
 							)
 								? purchase_item.total_price[0]
 								: purchase_item.total_price;

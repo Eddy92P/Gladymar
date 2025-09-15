@@ -583,7 +583,7 @@ class SaleItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SaleItem
-        fields = ['product', 'products', 'quantity', 'unit_price', 'total_price']
+        fields = ['product', 'products', 'quantity', 'unit_price', 'sub_total_price', 'discount', 'total_price']
         read_only_fields = ['id']
 
 
@@ -601,11 +601,13 @@ class SaleSerializer(serializers.ModelSerializer):
         write_only=True,
     )
     payments = NestedPaymentSerializer(required=False)
+    seller = UserSerializer(read_only=True)
 
     class Meta:
         model = Sale
         fields = [
             'id',
+            'seller',
             'agency',
             'payments',
             'selling_channel',
@@ -640,13 +642,22 @@ class SaleSerializer(serializers.ModelSerializer):
         try:
             items_data = validated_data.pop('sale_items', [])
             payment_data = validated_data.pop('payments', None)
+            if payment_data:
+                payment_amount = payment_data['amount']
+                purchase_total_amount = validated_data['balance_due']
+                if purchase_total_amount - payment_amount < 0:
+                    raise serializers.ValidationError({
+                        "payments": {
+                            "amount": "El pago no puede ser mayor al costo total."
+                        }
+                    })
+                validated_data['balance_due'] -= payment_amount
             sale = Sale.objects.create(**validated_data)
             for item_data in items_data:
                 SaleItem.objects.create(sale=sale, **item_data)
 
             if payment_data:
-                payment = Payment.objects.create(transaction_id=sale.id, **payment_data)
-                UpdateTransactionService(sale.id, payment.amount, payment.transaction_type).update_transaction_balance_due()
+                Payment.objects.create(transaction_id=sale.id, **payment_data)
         except Exception as e:
             raise e
 

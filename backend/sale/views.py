@@ -171,6 +171,11 @@ class ClientViewSet(viewsets.ModelViewSet):
             for choice in Client.CLIENT_TYPE_CHOICES
         ]
         return Response(choices)
+    
+    @action(detail=False, methods=["get"], url_path="all")
+    def all_clients(self, request):
+        queryset = self.filter_queryset(self.get_queryset()).values("id", "name")
+        return Response(list(queryset))
 
 
 class SupplierViewSet(viewsets.ModelViewSet):
@@ -258,6 +263,11 @@ class SellingChannelViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve selling channels ordered by id."""
         return self.queryset.order_by('-id')
+    
+    @action(detail=False, methods=["get"], url_path="all")
+    def all_selling_channels(self, request):
+        queryset = self.filter_queryset(self.get_queryset()).values("id", "name")
+        return Response(list(queryset))
 
 
 class PurchaseViewSet(viewsets.ModelViewSet):
