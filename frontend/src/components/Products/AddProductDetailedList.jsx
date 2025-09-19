@@ -14,6 +14,7 @@ const AddProductDetailedList = ({
 	onClose,
 	onProductList,
 	addedProducts = [],
+	sellingChannel,
 }) => {
 	const [list, setList] = useState([]);
 	const [error, setError] = useState('');
@@ -24,6 +25,7 @@ const AddProductDetailedList = ({
 
 	useEffect(() => {
 		let url = config.url.HOST + api.API_URL_PRODUCTS;
+		let sellingChannelUrl = config.url.HOST + api.API_URL_SELLING_CHANNEL;
 		let isMounted = true;
 
 		const controller = new AbortController();
@@ -34,31 +36,72 @@ const AddProductDetailedList = ({
 
 		const fetchProducts = async () => {
 			try {
-				const response = await fetch(url, {
-					method: 'GET',
-					headers: {
-						Authorization: `Token ${authContext.token}`,
-						'Content-Type': 'application/json',
-					},
-					signal: controller.signal,
-				});
+				let products = [];
+				if (sellingChannel || sellingChannel?.id) {
+					let allProducts = [];
+					const channelResponse = await fetch(
+						sellingChannelUrl + `${sellingChannel.id}`,
+						{
+							method: 'GET',
+							headers: {
+								Authorization: `Token ${authContext.token}`,
+								'Content-Type': 'application/json',
+							},
+							signal: controller.signal,
+						}
+					);
 
-				if (!response.ok) {
-					throw new Error('Failed to fetch Products');
-				}
+					if (!channelResponse.ok) {
+						throw new Error(
+							'Failed to fetch Products from Selling Channel'
+						);
+					}
 
-				const data = await response.json();
-
-				if (isMounted) {
-					const parsedList = data.rows.map(listData => {
-						return {
-							id: listData.id,
-							name: listData.name,
-							code: listData.code,
-						};
+					const channelData = await channelResponse.json();
+					allProducts = channelData.product_channel_price.map(
+						item => ({
+							id: item.products.id,
+							name: item.products.name,
+							code: item.products.code,
+							price: item.price,
+							stock: item.products.available_stock,
+							minimumSalePrice: item.products.minimum_sale_price,
+							maximumSalePrice: item.products.maximum_sale_price,
+						})
+					);
+					products = allProducts.filter(
+						item =>
+							item.minimumSalePrice > 0 &&
+							item.maximumSalePrice > 0 &&
+							item.stock > 0
+					);
+				} else {
+					const response = await fetch(url, {
+						method: 'GET',
+						headers: {
+							Authorization: `Token ${authContext.token}`,
+							'Content-Type': 'application/json',
+						},
+						signal: controller.signal,
 					});
-					setList(parsedList);
+
+					if (!response.ok) {
+						throw new Error('Failed to fetch Products');
+					}
+
+					const data = await response.json();
+
+					if (isMounted) {
+						products = data.rows.map(listData => {
+							return {
+								id: listData.id,
+								name: listData.name,
+								code: listData.code,
+							};
+						});
+					}
 				}
+				setList(products);
 			} catch (error) {
 				if (error.name === 'AbortError') {
 					return;
@@ -75,7 +118,7 @@ const AddProductDetailedList = ({
 			isMounted = false;
 			controller.abort();
 		};
-	}, [authContext.token, filterText]);
+	}, [authContext.token, filterText, sellingChannel]);
 
 	const handleCloseModal = () => {
 		setShowModal(false);
@@ -98,6 +141,7 @@ const AddProductDetailedList = ({
 				filterComponent={
 					<Filter onFilter={e => setFilterText(e.target.value)} />
 				}
+				sellingChannel={sellingChannel}
 			/>
 		</>
 	);

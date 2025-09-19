@@ -316,6 +316,8 @@ class Product(models.Model):
         ]
     )
     stock = models.PositiveIntegerField(default=0)
+    reserved_stock = models.PositiveIntegerField(default=0)
+    available_stock = models.PositiveIntegerField(default=0)
     code = models.CharField(
         max_length=50,
         unique=True,

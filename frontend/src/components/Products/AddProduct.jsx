@@ -918,6 +918,9 @@ function AddProduct() {
 														? stockState.feedbackText
 														: ''
 												}
+												disabled={
+													productData.length !== 0
+												}
 												required
 												fullWidth
 											/>

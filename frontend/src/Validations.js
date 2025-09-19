@@ -97,7 +97,11 @@ export const validateActualDate = date => {
 };
 
 export const validDate = date => {
-	return dayjs(date).isValid() && !dayjs(date).isBefore(dayjs(), 'day');
+	return (
+		dayjs(date).isValid() &&
+		!dayjs(date).isBefore(dayjs(), 'day') &&
+		!dayjs(date).isAfter(dayjs(), 'day')
+	);
 };
 
 export const validateEndDate = (endDate, startDate) => {

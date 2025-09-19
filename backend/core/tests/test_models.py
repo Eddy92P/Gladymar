@@ -1,3 +1,4 @@
+from zoneinfo import available_timezones
 from django.test import TestCase
 from core.models import *
 from django.contrib.auth import get_user_model
@@ -241,6 +242,8 @@ class ModelTest(TestCase):
             ),
             name='Test Product',
             stock=10,
+            reserved_stock=0,
+            available_stock=10,
             code='1234567890',
             unit_of_measurement='Test Unit',
             description='Test Description',
@@ -280,6 +283,8 @@ class ModelTest(TestCase):
                 ),
                 name='Test Product',
                 stock=20,
+                reserved_stock=0,
+                available_stock=20,
                 code='1234567890',
                 unit_of_measurement='Test Unit',
                 minimum_stock=20,
@@ -309,6 +314,8 @@ class ModelTest(TestCase):
                 ),
                 name='Test Product',
                 stock=10,
+                reserved_stock=0,
+                available_stock=10,
                 code='1234567890',
                 unit_of_measurement='Test Unit',
                 minimum_stock=10,
@@ -397,6 +404,8 @@ class ModelTest(TestCase):
                 ),
                 name='Test Product',
                 stock=10,
+                reserved_stock=0,
+                available_stock=10,
                 code='1234567890',
                 unit_of_measurement='Test Unit',
                 description='Test Description',
@@ -487,6 +496,8 @@ class ModelTest(TestCase):
                 ),
                 name='Test Product',
                 stock=10,
+                reserved_stock=0,
+                available_stock=10,
                 code='1234567890',
                 unit_of_measurement='Test Unit',
                 description='Test Description',
@@ -587,6 +598,8 @@ class ModelTest(TestCase):
                 ),
                 name='Test Product',
                 stock=10,
+                reserved_stock=0,
+                available_stock=10,
                 code='1234567890',
                 unit_of_measurement='Test Unit',
                 description='Test Description',

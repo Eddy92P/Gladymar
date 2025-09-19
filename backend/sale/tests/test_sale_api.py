@@ -91,6 +91,9 @@ def create_product(**params):
         'name': f'TestProduct{unique_suffix}',
         'code': f'CODE{unique_suffix}',
         'unit_of_measurement': 'UN',
+        'stock': 50,
+        'reserved_stock': 0,
+        'available_stock': 50,
         'description': 'Test product description',
         'minimum_stock': 10,
         'maximum_stock': 100,
@@ -203,12 +206,6 @@ class PrivateSaleApiTests(TestCase):
                     'total_price': 100.00,
                 }
             ],
-            'payments': {
-                'payment_method': 'efectivo',
-                'transaction_type': 'venta',
-                'amount': 100.00,
-                'payment_date': '2024-01-01',
-            }
         }
 
         res = self.client.post(SALE_URL, payload, format='json')

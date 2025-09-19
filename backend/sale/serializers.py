@@ -91,27 +91,15 @@ class ProductSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
         
     def validate(self, data):
-        if data.get('minimum_stock') and data.get('maximum_stock'):
+        if data.get('minimum_stock') is not None and data.get('maximum_stock') is not None:
             if data['minimum_stock'] > data['maximum_stock']:
                 raise serializers.ValidationError({
                     'minimum_stock': "El stock mínimo no puede ser mayor al máximo."
                 })
-        if data.get('minimum_sale_price') and data.get('maximum_sale_price'):
+        if data.get('minimum_sale_price') is not None and data.get('maximum_sale_price') is not None:
             if data['minimum_sale_price'] > data['maximum_sale_price']:
                 raise serializers.ValidationError({
                     'minimum_sale_price': "El precio de venta mínimo no puede ser mayor al máximo."
-                })
-                
-        if data.get('stock') and data.get('maximum_stock'):
-            if data['stock'] > data['maximum_stock']:
-                raise serializers.ValidationError({
-                    'stock': "El stock no puede ser mayor al máximo."
-                })
-                
-        if data.get('stock') and data.get('minimum_stock'):
-            if data['stock'] < data['minimum_stock']:
-                raise serializers.ValidationError({
-                    'stock': "El stock no puede ser menor al mínimo."
                 })
         
         # Validate image file if provided
@@ -125,6 +113,10 @@ class ProductSerializer(serializers.ModelSerializer):
                 })
         
         return data
+    
+    def create(self, validated_data):
+        validated_data['available_stock'] = validated_data['stock']
+        return super().create(validated_data)
     
     def update(self, instance, validated_data):
         """Custom update method to handle image deletion."""
@@ -359,6 +351,7 @@ class NestedProductChannelPriceSerializer(serializers.ModelSerializer):
     """Serializer for ProductChannelPrice model when used in nested context"""
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), write_only=True)
     products = ProductSerializer(read_only=True, source='product')
+    id = serializers.IntegerField(required=False, allow_null=True)
     
     class Meta:
         model = ProductChannelPrice
@@ -580,11 +573,20 @@ class SaleItemSerializer(serializers.ModelSerializer):
         queryset=Product.objects.all(),
         write_only=True,
     )
+    id = serializers.IntegerField(required=False, allow_null=True)
+
+    def validate(self, data):
+        if data.get('product') is not None and data.get('quantity') is not None:
+            if data['product'].stock - data['quantity'] < 0:
+                raise serializers.ValidationError({
+                    'quantity': "No se puede vender una cantidad mayor al stock actual."
+                })
+        return data
+
 
     class Meta:
         model = SaleItem
-        fields = ['product', 'products', 'quantity', 'unit_price', 'sub_total_price', 'discount', 'total_price']
-        read_only_fields = ['id']
+        fields = ['id', 'product', 'products', 'quantity', 'unit_price', 'sub_total_price', 'discount', 'total_price']
 
 
 class SaleSerializer(serializers.ModelSerializer):
@@ -641,23 +643,9 @@ class SaleSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         try:
             items_data = validated_data.pop('sale_items', [])
-            payment_data = validated_data.pop('payments', None)
-            if payment_data:
-                payment_amount = payment_data['amount']
-                purchase_total_amount = validated_data['balance_due']
-                if purchase_total_amount - payment_amount < 0:
-                    raise serializers.ValidationError({
-                        "payments": {
-                            "amount": "El pago no puede ser mayor al costo total."
-                        }
-                    })
-                validated_data['balance_due'] -= payment_amount
             sale = Sale.objects.create(**validated_data)
             for item_data in items_data:
                 SaleItem.objects.create(sale=sale, **item_data)
-
-            if payment_data:
-                Payment.objects.create(transaction_id=sale.id, **payment_data)
         except Exception as e:
             raise e
 
@@ -666,6 +654,7 @@ class SaleSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def update(self, instance, validated_data):
         items_data = validated_data.pop('sale_items', None)
+        payments_data = validated_data.pop('payments', None)
         try:
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
@@ -686,6 +675,18 @@ class SaleSerializer(serializers.ModelSerializer):
                         item.save()
                     else:
                         SaleItem.objects.create(sale=instance, **item_data)
+                        
+            if payments_data is not None:
+                payment_amount = payments_data['amount']
+                purchase_total_amount = validated_data['balance_due']
+                if purchase_total_amount - payment_amount < 0:
+                    raise serializers.ValidationError({
+                        "payments": {
+                            "amount": "El pago no puede ser mayor al costo total."
+                        }
+                    })
+                validated_data['balance_due'] -= payment_amount
+                Payment.objects.create(transaction_id=instance.id, **payments_data)
         except Exception as e:
             raise e
 

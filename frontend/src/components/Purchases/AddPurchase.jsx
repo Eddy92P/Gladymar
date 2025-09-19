@@ -110,7 +110,8 @@ export const AddPurchase = () => {
 			return {
 				value: action.val,
 				isValid: validDate(action.val),
-				feedbackText: 'La fecha no puede ser anterior a la actual',
+				feedbackText:
+					'La fecha no puede ser anterior ni posterior a la actual',
 			};
 		}
 		return state;
@@ -157,7 +158,8 @@ export const AddPurchase = () => {
 			return {
 				value: action.val,
 				isValid: validDate(action.val),
-				feedbackText: 'La fecha no puede ser anterior a la actual',
+				feedbackText:
+					'La fecha no puede ser anterior ni posterior a la actual',
 			};
 		}
 		return state;

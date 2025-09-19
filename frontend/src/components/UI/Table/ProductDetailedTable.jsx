@@ -71,7 +71,11 @@ const ProductDetailedTable = ({
 		const product = data.find(product => product.id === id);
 		const newProduct = {
 			...product,
-			price: { value: '', isValid: false, feedbackText: '' },
+			price: {
+				value: product.price ? product.price : '',
+				isValid: true,
+				feedbackText: '',
+			},
 			quantity: { value: '', isValid: true, feedbackText: '' },
 			subTotalPrice: { value: '', isValid: true, feedbackText: '' },
 			discount: { value: 0, isValid: true, feedbackText: '' },
@@ -176,6 +180,24 @@ const ProductDetailedTable = ({
 							<TableRow>
 								<StyledTableCell>Nombre</StyledTableCell>
 								<StyledTableCell>Código</StyledTableCell>
+								{data[0].price != null && (
+									<StyledTableCell>
+										Precio Bs.
+									</StyledTableCell>
+								)}
+								{data[0].stock != null && (
+									<StyledTableCell>Stock</StyledTableCell>
+								)}
+								{data[0].minimumSalePrice != null && (
+									<StyledTableCell>
+										Precio Mínimo Bs.
+									</StyledTableCell>
+								)}
+								{data[0].maximumSalePrice != null && (
+									<StyledTableCell>
+										Precio Máximo Bs.
+									</StyledTableCell>
+								)}
 								<StyledTableCell></StyledTableCell>
 							</TableRow>
 						</TableHead>

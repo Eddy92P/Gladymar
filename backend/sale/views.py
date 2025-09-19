@@ -266,8 +266,9 @@ class SellingChannelViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=["get"], url_path="all")
     def all_selling_channels(self, request):
-        queryset = self.filter_queryset(self.get_queryset()).values("id", "name")
-        return Response(list(queryset))
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
 
 class PurchaseViewSet(viewsets.ModelViewSet):

@@ -106,8 +106,6 @@ export const AddSale = () => {
 		[location.state?.isSale]
 	);
 
-	console.log(saleData);
-
 	const [formIsValid, setFormIsValid] = useState(false);
 	const [showModal, setShowModal] = useState(false);
 	const [isForm, setIsForm] = useState(true);
@@ -129,7 +127,8 @@ export const AddSale = () => {
 			return {
 				value: action.val,
 				isValid: validDate(action.val),
-				feedbackText: 'La fecha no puede ser anterior a la actual',
+				feedbackText:
+					'La fecha no puede ser anterior ni posterior a la actual',
 			};
 		}
 		return state;
@@ -140,7 +139,8 @@ export const AddSale = () => {
 			return {
 				value: action.val,
 				isValid: validDate(action.val),
-				feedbackText: 'La fecha no puede ser anterior a la actual',
+				feedbackText:
+					'La fecha no puede ser anterior ni posterior a la actual',
 			};
 		}
 		return state;
@@ -169,7 +169,8 @@ export const AddSale = () => {
 			return {
 				value: action.val,
 				isValid: validDate(action.val),
-				feedbackText: 'La fecha no puede ser anterior a la actual',
+				feedbackText:
+					'La fecha no puede ser anterior ni posterior a la actual',
 			};
 		}
 		return state;
@@ -312,9 +313,13 @@ export const AddSale = () => {
 
 	const saleProducts = saleData.saleItems?.map(saleItem => {
 		return {
+			saleItemId: saleItem.id,
 			id: saleItem.products.id,
 			name: saleItem.products.name,
 			code: saleItem.products.code,
+			stock: saleItem.products.available_stock,
+			minimumSalePrice: saleItem.products.minimum_sale_price,
+			maximumSalePrice: saleItem.products.maximum_sale_price,
 			price: {
 				value: saleItem.unit_price || '',
 				isValid: true,
@@ -363,7 +368,8 @@ export const AddSale = () => {
 
 	const paymentAmountInputChangeHandler = e => {
 		dispatchPaymentAmount({ type: 'INPUT_CHANGE', val: e.target.value });
-		if (saleType === 'contado' && e.target.value < saleTotalAmount) {
+		const paymentAmount = parseFloat(e.target.value) || 0;
+		if (saleType === 'contado' && paymentAmount < saleTotalAmount) {
 			dispatchPaymentAmount({
 				type: 'INPUT_ERROR',
 				errorMessage:
@@ -598,8 +604,9 @@ export const AddSale = () => {
 
 	const handleSubmit = async () => {
 		try {
+			console.log(productListState);
 			// Preparar los datos básicos de la venta
-			const saleData = {
+			const saleInfo = {
 				agency: storeContext.agency,
 				client: client.id,
 				selling_channel: sellingChannel.id,
@@ -618,24 +625,9 @@ export const AddSale = () => {
 				})),
 			};
 
-			// Solo agregar payments si se proporciona información de pago
-
-			if (
-				paymentMethod &&
-				paymentAmountState.value &&
-				paymentDateState.value
-			) {
-				saleData.payments = {
-					payment_method: paymentMethod,
-					transaction_type: 'venta',
-					amount: paymentAmountState.value,
-					payment_date: paymentDateState.value.format('YYYY-MM-DD'),
-				};
-			}
-
 			const response = await fetch(url, {
 				method: 'POST',
-				body: JSON.stringify(saleData),
+				body: JSON.stringify(saleInfo),
 				headers: {
 					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
@@ -646,6 +638,86 @@ export const AddSale = () => {
 			if (!response.ok) {
 				setErrorMessage('Ocurrió un problema.');
 				setIsForm(true);
+				if (data.sale_items) {
+					data.sale_items.forEach((sale_item, index) => {
+						const productId = productListState[index]?.id;
+
+						if (sale_item.quantity) {
+							const errorMessage = Array.isArray(
+								sale_item.quantity
+							)
+								? sale_item.quantity[0]
+								: sale_item.quantity;
+
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productId,
+								errorMessage: errorMessage,
+								field: 'quantity',
+							});
+						}
+
+						if (sale_item.unit_price) {
+							const errorMessage = Array.isArray(
+								sale_item.unit_price
+							)
+								? sale_item.unit_price[0]
+								: sale_item.unit_price;
+
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productId,
+								errorMessage: errorMessage,
+								field: 'unitPrice',
+							});
+						}
+
+						if (sale_item.sub_total_price) {
+							const errorMessage = Array.isArray(
+								sale_item.sub_total_price
+							)
+								? sale_item.sub_total_price[0]
+								: sale_item.sub_total_price;
+
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productId,
+								errorMessage: errorMessage,
+								field: 'subTotalPrice',
+							});
+						}
+
+						if (sale_item.discount) {
+							const errorMessage = Array.isArray(
+								sale_item.discount
+							)
+								? sale_item.discount[0]
+								: sale_item.discount;
+
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productId,
+								errorMessage: errorMessage,
+								field: 'discount',
+							});
+						}
+
+						if (sale_item.total_price) {
+							const errorMessage = Array.isArray(
+								sale_item.total_price
+							)
+								? sale_item.total_price[0]
+								: sale_item.total_price;
+
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productId,
+								errorMessage: errorMessage,
+								field: 'totalPrice',
+							});
+						}
+					});
+				}
 
 				if (data.payments.payment_date) {
 					dispatchPaymentDate({
@@ -657,86 +729,6 @@ export const AddSale = () => {
 					dispatchPaymentAmount({
 						type: 'INPUT_ERROR',
 						errorMessage: data.payments.amount,
-					});
-				}
-				if (data.purchase_items) {
-					data.purchase_items.forEach((purchase_item, index) => {
-						const productId = productListState[index]?.id;
-
-						if (purchase_item.quantity) {
-							const errorMessage = Array.isArray(
-								purchase_item.quantity
-							)
-								? purchase_item.end_date[0]
-								: purchase_item.end_date;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'quantity',
-							});
-						}
-
-						if (purchase_item.unit_price) {
-							const errorMessage = Array.isArray(
-								purchase_item.unit_price
-							)
-								? purchase_item.unit_price[0]
-								: purchase_item.unit_price;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'unitPrice',
-							});
-						}
-
-						if (purchase_item.sub_total_price) {
-							const errorMessage = Array.isArray(
-								purchase_item.sub_total_price
-							)
-								? purchase_item.sub_total_price[0]
-								: purchase_item.sub_total_price;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'subTotalPrice',
-							});
-						}
-
-						if (purchase_item.discount) {
-							const errorMessage = Array.isArray(
-								purchase_item.discount
-							)
-								? purchase_item.discount[0]
-								: purchase_item.discount;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'discount',
-							});
-						}
-
-						if (purchase_item.total_price) {
-							const errorMessage = Array.isArray(
-								purchase_item.total_price
-							)
-								? purchase_item.total_price[0]
-								: purchase_item.total_price;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'totalPrice',
-							});
-						}
 					});
 				}
 			} else {
@@ -752,16 +744,20 @@ export const AddSale = () => {
 	const handleEdit = async () => {
 		try {
 			// Preparar los datos básicos de la venta
-			const saleData = {
+			const saleInfo = {
 				agency: storeContext.agency,
 				client: client.id,
 				selling_channel: sellingChannel.id,
 				sale_date: saleDateState.value.format('YYYY-MM-DD'),
-				sale_type: saleType,
-				status: 'realizado',
+				sale_perform_date: isSale
+					? salePerformDateState.value.format('YYYY-MM-DD')
+					: null,
+				sale_type: isSale ? saleType : 'proforma',
+				status: isSale ? 'realizado' : 'proforma',
 				total: saleTotalAmount,
-				balance_due: saleTotalAmount,
+				balance_due: isSale ? saleTotalAmount : 0,
 				sale_items: productListState.map(product => ({
+					id: product.saleItemId,
 					product: product.id,
 					quantity: product.quantity.value,
 					unit_price: product.price.value,
@@ -777,7 +773,7 @@ export const AddSale = () => {
 				paymentAmountState.value &&
 				paymentDateState.value
 			) {
-				saleData.payments = {
+				saleInfo.payments = {
 					payment_method: paymentMethod,
 					transaction_type: 'venta',
 					amount: paymentAmountState.value,
@@ -785,9 +781,9 @@ export const AddSale = () => {
 				};
 			}
 
-			const response = await fetch(url, {
+			const response = await fetch(`${url}${saleData.id}/`, {
 				method: 'PUT',
-				body: JSON.stringify(saleData),
+				body: JSON.stringify(saleInfo),
 				headers: {
 					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
@@ -798,6 +794,86 @@ export const AddSale = () => {
 			if (!response.ok) {
 				setErrorMessage('Ocurrió un problema.');
 				setIsForm(true);
+				if (data.sale_items) {
+					data.sale_items.forEach((sale_item, index) => {
+						const productId = productListState[index]?.id;
+
+						if (sale_item.quantity) {
+							const errorMessage = Array.isArray(
+								sale_item.quantity
+							)
+								? sale_item.quantity[0]
+								: sale_item.quantity;
+
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productId,
+								errorMessage: errorMessage,
+								field: 'quantity',
+							});
+						}
+
+						if (sale_item.unit_price) {
+							const errorMessage = Array.isArray(
+								sale_item.unit_price
+							)
+								? sale_item.unit_price[0]
+								: sale_item.unit_price;
+
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productId,
+								errorMessage: errorMessage,
+								field: 'unitPrice',
+							});
+						}
+
+						if (sale_item.sub_total_price) {
+							const errorMessage = Array.isArray(
+								sale_item.sub_total_price
+							)
+								? sale_item.sub_total_price[0]
+								: sale_item.sub_total_price;
+
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productId,
+								errorMessage: errorMessage,
+								field: 'subTotalPrice',
+							});
+						}
+
+						if (sale_item.discount) {
+							const errorMessage = Array.isArray(
+								sale_item.discount
+							)
+								? sale_item.discount[0]
+								: sale_item.discount;
+
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productId,
+								errorMessage: errorMessage,
+								field: 'discount',
+							});
+						}
+
+						if (sale_item.total_price) {
+							const errorMessage = Array.isArray(
+								sale_item.total_price
+							)
+								? sale_item.total_price[0]
+								: sale_item.total_price;
+
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productId,
+								errorMessage: errorMessage,
+								field: 'totalPrice',
+							});
+						}
+					});
+				}
 
 				if (data.payments.payment_date) {
 					dispatchPaymentDate({
@@ -809,86 +885,6 @@ export const AddSale = () => {
 					dispatchPaymentAmount({
 						type: 'INPUT_ERROR',
 						errorMessage: data.payments.amount,
-					});
-				}
-				if (data.purchase_items) {
-					data.purchase_items.forEach((purchase_item, index) => {
-						const productId = productListState[index]?.id;
-
-						if (purchase_item.quantity) {
-							const errorMessage = Array.isArray(
-								purchase_item.quantity
-							)
-								? purchase_item.end_date[0]
-								: purchase_item.end_date;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'quantity',
-							});
-						}
-
-						if (purchase_item.unit_price) {
-							const errorMessage = Array.isArray(
-								purchase_item.unit_price
-							)
-								? purchase_item.unit_price[0]
-								: purchase_item.unit_price;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'unitPrice',
-							});
-						}
-
-						if (purchase_item.sub_total_price) {
-							const errorMessage = Array.isArray(
-								purchase_item.sub_total_price
-							)
-								? purchase_item.sub_total_price[0]
-								: purchase_item.sub_total_price;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'subTotalPrice',
-							});
-						}
-
-						if (purchase_item.discount) {
-							const errorMessage = Array.isArray(
-								purchase_item.discount
-							)
-								? purchase_item.discount[0]
-								: purchase_item.discount;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'discount',
-							});
-						}
-
-						if (purchase_item.total_price) {
-							const errorMessage = Array.isArray(
-								purchase_item.total_price
-							)
-								? purchase_item.total_price[0]
-								: purchase_item.total_price;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'totalPrice',
-							});
-						}
 					});
 				}
 			} else {
@@ -906,8 +902,11 @@ export const AddSale = () => {
 	};
 
 	useEffect(() => {
+		const saleTypeValid = isSale ? saleType : true;
+		const salePerformDateValue = isSale ? salePerformDateState.value : true;
 		if (
-			(saleDateState.value || salePerformDateState.value) &&
+			saleDateState.value &&
+			salePerformDateValue &&
 			client &&
 			sellingChannel &&
 			productListState.length > 0
@@ -930,7 +929,7 @@ export const AddSale = () => {
 			);
 
 			let paymentIsValid = true;
-			if (saleData.length !== 0) {
+			if (isSale) {
 				paymentIsValid = false;
 			}
 			if (
@@ -946,10 +945,12 @@ export const AddSale = () => {
 					paymentDateIsValid;
 			}
 			const isValid =
-				(saleDateIsValid || salePerformDateIsValid) &&
+				saleDateIsValid &&
+				salePerformDateIsValid &&
 				paymentIsValid &&
 				client &&
 				sellingChannel &&
+				saleTypeValid &&
 				allProductsFieldsValid;
 			setFormIsValid(isValid);
 			setDisabled(!isValid);
@@ -970,13 +971,21 @@ export const AddSale = () => {
 		paymentAmountIsValid,
 		paymentDateIsValid,
 		productListState,
+		isSale,
+		saleType,
 	]);
 
 	useEffect(() => {
-		setTitle('Realizar Venta');
+		if (isSale) {
+			setTitle('Realizar Venta');
+		} else if (!isSale && saleData.length > 0) {
+			setTitle('Editar Venta');
+		} else {
+			setTitle('Generar Proforma');
+		}
 
 		setButtonText(!isForm ? 'Finalizar' : 'Siguiente');
-	}, [isForm]);
+	}, [isForm, isSale, saleData]);
 
 	return (
 		<>
@@ -1162,6 +1171,17 @@ export const AddSale = () => {
 															Código
 														</StyledTableCell>
 														<StyledTableCell>
+															Stock
+														</StyledTableCell>
+														<StyledTableCell>
+															Precio Mínimo de
+															Venta Bs.
+														</StyledTableCell>
+														<StyledTableCell>
+															Precio Máximo de
+															Venta Bs.
+														</StyledTableCell>
+														<StyledTableCell>
 															Cantidad
 														</StyledTableCell>
 														<StyledTableCell>
@@ -1195,6 +1215,21 @@ export const AddSale = () => {
 																<TableCell>
 																	{
 																		product.code
+																	}
+																</TableCell>
+																<TableCell>
+																	{
+																		product.stock
+																	}
+																</TableCell>
+																<TableCell>
+																	{
+																		product.minimumSalePrice
+																	}
+																</TableCell>
+																<TableCell>
+																	{
+																		product.maximumSalePrice
 																	}
 																</TableCell>
 																<TableCell>
@@ -1626,6 +1661,7 @@ export const AddSale = () => {
 								onClick={() => setShowProductsModal(true)}
 								color="success"
 								startIcon={<SearchIcon />}
+								disabled={!sellingChannel}
 							>
 								Buscar Productos
 							</Button>
@@ -1727,6 +1763,7 @@ export const AddSale = () => {
 						}}
 						onClose={() => setShowProductsModal(false)}
 						addedProducts={productListState}
+						sellingChannel={sellingChannel}
 					/>
 				)}
 

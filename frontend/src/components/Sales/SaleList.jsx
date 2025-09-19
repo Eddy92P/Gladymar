@@ -78,14 +78,18 @@ const PurchaseList = () => {
 						alignItems: 'center',
 					}}
 				>
-					<MonetizationOn
-						onClick={e => handleEditButton(e, row.id, true)}
-						style={{ cursor: 'pointer', color: '#127FE6' }}
-					/>
-					<Edit
-						onClick={e => handleEditButton(e, row.id, false)}
-						className={classes.editIcon}
-					/>
+					{row.status != 'realizado' && (
+						<MonetizationOn
+							onClick={e => handleEditButton(e, row.id, true)}
+							style={{ cursor: 'pointer', color: '#127FE6' }}
+						/>
+					)}
+					{row.status != 'realizado' && (
+						<Edit
+							onClick={e => handleEditButton(e, row.id, false)}
+							className={classes.editIcon}
+						/>
+					)}
 					<Info
 						onClick={e => handleInfoButton(e, row.id)}
 						style={{ cursor: 'pointer', color: '#127FE6' }}

@@ -192,7 +192,8 @@ export const AddSellingChannel = () => {
 			// Handle different possible data structures from backend
 			const transformedProduct = {
 				// Core product information
-				id: product.id,
+				sellingChannelId: product.id,
+				id: product.products.id,
 				name:
 					product.name ||
 					product.products?.name ||
@@ -383,6 +384,7 @@ export const AddSellingChannel = () => {
 				body: JSON.stringify({
 					name: nameState.value,
 					product_channel_price: productListState.map(product => ({
+						id: product.sellingChannelId,
 						product: product.id,
 						price: product.price?.value,
 						start_date: product.startDate?.value || null,
@@ -495,7 +497,7 @@ export const AddSellingChannel = () => {
 				: 'Agregar Canal de Venta'
 		);
 		if (sellingChannelData.length !== 0) {
-			setButtonText('Guardar Cambios');
+			setButtonText(!isForm ? 'Siguiente' : 'Guardar Cambios');
 		} else {
 			setButtonText(!isForm ? 'Finalizar' : 'Siguiente');
 		}
