@@ -576,10 +576,15 @@ class SaleItemSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False, allow_null=True)
 
     def validate(self, data):
-        if data.get('product') is not None and data.get('quantity') is not None:
-            if data['product'].stock - data['quantity'] < 0:
+        print(data['total_price'])
+        if data.get('product') is not None and data.get('quantity') is not None and data.get('total_price') is not None:
+            if data['product'].available_stock - data['quantity'] < 0:
                 raise serializers.ValidationError({
                     'quantity': "No se puede vender una cantidad mayor al stock actual."
+                })
+            if data['total_price'] < data['product'].minimum_sale_price or data['total_price'] > data['product'].maximum_sale_price:
+                raise serializers.ValidationError({
+                    'total_price': "El total de la venta no puede estar fuera de los rangos de venta."
                 })
         return data
 
@@ -629,6 +634,17 @@ class SaleSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
+    def to_representation(self, instance):
+        """Custom representation to include payments in GET requests."""
+        data = super().to_representation(instance)
+        # Get payments for this sale
+        payments = Payment.objects.filter(
+            transaction_id=instance.id,
+            transaction_type='venta'
+        )
+        data['payments'] = NestedPaymentSerializer(payments, many=True).data
+        return data
+
     def validate(self, data):
         if data.get('sale_date') and data.get('payments'):
             if data['payments']['payment_date'] < data['sale_date']:
@@ -675,17 +691,24 @@ class SaleSerializer(serializers.ModelSerializer):
                         item.save()
                     else:
                         SaleItem.objects.create(sale=instance, **item_data)
+                    
+                    # Actualizar stock para productos existentes y nuevos cuando el status es 'realizado'
+                    if validated_data['status'] == 'realizado':
+                        item_data['product'].reserved_stock += item_data['quantity']
+                        item_data['product'].available_stock -= item_data['quantity']
+                        item_data['product'].save()
                         
             if payments_data is not None:
                 payment_amount = payments_data['amount']
-                purchase_total_amount = validated_data['balance_due']
+                purchase_total_amount = instance.balance_due
                 if purchase_total_amount - payment_amount < 0:
                     raise serializers.ValidationError({
                         "payments": {
                             "amount": "El pago no puede ser mayor al costo total."
                         }
                     })
-                validated_data['balance_due'] -= payment_amount
+                instance.balance_due -= payment_amount
+                instance.save()
                 Payment.objects.create(transaction_id=instance.id, **payments_data)
         except Exception as e:
             raise e

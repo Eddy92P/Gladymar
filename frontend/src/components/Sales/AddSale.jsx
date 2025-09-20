@@ -604,7 +604,6 @@ export const AddSale = () => {
 
 	const handleSubmit = async () => {
 		try {
-			console.log(productListState);
 			// Preparar los datos básicos de la venta
 			const saleInfo = {
 				agency: storeContext.agency,
@@ -719,17 +718,19 @@ export const AddSale = () => {
 					});
 				}
 
-				if (data.payments.payment_date) {
-					dispatchPaymentDate({
-						type: 'INPUT_ERROR',
-						errorMessage: data.payments.payment_date[0],
-					});
-				}
-				if (data.payments.amount) {
-					dispatchPaymentAmount({
-						type: 'INPUT_ERROR',
-						errorMessage: data.payments.amount,
-					});
+				if (data.payments) {
+					if (data.payments.payment_date) {
+						dispatchPaymentDate({
+							type: 'INPUT_ERROR',
+							errorMessage: data.payments.payment_date[0],
+						});
+					}
+					if (data.payments.amount) {
+						dispatchPaymentAmount({
+							type: 'INPUT_ERROR',
+							errorMessage: data.payments.amount,
+						});
+					}
 				}
 			} else {
 				setIsLoading(true);
@@ -777,7 +778,9 @@ export const AddSale = () => {
 					payment_method: paymentMethod,
 					transaction_type: 'venta',
 					amount: paymentAmountState.value,
-					payment_date: paymentDateState.value.format('YYYY-MM-DD'),
+					payment_date: paymentDateState.value
+						? paymentDateState.value.format('YYYY-MM-DD')
+						: null,
 				};
 			}
 
@@ -864,7 +867,6 @@ export const AddSale = () => {
 							)
 								? sale_item.total_price[0]
 								: sale_item.total_price;
-
 							dispatchProductList({
 								type: 'SET_ERROR',
 								id: productId,
@@ -875,17 +877,19 @@ export const AddSale = () => {
 					});
 				}
 
-				if (data.payments.payment_date) {
-					dispatchPaymentDate({
-						type: 'INPUT_ERROR',
-						errorMessage: data.payments.payment_date[0],
-					});
-				}
-				if (data.payments.amount) {
-					dispatchPaymentAmount({
-						type: 'INPUT_ERROR',
-						errorMessage: data.payments.amount,
-					});
+				if (data.payments) {
+					if (data.payments.payment_date) {
+						dispatchPaymentDate({
+							type: 'INPUT_ERROR',
+							errorMessage: data.payments.payment_date[0],
+						});
+					}
+					if (data.payments.amount) {
+						dispatchPaymentAmount({
+							type: 'INPUT_ERROR',
+							errorMessage: data.payments.amount,
+						});
+					}
 				}
 			} else {
 				setIsLoading(true);
@@ -1437,6 +1441,38 @@ export const AddSale = () => {
 																				.totalPrice
 																				.value
 																		}
+																		error={
+																			(product
+																				.totalPrice
+																				.value &&
+																				!product
+																					.totalPrice
+																					.isValid) ||
+																			(!product
+																				.totalPrice
+																				.isValid &&
+																				product
+																					.totalPrice
+																					.feedbackText)
+																		}
+																		helperText={
+																			(product
+																				.totalPrice
+																				.value &&
+																				!product
+																					.totalPrice
+																					.isValid) ||
+																			(!product
+																				.totalPrice
+																				.isValid &&
+																				product
+																					.totalPrice
+																					.feedbackText)
+																				? product
+																						.totalPrice
+																						.feedbackText
+																				: ''
+																		}
 																		disabled
 																		fullWidth
 																		slotProps={{
@@ -1478,7 +1514,7 @@ export const AddSale = () => {
 											</Table>
 										</TableContainer>
 									</Box>
-									{isSale && (
+									{isSale && saleType && (
 										<Box sx={{ mt: 4, flexGrow: 1 }}>
 											<Typography
 												variant="h6"

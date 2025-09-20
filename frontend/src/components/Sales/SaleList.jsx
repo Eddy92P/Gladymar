@@ -129,6 +129,7 @@ const PurchaseList = () => {
 
 				const data = await response.json();
 				setRowCount(data.total);
+				console.log(data.rows);
 
 				if (isMounted) {
 					const parsedList = data.rows.map(listData => {
@@ -185,6 +186,8 @@ const PurchaseList = () => {
 
 	const handleInfoButton = (e, id) => {
 		e.preventDefault();
+		const sale = list.find(x => x.id === id);
+		navigate(`info_venta/${id}`, { state: { saleData: sale } });
 	};
 
 	const handlePageChange = newPage => {

@@ -590,7 +590,7 @@ class SaleItem(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return f"{self.product.name} - {self.quantity}"
+        return f"Sale item {self.product.name} - {self.quantity}"
     
 class Payment(models.Model):
     PAYMENT_METHOD_CHOICES = (
