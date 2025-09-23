@@ -23,7 +23,6 @@ const SaleDetail = () => {
 		() => location.state?.saleData || [],
 		[location.state?.saleData]
 	);
-	console.log(saleData);
 	const [activeStep, setActiveStep] = useState(0);
 	const steps = [
 		{

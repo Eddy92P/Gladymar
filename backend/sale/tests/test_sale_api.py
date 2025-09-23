@@ -98,7 +98,7 @@ def create_product(**params):
         'minimum_stock': 10,
         'maximum_stock': 100,
         'minimum_sale_price': 10.00,
-        'maximum_sale_price': 50.00,
+        'maximum_sale_price': 100.00,
     }
     defaults.update(params)
     return Product.objects.create(**defaults)
@@ -245,9 +245,9 @@ class PrivateSaleApiTests(TestCase):
             'sale_items': [
                 {
                     'product': create_product().id,
-                    'quantity': 50,
-                    'unit_price': 50.00,
-                    'total_price': 2500.00,
+                    'quantity': 5.00,
+                    'unit_price': 10.00,
+                    'total_price': 50.00,
                 }
             ]
         }

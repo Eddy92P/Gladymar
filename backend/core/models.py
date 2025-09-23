@@ -527,9 +527,10 @@ class EntryItem(models.Model):
 class Output(models.Model):
     warehouse_keeper = models.ForeignKey(User, on_delete=models.PROTECT)
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
-    sale = models.OneToOneField(
+    sale = models.ForeignKey(
         'Sale',
         on_delete=models.PROTECT,
+        related_name='outputs',
         blank=True,
         null=True
     )

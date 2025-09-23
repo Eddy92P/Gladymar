@@ -16,10 +16,9 @@ class DecreaseProductStockService:
         try:
             for item in self.output.output_items.all():
                 product = item.product
-                if product.minimum_stock > 0:
-                    if product.stock - item.quantity < product.minimum_stock:
-                        raise ValidationError("El stock no puede ser menor al stock mínimo.")
-                    product.stock -= item.quantity
-                    product.save()
+                if product.available_stock - item.quantity < 0:
+                    raise ValidationError("La cantidad excede el stock disponible.")
+                product.stock -= item.quantity
+                product.save()
         except Exception as e:
             raise e

@@ -42,8 +42,12 @@ function AddSaleModal(props) {
 		navigate(-1);
 	};
 	useEffect(() => {
-		setDescriptionText('registrada');
-		setMessageText(' La venta fue registrada exitosamente.');
+		setDescriptionText(props.saleData ? 'editada' : 'registrada');
+		setMessageText(
+			props.saleData
+				? 'Todos los cambios fueron registrados.'
+				: ' La venta fue registrada exitosamente.'
+		);
 	}, [props]);
 	return (
 		<Dialog onClose={handleClose} open={open} fullScreen={fullScreen}>

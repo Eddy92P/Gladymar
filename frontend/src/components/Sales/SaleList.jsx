@@ -129,7 +129,6 @@ const PurchaseList = () => {
 
 				const data = await response.json();
 				setRowCount(data.total);
-				console.log(data.rows);
 
 				if (isMounted) {
 					const parsedList = data.rows.map(listData => {

@@ -1803,7 +1803,7 @@ export const AddSale = () => {
 					/>
 				)}
 
-				{showModal && <AddSaleModal />}
+				{showModal && <AddSaleModal saleData={saleData} />}
 			</Fragment>
 		</>
 	);

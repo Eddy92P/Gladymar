@@ -70,6 +70,7 @@ class TestDecreaseProductStockService(TestCase):
             'name': f'Test Product {unique_suffix}',
             'batch': batch,
             'stock': 50,
+            'available_stock': 50,
             'code': f'TEST-{unique_suffix}',
             'minimum_stock': 10,
             'maximum_stock': 200,
@@ -122,7 +123,7 @@ class TestDecreaseProductStockService(TestCase):
         OutputItem.objects.create(
             output = output,
             product = self.product,
-            quantity = 50
+            quantity = 60
         )
         
         service = DecreaseProductStockService(output)
@@ -130,4 +131,4 @@ class TestDecreaseProductStockService(TestCase):
         with self.assertRaises(ValidationError) as context:
             service.decrease_product_stock()
 
-        self.assertIn("El stock no puede ser menor al stock mínimo", str(context.exception))
+        self.assertIn("La cantidad excede el stock disponible.", str(context.exception))

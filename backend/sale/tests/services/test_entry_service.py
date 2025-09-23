@@ -68,6 +68,7 @@ class TestIncreaseProductStockService(TestCase):
             'name': f'Test Product{unique_suffix}',
             'batch': batch,
             'stock': 50,
+            'available_stock': 50,
             'code': f'TEST-{unique_suffix}',
             'minimum_stock': 10,
             'maximum_stock': 200,
@@ -102,35 +103,6 @@ class TestIncreaseProductStockService(TestCase):
         
         service = IncreaseProductStockService(entry)
         service.increase_product_stock()
-        
+
         self.product.refresh_from_db()
         self.assertEqual(self.product.stock, 60)
-        
-    def test_increase_stock_raise_error(self):
-        """Test service for increase product stock fails."""
-        entry = Entry.objects.create(
-            warehouse_keeper=create_user(),
-            supplier=Supplier.objects.create(
-                name='Test Supplier 3',
-                phone='12345679',
-                nit='NIT-1233',
-                email='test3@example.com',
-                address='Test Address'
-            ),
-            entry_date=timezone.now(),
-            invoice_number='1234567'
-        )
-        EntryItem.objects.create(
-            entry=entry,
-            product=self.product,
-            quantity=200,
-            unit_price=10.00,
-            total_price=100.00
-        )
-        
-        service = IncreaseProductStockService(entry)
-        
-        with self.assertRaises(ValidationError) as context:
-            service.increase_product_stock()
-            
-        self.assertIn("El stock máximo no puede ser superado", str(context.exception))

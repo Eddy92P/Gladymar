@@ -103,42 +103,26 @@ function AddSalePreview(props) {
 								/>
 							</Grid>
 						)}
-						<Grid item md={3}>
-							<TextField
-								label="Tipo de Venta"
-								value={props.saleType}
-								fullWidth
-								variant="standard"
-								sx={{
-									'& .MuiInput-underline:before': {
-										borderBottom: 'none',
-									},
-									'& .MuiInput-underline:after': {
-										borderBottom: 'none',
-									},
-								}}
-								disabled
-								className={classes.textStyle}
-							/>
-						</Grid>
-						<Grid item md={3}>
-							<TextField
-								label="Estado de la Venta"
-								value={props.status}
-								fullWidth
-								variant="standard"
-								sx={{
-									'& .MuiInput-underline:before': {
-										borderBottom: 'none',
-									},
-									'& .MuiInput-underline:after': {
-										borderBottom: 'none',
-									},
-								}}
-								disabled
-								className={classes.textStyle}
-							/>
-						</Grid>
+						{props.saleType && (
+							<Grid item md={3}>
+								<TextField
+									label="Tipo de Venta"
+									value={props.saleType}
+									fullWidth
+									variant="standard"
+									sx={{
+										'& .MuiInput-underline:before': {
+											borderBottom: 'none',
+										},
+										'& .MuiInput-underline:after': {
+											borderBottom: 'none',
+										},
+									}}
+									disabled
+									className={classes.textStyle}
+								/>
+							</Grid>
+						)}
 					</Grid>
 				</Box>
 				<Box mt={4}>

@@ -16,11 +16,8 @@ class IncreaseProductStockService:
         try:
             for item in self.entry.entry_items.all():
                 product = item.product
-                if product.maximum_stock > 0:
-                    if product.stock + item.quantity > product.maximum_stock:
-                        raise ValidationError("El stock máximo no puede ser superado.")
-                    product.stock += item.quantity
-                    product.save()
+                product.stock += item.quantity
+                product.save()
 
         except Exception as e:
             raise e
