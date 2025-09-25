@@ -108,7 +108,6 @@ class TestUpdateProductStockService(TestCase):
             product=self.product,
             quantity=10,
             unit_price=10.00,
-            total_price=100.00
         )
 
         validated_data = {
@@ -117,7 +116,6 @@ class TestUpdateProductStockService(TestCase):
                     'id': entry_item.id,
                     'quantity': 15,
                     'unit_price': 10.00,
-                    'total_price': 150.00
                 }
             ]
         }
@@ -151,7 +149,6 @@ class TestUpdateProductStockService(TestCase):
             product=self.product,
             quantity=20,
             unit_price=10.00,
-            total_price=200.00
         )
 
         validated_data = {
@@ -160,7 +157,6 @@ class TestUpdateProductStockService(TestCase):
                     'id': entry_item.id,
                     'quantity': 15,
                     'unit_price': 10.00,
-                    'total_price': 150.00
                 }
             ]
         }
@@ -194,7 +190,6 @@ class TestUpdateProductStockService(TestCase):
             product=self.product,
             quantity=10,
             unit_price=10.00,
-            total_price=100.00
         )
 
         validated_data = {
@@ -203,7 +198,6 @@ class TestUpdateProductStockService(TestCase):
                     'id': entry_item.id,
                     'quantity': 200,
                     'unit_price': 10.00,
-                    'total_price': 2000.00
                 }
             ]
         }

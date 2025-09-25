@@ -98,7 +98,6 @@ class TestIncreaseProductStockService(TestCase):
             product=self.product,
             quantity=10,
             unit_price=10.00,
-            total_price=100.00
         )
         
         service = IncreaseProductStockService(entry)

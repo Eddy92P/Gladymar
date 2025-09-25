@@ -61,15 +61,6 @@ export const validateRegisterNumberLength = registerNumber => {
 	);
 };
 
-export const validationDentalRegistrationNumberLength =
-	dentalRegitrationNumber => {
-		return dentalRegitrationNumber.trim().length <= 30;
-	};
-
-export const validateAgeRange = age => {
-	return age <= 110 && age >= 0;
-};
-
 export const validateCosto = costo => {
 	const costRegex = /^\d{1,8}(\.\d{1,2})?$/;
 	const numValue = parseFloat(costo);

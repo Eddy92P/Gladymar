@@ -181,7 +181,7 @@ class EntryItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EntryItem
-        fields = ['id', 'product', 'products', 'quantity', 'unit_price', 'total_price']
+        fields = ['id', 'product', 'products', 'quantity', 'unit_price']
         read_only_fields = ['id']
 
 
@@ -203,8 +203,7 @@ class EntrySerializer(serializers.ModelSerializer):
             items_data = validated_data.pop('entry_items')
             entry = Entry.objects.create(**validated_data)
             for item_data in items_data:
-                entry_item = EntryItem.objects.create(entry=entry, **item_data)
-                entry_item.product.suppliers.add(entry.supplier)
+                EntryItem.objects.create(entry=entry, **item_data)
             IncreaseProductStockService(entry).increase_product_stock()
         except Exception as e:
             raise e

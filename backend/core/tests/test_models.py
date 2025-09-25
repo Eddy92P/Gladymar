@@ -416,11 +416,9 @@ class ModelTest(TestCase):
             ),
             quantity=10,
             unit_price=10,
-            total_price=100,
         )
         self.assertEqual(entry_item.quantity, 10)
         self.assertEqual(entry_item.unit_price, 10)
-        self.assertEqual(entry_item.total_price, 100)
         
     def test_create_output(self):
         """Test creating a Output."""

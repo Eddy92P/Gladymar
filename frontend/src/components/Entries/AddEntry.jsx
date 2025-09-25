@@ -5,8 +5,9 @@ import React, {
 	useReducer,
 	useCallback,
 	Fragment,
+	useMemo,
 } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // MUI Components and styles
 import {
@@ -41,6 +42,7 @@ import { red } from '@mui/material/colors';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import dayjs from 'dayjs';
 
 // Validations and Constants
 import { validatePositiveNumber, validDate } from '../../Validations';
@@ -48,8 +50,8 @@ import { api, config } from '../../Constants';
 
 // Components
 import AddProductDetailedList from '../Products/AddProductDetailedList';
-import AddPurchasePreview from './AddPurchasePreview';
-import AddPurchaseModal from './AddPurchaseModal';
+import AddSalePreview from './AddSalePreview';
+import AddSaleModal from './AddSaleModal';
 import ListHeader from '../UI/List/ListHeader';
 
 // Context
@@ -72,24 +74,19 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 
 export const AddEntry = () => {
 	const url = config.url.HOST + api.API_URL_ENTRIES;
-	const urlSupplierChoices = config.url.HOST + api.API_URL_ALL_SUPPLIERS;
-
-	const purchaseTypeChoices = [
-		{ id: 1, value: 'contado', label: 'Contado' },
-		{ id: 2, value: 'credito', label: 'Crédito' },
-	];
-
-	const paymentMethodChoices = [
-		{ id: 1, value: 'efectivo', label: 'Efectivo' },
-		{ id: 2, value: 'tarjeta', label: 'Tarjeta' },
-		{ id: 3, value: 'qr', label: 'QR' },
-	];
+	const urlClientChoices = config.url.HOST + api.API_URL_ALL_SUPPLIERS;
 
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);
 	const storeContext = useContext(StoreContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
+	const location = useLocation();
+
+	const purchaseData = useMemo(
+		() => location.state?.purchaseData || [],
+		[location.state?.purchaseData]
+	);
 
 	const [formIsValid, setFormIsValid] = useState(false);
 	const [showModal, setShowModal] = useState(false);
@@ -99,13 +96,10 @@ export const AddEntry = () => {
 	const [disabled, setDisabled] = useState(true);
 	const [errorMessage, setErrorMessage] = useState('');
 	const [showProductsModal, setShowProductsModal] = useState(false);
-	const [purchaseTotalAmount, setPurchaseTotalAmount] = useState('');
-	const [purchaseType, setPurchaseType] = useState('');
 	const [supplierChoices, setSupplierChoices] = useState([]);
 	const [supplier, setSupplier] = useState(null);
-	const [paymentMethod, setPaymentMethod] = useState('');
 
-	const purchaseDateReducer = (state, action) => {
+	const entryDateReducer = (state, action) => {
 		if (action.type === 'INPUT_CHANGE') {
 			return {
 				value: action.val,
@@ -122,66 +116,12 @@ export const AddEntry = () => {
 			return {
 				value: action.val,
 				isValid: validatePositiveNumber(action.val),
-				feedbackText: 'Ingrese número valido',
+				feedbackText: 'Ingrese un número válido.',
 			};
 		}
-		if (action.type === 'INPUT_ERROR') {
-			return {
-				value: state.value,
-				isValid: false,
-				feedbackText: action.errorMessage,
-			};
-		}
-		return state;
-	};
-
-	const paymentAmountReducer = (state, action) => {
-		if (action.type === 'INPUT_CHANGE') {
-			return {
-				value: action.val,
-				isValid: validatePositiveNumber(action.val),
-				feedbackText: 'Ingrese pago valido',
-			};
-		}
-		if (action.type === 'INPUT_ERROR') {
-			return {
-				value: state.value,
-				isValid: false,
-				feedbackText: action.errorMessage,
-			};
-		}
-		return state;
-	};
-
-	const paymentDateReducer = (state, action) => {
-		if (action.type === 'INPUT_CHANGE') {
-			return {
-				value: action.val,
-				isValid: validDate(action.val),
-				feedbackText:
-					'La fecha no puede ser anterior ni posterior a la actual',
-			};
-		}
-		return state;
 	};
 
 	const productListReducer = (state, action) => {
-		if (action.type === 'PRICE_CHANGE') {
-			return state.map(product =>
-				product.id === action.id
-					? {
-							...product,
-							price: {
-								value: action.val,
-								isValid: validatePositiveNumber(action.val),
-								feedbackText: validatePositiveNumber(action.val)
-									? ''
-									: 'Ingrese un número válido',
-							},
-						}
-					: product
-			);
-		}
 		if (action.type === 'QUANTITY_CHANGE') {
 			return state.map(product =>
 				product.id === action.id
@@ -203,7 +143,7 @@ export const AddEntry = () => {
 				product.id === action.id
 					? {
 							...product,
-							unitPrice: {
+							price: {
 								value: action.val,
 								isValid: validatePositiveNumber(action.val),
 								feedbackText: validatePositiveNumber(action.val)
@@ -252,14 +192,12 @@ export const AddEntry = () => {
 		return state;
 	};
 
-	const [purchaseDateState, dispatchPurchaseDate] = useReducer(
-		purchaseDateReducer,
-		{
-			value: null,
-			isValid: true,
-			feedbackText: '',
-		}
-	);
+	const [saleDateState, dispatchEntryDate] = useReducer(entryDateReducer, {
+		value: null,
+		isValid: true,
+		feedbackText: '',
+	});
+
 	const [invoiceNumberState, dispatchInvoiceNumber] = useReducer(
 		invoiceNumberReducer,
 		{
@@ -268,70 +206,88 @@ export const AddEntry = () => {
 			feedbackText: '',
 		}
 	);
-	const [paymentAmountState, dispatchPaymentAmount] = useReducer(
-		paymentAmountReducer,
-		{
-			value: '',
-			isValid: true,
-			feedbackText: '',
-		}
-	);
-	const [paymentDateState, dispatchPaymentDate] = useReducer(
-		paymentDateReducer,
-		{
-			value: null,
-			isValid: true,
-			feedbackText: '',
-		}
-	);
+
+	const purchaseProducts = purchaseData.purchaseItems?.map(purchaseItem => {
+		return {
+			purchaseItemId: purchaseItem.id,
+			id: purchaseItem.products.id,
+			name: purchaseItem.products.name,
+			code: purchaseItem.products.code,
+			stock: purchaseItem.products.available_stock,
+			minimumSalePrice: purchaseItem.products.minimum_sale_price,
+			maximumSalePrice: purchaseItem.products.maximum_sale_price,
+			price: {
+				value: purchaseItem.unit_price || '',
+				isValid: true,
+				feedbackText: '',
+			},
+			quantity: {
+				value: purchaseItem.quantity || '',
+				isValid: true,
+				feedbackText: '',
+			},
+			subTotalPrice: {
+				value: purchaseItem.sub_total_price || '',
+				isValid: true,
+				feedbackText: '',
+			},
+			discount: {
+				value: purchaseItem.discount || 0,
+				isValid: true,
+				feedbackText: '',
+			},
+			totalPrice: {
+				value: purchaseItem.total_price || '',
+				isValid: true,
+				feedbackText: '',
+			},
+		};
+	});
+
 	const [productListState, dispatchProductList] = useReducer(
 		productListReducer,
-		[]
+		purchaseProducts ? purchaseProducts : []
 	);
 
-	const { isValid: purchaseDateIsValid } = purchaseDateState;
+	const { isValid: saleDateIsValid } = saleDateState;
 	const { isValid: invoiceNumberIsValid } = invoiceNumberState;
-	const { isValid: paymentAmountIsValid } = paymentAmountState;
-	const { isValid: paymentDateIsValid } = paymentDateState;
 
-	const purchaseDateInputChangeHandler = newValue => {
-		dispatchPurchaseDate({ type: 'INPUT_CHANGE', val: newValue });
+	const entryDateInputChangeHandler = newValue => {
+		dispatchEntryDate({ type: 'INPUT_CHANGE', val: newValue });
 	};
 
-	const invoiceNumberInputChangeHandler = e => {
-		dispatchInvoiceNumber({ type: 'INPUT_CHANGE', val: e.target.value });
+	const invoiceNumberInputChangeHandler = newValue => {
+		dispatchInvoiceNumber({ type: 'INPUT_CHANGE', val: newValue });
 	};
 
-	const paymentAmountInputChangeHandler = e => {
-		dispatchPaymentAmount({ type: 'INPUT_CHANGE', val: e.target.value });
-		if (
-			purchaseType === 'contado' &&
-			e.target.value < purchaseTotalAmount
-		) {
-			dispatchPaymentAmount({
-				type: 'INPUT_ERROR',
-				errorMessage:
-					'Si la compra es al contado el pago debe cubrir el monto total.',
+	const supplierInputChangeHandler = (event, option) => {
+		setSupplier(option);
+	};
+
+	// Función para calcular y actualizar el precio sub total sin descuento de cada producto
+	const calculateAndUpdateSubTotalPrice = useCallback(
+		(id, price, quantity) => {
+			const subTotalPrice = price * quantity;
+			dispatchProductList({
+				type: 'SUB_TOTAL_PRICE_CHANGE',
+				id,
+				val: subTotalPrice.toString(),
 			});
-		}
-	};
-
-	const paymentDateInputChangeHandler = newValue => {
-		dispatchPaymentDate({ type: 'INPUT_CHANGE', val: newValue });
-	};
-
-	const purchaseTypeChangeHandler = e => {
-		setPurchaseType(e.target.value);
-	};
-
-	const paymentMethodChangeHandler = e => {
-		setPaymentMethod(e.target.value);
-	};
+		},
+		[dispatchProductList]
+	);
 
 	// Función para calcular y actualizar el precio total de cada producto
 	const calculateAndUpdateTotalPrice = useCallback(
-		(id, price, quantity) => {
-			const totalPrice = price * quantity;
+		(id, subTotal, discount) => {
+			let totalPrice = 0;
+			if (parseFloat(discount) > 0) {
+				totalPrice = (subTotal - (subTotal * discount) / 100).toFixed(
+					2
+				);
+			} else {
+				totalPrice = subTotal;
+			}
 			dispatchProductList({
 				type: 'TOTAL_PRICE_CHANGE',
 				id,
@@ -342,34 +298,44 @@ export const AddEntry = () => {
 	);
 
 	// Función para calcular y actualizar el precio total de la compra
-	const calculateAndUpdateTotalPurchasePrice = useCallback(() => {
+	const calculateAndUpdateTotalSalePrice = useCallback(() => {
 		const updated = [...productListState];
-		let totalPurchasePrice = 0;
+		let totalSalePrice = 0;
 		for (const product of updated) {
-			totalPurchasePrice += parseFloat(product.totalPrice.value) || 0;
+			totalSalePrice += parseFloat(product.totalPrice.value) || 0;
 		}
 
-		setPurchaseTotalAmount(totalPurchasePrice);
+		setSaleTotalAmount(totalSalePrice.toFixed(2));
 	}, [productListState]);
 
 	// Recalcular el total de la compra cuando cambie la lista de productos
 	useEffect(() => {
-		calculateAndUpdateTotalPurchasePrice();
-	}, [productListState, calculateAndUpdateTotalPurchasePrice]);
+		calculateAndUpdateTotalSalePrice();
+	}, [productListState, calculateAndUpdateTotalSalePrice]);
 
 	const priceInputChangeHandler = useCallback(
 		(id, value) => {
-			dispatchProductList({ type: 'PRICE_CHANGE', id, val: value });
+			dispatchProductList({ type: 'UNIT_PRICE_CHANGE', id, val: value });
 
 			// Buscar el producto actual para obtener la cantidad
 			const product = productListState.find(p => p.id === id);
 			if (product) {
 				const price = parseFloat(value) || 0;
 				const quantity = parseFloat(product.quantity.value) || 0;
-				calculateAndUpdateTotalPrice(id, price, quantity);
+				const discount = parseFloat(product.discount.value) || 0;
+
+				// Calcular el nuevo subtotal
+				const newSubTotal = price * quantity;
+				calculateAndUpdateSubTotalPrice(id, price, quantity);
+				calculateAndUpdateTotalPrice(id, newSubTotal, discount);
 			}
 		},
-		[dispatchProductList, productListState, calculateAndUpdateTotalPrice]
+		[
+			dispatchProductList,
+			productListState,
+			calculateAndUpdateSubTotalPrice,
+			calculateAndUpdateTotalPrice,
+		]
 	);
 
 	const quantityInputChangeHandler = useCallback(
@@ -381,14 +347,44 @@ export const AddEntry = () => {
 			if (product) {
 				const price = parseFloat(product.price.value) || 0;
 				const quantity = parseFloat(value) || 0;
-				calculateAndUpdateTotalPrice(id, price, quantity);
+				const discount = parseFloat(product.discount.value) || 0;
+
+				// Calcular el nuevo subtotal
+				const newSubTotal = price * quantity;
+				calculateAndUpdateSubTotalPrice(id, price, quantity);
+				calculateAndUpdateTotalPrice(id, newSubTotal, discount);
+			}
+		},
+		[
+			dispatchProductList,
+			productListState,
+			calculateAndUpdateSubTotalPrice,
+			calculateAndUpdateTotalPrice,
+		]
+	);
+
+	const discountInputChangeHandler = useCallback(
+		(id, value) => {
+			dispatchProductList({ type: 'DISCOUNT_CHANGE', id, val: value });
+
+			// Buscar el producto actual para obtener el precio
+			const product = productListState.find(p => p.id === id);
+			if (product) {
+				const subTotalPrice =
+					parseFloat(product.subTotalPrice.value) || 0;
+				const discount = parseFloat(value) || 0;
+				calculateAndUpdateTotalPrice(id, subTotalPrice, discount);
 			}
 		},
 		[dispatchProductList, productListState, calculateAndUpdateTotalPrice]
 	);
 
-	const supplierInputChangeHandler = (event, option) => {
-		setSupplier(option);
+	const clientInputChangeHandler = (event, option) => {
+		setClient(option);
+	};
+
+	const sellingChannelInputChangeHandler = (event, option) => {
+		setSellingChannel(option);
 	};
 
 	const handlerCancel = () => {
@@ -404,15 +400,18 @@ export const AddEntry = () => {
 		if (isForm) {
 			setIsForm(!isForm);
 		}
-		if (formIsValid && !isForm) {
+		if (formIsValid && !isForm && saleData.length === 0) {
 			handleSubmit();
+		}
+		if (formIsValid && !isForm && saleData.length !== 0) {
+			handleEdit();
 		}
 	};
 
 	useEffect(() => {
-		const fetchSuppliers = async () => {
+		const fetchClients = async () => {
 			try {
-				const response = await fetch(urlSupplierChoices, {
+				const response = await fetch(urlClientChoices, {
 					method: 'GET',
 					headers: {
 						Authorization: `Token ${authContext.token}`,
@@ -422,46 +421,86 @@ export const AddEntry = () => {
 				if (response.ok) {
 					const data = await response.json();
 					const choices = data || [];
-					setSupplierChoices(choices);
+					setClientChoices(choices);
+					if (saleData.client && choices.length > 0) {
+						const matchingChoice = choices.find(
+							choice => choice.id === saleData.client.id
+						);
+						if (matchingChoice) {
+							setClient(matchingChoice);
+						}
+					}
 				}
 			} catch (error) {
 				console.error(
-					'Error al recuperar las opciones de Proveedores:',
+					'Error al recuperar las opciones de Clientes:',
 					error
 				);
 			}
 		};
 
-		fetchSuppliers();
-	}, [authContext.token, urlSupplierChoices]);
+		fetchClients();
+	}, [authContext.token, urlClientChoices, saleData]);
+
+	useEffect(() => {
+		const fetchSellingChannels = async () => {
+			try {
+				const response = await fetch(urlSellingChannelsChoices, {
+					method: 'GET',
+					headers: {
+						Authorization: `Token ${authContext.token}`,
+						'Content-Type': 'application/json',
+					},
+				});
+				if (response.ok) {
+					const data = await response.json();
+					const choices = data || [];
+					setSellingChannelChoices(choices);
+					if (saleData.sellingChannel && choices.length > 0) {
+						const matchingChoice = choices.find(
+							choice => choice.id === saleData.sellingChannel.id
+						);
+						if (matchingChoice) {
+							setSellingChannel(matchingChoice);
+						}
+					}
+				}
+			} catch (error) {
+				console.error(
+					'Error al recuperar las opciones de Canales de Ventas:',
+					error
+				);
+			}
+		};
+
+		fetchSellingChannels();
+	}, [authContext.token, urlSellingChannelsChoices, saleData]);
 
 	const handleSubmit = async () => {
 		try {
+			// Preparar los datos básicos de la venta
+			const saleInfo = {
+				agency: storeContext.agency,
+				client: client.id,
+				selling_channel: sellingChannel.id,
+				sale_date: saleDateState.value.format('YYYY-MM-DD'),
+				sale_type: 'proforma',
+				status: 'proforma',
+				total: saleTotalAmount,
+				balance_due: 0,
+				sale_items: productListState.map(product => ({
+					product: product.id,
+					quantity: product.quantity.value,
+					unit_price: product.price.value,
+					sub_total_price: product.subTotalPrice.value,
+					discount: product.discount.value,
+					total_price: product.totalPrice.value,
+				})),
+			};
+
 			const response = await fetch(url, {
 				method: 'POST',
-				body: JSON.stringify({
-					agency: storeContext.agency,
-					supplier: supplier.id,
-					purchase_date: purchaseDateState.value.format('YYYY-MM-DD'),
-					invoice_number: invoiceNumberState.value,
-					purchase_type: purchaseType,
-					status: 'realizado',
-					total: purchaseTotalAmount,
-					balance_due: purchaseTotalAmount,
-					purchase_items: productListState.map(product => ({
-						product: product.id,
-						quantity: product.quantity.value,
-						unit_price: product.price.value,
-						total_price: product.totalPrice.value,
-					})),
-					payments: {
-						payment_method: paymentMethod,
-						transaction_type: 'compra',
-						amount: paymentAmountState.value,
-						payment_date:
-							paymentDateState.value.format('YYYY-MM-DD'),
-					},
-				}),
+				body: JSON.stringify(saleInfo),
 				headers: {
 					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
@@ -472,35 +511,16 @@ export const AddEntry = () => {
 			if (!response.ok) {
 				setErrorMessage('Ocurrió un problema.');
 				setIsForm(true);
-
-				if (data.invoice_number) {
-					dispatchInvoiceNumber({
-						type: 'INPUT_ERROR',
-						errorMessage: data.invoice_number[0],
-					});
-				}
-				if (data.payments.payment_date) {
-					dispatchPaymentDate({
-						type: 'INPUT_ERROR',
-						errorMessage: data.payments.payment_date[0],
-					});
-				}
-				if (data.payments.amount) {
-					dispatchPaymentAmount({
-						type: 'INPUT_ERROR',
-						errorMessage: data.payments.amount,
-					});
-				}
-				if (data.purchase_items) {
-					data.purchase_items.forEach((purchase_item, index) => {
+				if (data.sale_items) {
+					data.sale_items.forEach((sale_item, index) => {
 						const productId = productListState[index]?.id;
 
-						if (purchase_item.quantity) {
+						if (sale_item.quantity) {
 							const errorMessage = Array.isArray(
-								purchase_item.quantity
+								sale_item.quantity
 							)
-								? purchase_item.end_date[0]
-								: purchase_item.end_date;
+								? sale_item.quantity[0]
+								: sale_item.quantity;
 
 							dispatchProductList({
 								type: 'SET_ERROR',
@@ -510,12 +530,12 @@ export const AddEntry = () => {
 							});
 						}
 
-						if (purchase_item.unit_price) {
+						if (sale_item.unit_price) {
 							const errorMessage = Array.isArray(
-								purchase_item.unit_price
+								sale_item.unit_price
 							)
-								? purchase_item.unit_price[0]
-								: purchase_item.unit_price;
+								? sale_item.unit_price[0]
+								: sale_item.unit_price;
 
 							dispatchProductList({
 								type: 'SET_ERROR',
@@ -525,12 +545,42 @@ export const AddEntry = () => {
 							});
 						}
 
-						if (purchase_item.total_price) {
+						if (sale_item.sub_total_price) {
 							const errorMessage = Array.isArray(
-								purchase_item.total_price
+								sale_item.sub_total_price
 							)
-								? purchase_item.total_price[0]
-								: purchase_item.total_price;
+								? sale_item.sub_total_price[0]
+								: sale_item.sub_total_price;
+
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productId,
+								errorMessage: errorMessage,
+								field: 'subTotalPrice',
+							});
+						}
+
+						if (sale_item.discount) {
+							const errorMessage = Array.isArray(
+								sale_item.discount
+							)
+								? sale_item.discount[0]
+								: sale_item.discount;
+
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productId,
+								errorMessage: errorMessage,
+								field: 'discount',
+							});
+						}
+
+						if (sale_item.total_price) {
+							const errorMessage = Array.isArray(
+								sale_item.total_price
+							)
+								? sale_item.total_price[0]
+								: sale_item.total_price;
 
 							dispatchProductList({
 								type: 'SET_ERROR',
@@ -540,6 +590,180 @@ export const AddEntry = () => {
 							});
 						}
 					});
+				}
+
+				if (data.payments) {
+					if (data.payments.payment_date) {
+						dispatchPaymentDate({
+							type: 'INPUT_ERROR',
+							errorMessage: data.payments.payment_date[0],
+						});
+					}
+					if (data.payments.amount) {
+						dispatchPaymentAmount({
+							type: 'INPUT_ERROR',
+							errorMessage: data.payments.amount,
+						});
+					}
+				}
+			} else {
+				setIsLoading(true);
+				setShowModal(true);
+			}
+		} catch (e) {
+			setIsLoading(false);
+			setMessage(e.message);
+		}
+	};
+
+	const handleEdit = async () => {
+		try {
+			// Preparar los datos básicos de la venta
+			const saleInfo = {
+				agency: storeContext.agency,
+				client: client.id,
+				selling_channel: sellingChannel.id,
+				sale_date: saleDateState.value.format('YYYY-MM-DD'),
+				sale_perform_date: isSale
+					? salePerformDateState.value.format('YYYY-MM-DD')
+					: null,
+				sale_type: isSale ? saleType : 'proforma',
+				status: isSale ? 'realizado' : 'proforma',
+				total: saleTotalAmount,
+				balance_due: isSale ? saleTotalAmount : 0,
+				sale_items: productListState.map(product => ({
+					id: product.saleItemId,
+					product: product.id,
+					quantity: product.quantity.value,
+					unit_price: product.price.value,
+					sub_total_price: product.subTotalPrice.value,
+					discount: product.discount.value,
+					total_price: product.totalPrice.value,
+				})),
+			};
+
+			// Solo agregar payments si se proporciona información de pago
+			if (
+				paymentMethod &&
+				paymentAmountState.value &&
+				paymentDateState.value
+			) {
+				saleInfo.payments = {
+					payment_method: paymentMethod,
+					transaction_type: 'venta',
+					amount: paymentAmountState.value,
+					payment_date: paymentDateState.value
+						? paymentDateState.value.format('YYYY-MM-DD')
+						: null,
+				};
+			}
+
+			const response = await fetch(`${url}${saleData.id}/`, {
+				method: 'PUT',
+				body: JSON.stringify(saleInfo),
+				headers: {
+					Authorization: `Token ${authContext.token}`,
+					'Content-Type': 'application/json',
+				},
+			});
+			const data = await response.json();
+
+			if (!response.ok) {
+				setErrorMessage('Ocurrió un problema.');
+				setIsForm(true);
+				if (data.sale_items) {
+					data.sale_items.forEach((sale_item, index) => {
+						const productId = productListState[index]?.id;
+
+						if (sale_item.quantity) {
+							const errorMessage = Array.isArray(
+								sale_item.quantity
+							)
+								? sale_item.quantity[0]
+								: sale_item.quantity;
+
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productId,
+								errorMessage: errorMessage,
+								field: 'quantity',
+							});
+						}
+
+						if (sale_item.unit_price) {
+							const errorMessage = Array.isArray(
+								sale_item.unit_price
+							)
+								? sale_item.unit_price[0]
+								: sale_item.unit_price;
+
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productId,
+								errorMessage: errorMessage,
+								field: 'unitPrice',
+							});
+						}
+
+						if (sale_item.sub_total_price) {
+							const errorMessage = Array.isArray(
+								sale_item.sub_total_price
+							)
+								? sale_item.sub_total_price[0]
+								: sale_item.sub_total_price;
+
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productId,
+								errorMessage: errorMessage,
+								field: 'subTotalPrice',
+							});
+						}
+
+						if (sale_item.discount) {
+							const errorMessage = Array.isArray(
+								sale_item.discount
+							)
+								? sale_item.discount[0]
+								: sale_item.discount;
+
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productId,
+								errorMessage: errorMessage,
+								field: 'discount',
+							});
+						}
+
+						if (sale_item.total_price) {
+							const errorMessage = Array.isArray(
+								sale_item.total_price
+							)
+								? sale_item.total_price[0]
+								: sale_item.total_price;
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productId,
+								errorMessage: errorMessage,
+								field: 'totalPrice',
+							});
+						}
+					});
+				}
+
+				if (data.payments) {
+					if (data.payments.payment_date) {
+						dispatchPaymentDate({
+							type: 'INPUT_ERROR',
+							errorMessage: data.payments.payment_date[0],
+						});
+					}
+					if (data.payments.amount) {
+						dispatchPaymentAmount({
+							type: 'INPUT_ERROR',
+							errorMessage: data.payments.amount,
+						});
+					}
 				}
 			} else {
 				setIsLoading(true);
@@ -556,56 +780,90 @@ export const AddEntry = () => {
 	};
 
 	useEffect(() => {
+		const saleTypeValid = isSale ? saleType : true;
+		const salePerformDateValue = isSale ? salePerformDateState.value : true;
 		if (
-			purchaseDateState.value &&
-			invoiceNumberState.value &&
-			purchaseType &&
-			paymentAmountState.value &&
-			paymentMethod &&
-			paymentDateState.value &&
-			supplier &&
+			saleDateState.value &&
+			salePerformDateValue &&
+			client &&
+			sellingChannel &&
 			productListState.length > 0
 		) {
-			const allFieldsValid = productListState.every(
+			// Validar Productos
+			const allProductsFieldsValid = productListState.every(
 				product =>
 					product.price.value &&
 					product.quantity.value &&
+					product.subTotalPrice.value &&
+					product.discount.value !== '' &&
+					product.discount.value !== null &&
+					product.discount.value !== undefined &&
 					product.totalPrice.value &&
 					product.price.isValid &&
 					product.quantity.isValid &&
+					product.subTotalPrice.isValid &&
+					product.discount.isValid &&
 					product.totalPrice.isValid
 			);
+
+			let paymentIsValid = true;
+			if (isSale) {
+				paymentIsValid = false;
+			}
+			if (
+				paymentMethod ||
+				paymentAmountState.value ||
+				paymentDateState.value
+			) {
+				paymentIsValid =
+					paymentMethod &&
+					paymentAmountState.value &&
+					paymentDateState.value &&
+					paymentAmountIsValid &&
+					paymentDateIsValid;
+			}
 			const isValid =
-				purchaseDateIsValid &&
-				invoiceNumberIsValid &&
-				paymentAmountIsValid &&
-				paymentDateIsValid &&
-				allFieldsValid;
+				saleDateIsValid &&
+				salePerformDateIsValid &&
+				paymentIsValid &&
+				client &&
+				sellingChannel &&
+				saleTypeValid &&
+				allProductsFieldsValid;
 			setFormIsValid(isValid);
 			setDisabled(!isValid);
 		} else {
 			setDisabled(true);
 		}
 	}, [
-		supplier,
-		purchaseDateState.value,
-		invoiceNumberState.value,
+		client,
+		saleDateState.value,
+		salePerformDateState.value,
+		sellingChannel,
 		paymentAmountState.value,
 		paymentDateState.value,
 		paymentMethod,
-		purchaseType,
-		purchaseDateIsValid,
-		invoiceNumberIsValid,
+		saleData.length,
+		saleDateIsValid,
+		salePerformDateIsValid,
 		paymentAmountIsValid,
 		paymentDateIsValid,
 		productListState,
+		isSale,
+		saleType,
 	]);
 
 	useEffect(() => {
-		setTitle('Realizar Compra');
+		if (isSale) {
+			setTitle('Realizar Venta');
+		} else if (!isSale && saleData.length > 0) {
+			setTitle('Editar Venta');
+		} else {
+			setTitle('Generar Proforma');
+		}
 
 		setButtonText(!isForm ? 'Finalizar' : 'Siguiente');
-	}, [isForm]);
+	}, [isForm, isSale, saleData]);
 
 	return (
 		<>
@@ -627,14 +885,14 @@ export const AddEntry = () => {
 										pb: 1,
 									}}
 								>
-									Datos de Compra
+									Datos de Venta
 								</Typography>
 								<Grid container spacing={2} mt={1} mb={2}>
 									<Grid size={{ xs: 12, sm: 4 }}>
 										<Autocomplete
 											disablePortal
-											value={supplier}
-											options={supplierChoices}
+											value={client}
+											options={clientChoices}
 											getOptionLabel={option =>
 												option ? option.name || '' : ''
 											}
@@ -646,84 +904,121 @@ export const AddEntry = () => {
 											renderInput={params => (
 												<TextField
 													{...params}
-													label="Proveedor"
+													label="Cliente"
+													required
+												/>
+											)}
+											onChange={clientInputChangeHandler}
+										/>
+									</Grid>
+									<Grid size={{ xs: 12, sm: 4 }}>
+										<Autocomplete
+											disablePortal
+											value={sellingChannel}
+											options={sellingChannelChoices}
+											getOptionLabel={option =>
+												option ? option.name || '' : ''
+											}
+											renderOption={(props, option) => (
+												<li {...props} key={option.id}>
+													{option.name}
+												</li>
+											)}
+											renderInput={params => (
+												<TextField
+													{...params}
+													label="Canal de Ventas"
 													required
 												/>
 											)}
 											onChange={
-												supplierInputChangeHandler
+												sellingChannelInputChangeHandler
 											}
 										/>
 									</Grid>
-									<Grid size={{ xs: 12, sm: 2 }}>
-										<TextField
-											label="Nº Factura"
-											variant="outlined"
-											onChange={
-												invoiceNumberInputChangeHandler
-											}
-											value={invoiceNumberState.value}
-											error={!invoiceNumberIsValid}
-											helperText={
-												!invoiceNumberIsValid
-													? invoiceNumberState.feedbackText
-													: ''
-											}
-											required
-											fullWidth
-										/>
-									</Grid>
-									<Grid size={{ xs: 12, sm: 2 }}>
-										<LocalizationProvider
-											dateAdapter={AdapterDayjs}
-										>
-											<DatePicker
-												label="Fecha de Compra"
-												onChange={
-													purchaseDateInputChangeHandler
-												}
-												value={purchaseDateState.value}
-												slotProps={{
-													textField: {
-														error: !purchaseDateIsValid,
-														helperText:
-															!purchaseDateIsValid
-																? purchaseDateState.feedbackText
-																: '',
-													},
-												}}
-												required
-												fullWidth
-											/>
-										</LocalizationProvider>
-									</Grid>
-									<Grid size={{ xs: 12, sm: 2 }}>
-										<FormControl fullWidth required>
-											<InputLabel id="purchase-type-select-label">
-												Tipo de Compra
-											</InputLabel>
-											<Select
-												labelId="purchase-type-select-label"
-												id="purchase-type-select"
-												value={purchaseType}
-												label="Tipo de Compra"
-												onChange={
-													purchaseTypeChangeHandler
-												}
+									{isSale && (
+										<Grid size={{ xs: 12, sm: 2 }}>
+											<FormControl fullWidth required>
+												<InputLabel id="sale-type-select-label">
+													Tipo de Venta
+												</InputLabel>
+												<Select
+													labelId="sale-type-select-label"
+													id="sale-type-select"
+													value={saleType}
+													label="Tipo de Venta"
+													onChange={
+														saleTypeChangeHandler
+													}
+												>
+													{saleTypeChoices.map(
+														choice => (
+															<MenuItem
+																key={choice.id}
+																value={
+																	choice.value
+																}
+															>
+																{choice.label}
+															</MenuItem>
+														)
+													)}
+												</Select>
+											</FormControl>
+										</Grid>
+									)}
+									{!isSale && (
+										<Grid size={{ xs: 12, sm: 2 }}>
+											<LocalizationProvider
+												dateAdapter={AdapterDayjs}
 											>
-												{purchaseTypeChoices.map(
-													choice => (
-														<MenuItem
-															key={choice.id}
-															value={choice.value}
-														>
-															{choice.label}
-														</MenuItem>
-													)
-												)}
-											</Select>
-										</FormControl>
-									</Grid>
+												<DatePicker
+													label="Fecha de Proforma"
+													onChange={
+														saleDateInputChangeHandler
+													}
+													value={saleDateState.value}
+													slotProps={{
+														textField: {
+															error: !saleDateIsValid,
+															helperText:
+																!saleDateIsValid
+																	? saleDateState.feedbackText
+																	: '',
+														},
+													}}
+													fullWidth
+												/>
+											</LocalizationProvider>
+										</Grid>
+									)}
+									{isSale && (
+										<Grid size={{ xs: 12, sm: 2 }}>
+											<LocalizationProvider
+												dateAdapter={AdapterDayjs}
+											>
+												<DatePicker
+													label="Fecha de Venta"
+													onChange={
+														salePerformDateInputChangeHandler
+													}
+													value={
+														salePerformDateState.value
+													}
+													slotProps={{
+														textField: {
+															error: !salePerformDateIsValid,
+															helperText:
+																!salePerformDateIsValid
+																	? salePerformDateState.feedbackText
+																	: '',
+														},
+													}}
+													fullWidth
+												/>
+											</LocalizationProvider>
+										</Grid>
+									)}
 								</Grid>
 							</Box>
 							{productListState.length > 0 && (
@@ -754,10 +1049,27 @@ export const AddEntry = () => {
 															Código
 														</StyledTableCell>
 														<StyledTableCell>
+															Stock
+														</StyledTableCell>
+														<StyledTableCell>
+															Precio Mínimo de
+															Venta Bs.
+														</StyledTableCell>
+														<StyledTableCell>
+															Precio Máximo de
+															Venta Bs.
+														</StyledTableCell>
+														<StyledTableCell>
 															Cantidad
 														</StyledTableCell>
 														<StyledTableCell>
 															Precio Unitario Bs.
+														</StyledTableCell>
+														<StyledTableCell>
+															Sub Total Bs.
+														</StyledTableCell>
+														<StyledTableCell>
+															Descuento %
 														</StyledTableCell>
 														<StyledTableCell>
 															Costo Total Bs.
@@ -781,6 +1093,21 @@ export const AddEntry = () => {
 																<TableCell>
 																	{
 																		product.code
+																	}
+																</TableCell>
+																<TableCell>
+																	{
+																		product.stock
+																	}
+																</TableCell>
+																<TableCell>
+																	{
+																		product.minimumSalePrice
+																	}
+																</TableCell>
+																<TableCell>
+																	{
+																		product.maximumSalePrice
 																	}
 																</TableCell>
 																<TableCell>
@@ -893,6 +1220,88 @@ export const AddEntry = () => {
 																		onChange={e =>
 																			dispatchProductList(
 																				{
+																					type: 'SUB_TOTAL_PRICE_CHANGE',
+																					id: product.id,
+																					val: e
+																						.target
+																						.value,
+																				}
+																			)
+																		}
+																		value={
+																			product
+																				.subTotalPrice
+																				.value
+																		}
+																		disabled
+																		fullWidth
+																		slotProps={{
+																			inputLabel:
+																				{
+																					shrink: true,
+																				},
+																		}}
+																	/>
+																</TableCell>
+																<TableCell>
+																	<TextField
+																		variant="outlined"
+																		onChange={e =>
+																			discountInputChangeHandler(
+																				product.id,
+																				e
+																					.target
+																					.value
+																			)
+																		}
+																		value={
+																			product
+																				.discount
+																				.value
+																		}
+																		error={
+																			(product
+																				.discount
+																				.value &&
+																				!product
+																					.discount
+																					.isValid) ||
+																			(!product
+																				.discount
+																				.isValid &&
+																				product
+																					.discount
+																					.feedbackText)
+																		}
+																		helperText={
+																			(product
+																				.discount
+																				.value &&
+																				!product
+																					.discount
+																					.isValid) ||
+																			(!product
+																				.discount
+																				.isValid &&
+																				product
+																					.discount
+																					.feedbackText)
+																				? product
+																						.discount
+																						.feedbackText
+																				: ''
+																		}
+																		required
+																		fullWidth
+																	/>
+																</TableCell>
+
+																<TableCell>
+																	<TextField
+																		variant="outlined"
+																		onChange={e =>
+																			dispatchProductList(
+																				{
 																					type: 'TOTAL_PRICE_CHANGE',
 																					id: product.id,
 																					val: e
@@ -905,6 +1314,38 @@ export const AddEntry = () => {
 																			product
 																				.totalPrice
 																				.value
+																		}
+																		error={
+																			(product
+																				.totalPrice
+																				.value &&
+																				!product
+																					.totalPrice
+																					.isValid) ||
+																			(!product
+																				.totalPrice
+																				.isValid &&
+																				product
+																					.totalPrice
+																					.feedbackText)
+																		}
+																		helperText={
+																			(product
+																				.totalPrice
+																				.value &&
+																				!product
+																					.totalPrice
+																					.isValid) ||
+																			(!product
+																				.totalPrice
+																				.isValid &&
+																				product
+																					.totalPrice
+																					.feedbackText)
+																				? product
+																						.totalPrice
+																						.feedbackText
+																				: ''
 																		}
 																		disabled
 																		fullWidth
@@ -947,107 +1388,116 @@ export const AddEntry = () => {
 											</Table>
 										</TableContainer>
 									</Box>
-									<Box sx={{ mt: 4, flexGrow: 1 }}>
-										<Typography
-											variant="h6"
-											component="h2"
-											sx={{
-												fontWeight: 'bold',
-												mb: 2,
-												pb: 1,
-											}}
-										>
-											Datos de Pago
-										</Typography>
-										<Grid
-											container
-											spacing={2}
-											mt={1}
-											mb={2}
-										>
-											<Grid size={{ xs: 12, sm: 2 }}>
-												<FormControl fullWidth required>
-													<InputLabel id="purchase-type-select-label">
-														Método de Pago
-													</InputLabel>
-													<Select
-														labelId="purchase-type-select-label"
-														id="purchase-type-select"
-														value={paymentMethod}
-														label="Método de Pago"
-														onChange={
-															paymentMethodChangeHandler
-														}
+									{isSale && saleType && (
+										<Box sx={{ mt: 4, flexGrow: 1 }}>
+											<Typography
+												variant="h6"
+												component="h2"
+												sx={{
+													fontWeight: 'bold',
+													mb: 2,
+													pb: 1,
+												}}
+											>
+												Datos de Pago
+											</Typography>
+											<Grid
+												container
+												spacing={2}
+												mt={1}
+												mb={2}
+											>
+												<Grid size={{ xs: 12, sm: 2 }}>
+													<FormControl
+														fullWidth
+														required
 													>
-														{paymentMethodChoices.map(
-															choice => (
-																<MenuItem
-																	key={
-																		choice.id
-																	}
-																	value={
-																		choice.value
-																	}
-																>
-																	{
-																		choice.label
-																	}
-																</MenuItem>
-															)
-														)}
-													</Select>
-												</FormControl>
-											</Grid>
-											<Grid size={{ xs: 12, sm: 2 }}>
-												<TextField
-													label="Monto Cancelado"
-													variant="outlined"
-													onChange={
-														paymentAmountInputChangeHandler
-													}
-													value={
-														paymentAmountState.value
-													}
-													error={
-														!paymentAmountIsValid
-													}
-													helperText={
-														!paymentAmountIsValid
-															? paymentAmountState.feedbackText
-															: ''
-													}
-													required
-													fullWidth
-												/>
-											</Grid>
-											<Grid size={{ xs: 12, sm: 2 }}>
-												<LocalizationProvider
-													dateAdapter={AdapterDayjs}
-												>
-													<DatePicker
-														label="Fecha de Pago"
+														<InputLabel id="purchase-type-select-label">
+															Método de Pago
+														</InputLabel>
+														<Select
+															labelId="purchase-type-select-label"
+															id="purchase-type-select"
+															value={
+																paymentMethod
+															}
+															label="Método de Pago"
+															onChange={
+																paymentMethodChangeHandler
+															}
+														>
+															{paymentMethodChoices.map(
+																choice => (
+																	<MenuItem
+																		key={
+																			choice.id
+																		}
+																		value={
+																			choice.value
+																		}
+																	>
+																		{
+																			choice.label
+																		}
+																	</MenuItem>
+																)
+															)}
+														</Select>
+													</FormControl>
+												</Grid>
+												<Grid size={{ xs: 12, sm: 2 }}>
+													<TextField
+														label="Monto Cancelado"
+														variant="outlined"
 														onChange={
-															paymentDateInputChangeHandler
+															paymentAmountInputChangeHandler
 														}
 														value={
-															paymentDateState.value
+															paymentAmountState.value
 														}
-														slotProps={{
-															textField: {
-																error: !paymentDateIsValid,
-																helperText:
-																	!paymentDateIsValid
-																		? paymentDateState.feedbackText
-																		: '',
-															},
-														}}
+														error={
+															!paymentAmountIsValid
+														}
+														helperText={
+															!paymentAmountIsValid
+																? paymentAmountState.feedbackText
+																: ''
+														}
 														required
 														fullWidth
 													/>
-												</LocalizationProvider>
+												</Grid>
+												<Grid size={{ xs: 12, sm: 2 }}>
+													<LocalizationProvider
+														dateAdapter={
+															AdapterDayjs
+														}
+													>
+														<DatePicker
+															label="Fecha de Pago"
+															onChange={
+																paymentDateInputChangeHandler
+															}
+															value={
+																paymentDateState.value
+															}
+															slotProps={{
+																textField: {
+																	error: !paymentDateIsValid,
+																	helperText:
+																		!paymentDateIsValid
+																			? paymentDateState.feedbackText
+																			: '',
+																},
+															}}
+															required
+															fullWidth
+														/>
+													</LocalizationProvider>
+												</Grid>
 											</Grid>
-										</Grid>
-									</Box>
+										</Box>
+									)}
 								</>
 							)}
 						</FormControl>
@@ -1059,7 +1509,7 @@ export const AddEntry = () => {
 								justifyContent: 'center',
 							}}
 						>
-							{purchaseTotalAmount > 0 && (
+							{saleTotalAmount > 0 && (
 								<FormControl
 									sx={{ m: 1, width: '20%' }}
 									variant="filled"
@@ -1074,7 +1524,7 @@ export const AddEntry = () => {
 												Bs.
 											</InputAdornment>
 										}
-										value={purchaseTotalAmount}
+										value={saleTotalAmount}
 										disabled
 									/>
 								</FormControl>
@@ -1121,6 +1571,7 @@ export const AddEntry = () => {
 								onClick={() => setShowProductsModal(true)}
 								color="success"
 								startIcon={<SearchIcon />}
+								disabled={!sellingChannel}
 							>
 								Buscar Productos
 							</Button>
@@ -1141,17 +1592,25 @@ export const AddEntry = () => {
 					</div>
 				) : (
 					<div className={classes.listContainer}>
-						<AddPurchasePreview
-							supplier={supplier}
-							invoiceNumber={invoiceNumberState.value}
-							purchaseDate={purchaseDateState.value}
-							purchaseType={purchaseType}
+						<AddSalePreview
+							client={client}
+							sellingChannel={sellingChannel}
+							saleDate={
+								saleDateState.value?.format('DD-MM-YYYY') || ''
+							}
+							salePerformDate={
+								salePerformDateState.value?.format(
+									'DD-MM-YYYY'
+								) || ''
+							}
+							saleType={saleType}
 							products={productListState}
 							paymentMethod={paymentMethod}
 							paymentAmount={paymentAmountState.value}
-							paymentDate={paymentDateState.value.format(
-								'DD-MM-YYYY'
-							)}
+							paymentDate={
+								paymentDateState.value?.format('DD-MM-YYYY') ||
+								''
+							}
 							message={message}
 						/>
 						<Box
@@ -1214,10 +1673,11 @@ export const AddEntry = () => {
 						}}
 						onClose={() => setShowProductsModal(false)}
 						addedProducts={productListState}
+						sellingChannel={sellingChannel}
 					/>
 				)}
 
-				{showModal && <AddPurchaseModal />}
+				{showModal && <AddSaleModal saleData={saleData} />}
 			</Fragment>
 		</>
 	);
