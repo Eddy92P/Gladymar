@@ -4,7 +4,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from core.models import Batch, Category, Warehouse, Product, Entry, Supplier, EntryItem, Agency
+from core.models import Batch, Category, ProductStock, Warehouse, Product, Entry, Supplier, EntryItem, Agency
 from sale.serializers import EntrySerializer
 import uuid
 
@@ -54,7 +54,6 @@ def create_category(**params):
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
         'name': f'Sample Category {unique_suffix}',
-        'warehouse': create_warehouse(),
     }
     defaults.update(params)
     category = Category.objects.create(**defaults)
@@ -77,19 +76,27 @@ def create_product(**params):
     defaults = {
         'name': f'Sample Product {unique_suffix}',
         'batch': create_batch(),
-        'stock': 50,
-        'reserved_stock': 0,
-        'available_stock': 50,
         'code': f'CODE-{unique_suffix}',
         'unit_of_measurement': 'Unit',
-        'minimum_stock': 10,
-        'maximum_stock': 200,
         'minimum_sale_price': 10.00,
         'maximum_sale_price': 100.00,
     }
     defaults.update(params)
     product = Product.objects.create(**defaults)
     return product
+
+def create_product_stock(**params):
+    defaults = {
+        'product': create_product(),
+        'warehouse': create_warehouse(),
+        'stock': 50,
+        'reserved_stock': 10,
+        'available_stock': 40,
+        'minimum_stock': 10,
+        'maximum_stock': 60,
+    }
+    defaults.update(params)
+    return ProductStock.objects.create(**defaults)
 
 def create_supplier(**params):
     """Create and return a sample supplier."""
@@ -109,6 +116,7 @@ def create_entry(**params):
     """Create and return a sample entry."""
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
+        'warehouse': create_warehouse(),
         'warehouse_keeper': create_user(),
         'supplier': create_supplier(),
         'entry_date': timezone.now().date(),
@@ -126,7 +134,7 @@ def create_entry(**params):
     else:
         EntryItem.objects.create(
             entry=entry,
-            product=create_product(),
+            product_stock=create_product_stock(),
             quantity=10,
             unit_price=10.00,
         )
@@ -169,13 +177,14 @@ class PrivateEntryApiTests(TestCase):
     def test_create_entry(self):
         """Test creating an entry."""
         payload = {
+            'warehouse': create_warehouse().id,
             'warehouse_keeper': create_user().id,
             'supplier': create_supplier().id,
             'entry_date': '2021-01-01',
             'invoice_number': '1234567890',
             'entry_items': [
                 {
-                    'product': create_product().id,
+                    'product_stock': create_product_stock().id,
                     'quantity': 10,
                     'unit_price': 10.00,
                 }
@@ -202,13 +211,14 @@ class PrivateEntryApiTests(TestCase):
         """Test full update of an entry"""
         entry = create_entry(invoice_number='1234567890')
         payload = {
+            'warehouse': create_warehouse().id,
             'warehouse_keeper': create_user().id,
             'supplier': entry.supplier.id,
             'invoice_number': '1234567891',
             'entry_date': '2021-01-01',
             'entry_items': [
                 {
-                    'product': create_product().id,
+                    'product_stock': create_product_stock().id,
                     'quantity': 15,
                     'unit_price': 15.00,
                 }
@@ -224,7 +234,6 @@ class PrivateEntryApiTests(TestCase):
 
         for i, payload_item in enumerate(payload['entry_items']):
             db_item = entry.entry_items.all()[i]
-            self.assertEqual(db_item.product.id, payload_item['product'])
+            self.assertEqual(db_item.product_stock.id, payload_item['product_stock'])
             self.assertEqual(db_item.quantity, payload_item['quantity'])
             self.assertEqual(float(db_item.unit_price), payload_item['unit_price'])
-        

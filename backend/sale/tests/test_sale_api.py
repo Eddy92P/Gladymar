@@ -3,8 +3,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from core.models import Sale, SellingChannel, SaleItem, Product, Warehouse, Agency, Category, Batch, Client
-from sale.serializers import SaleSerializer
+from core.models import *
 import uuid
 from datetime import datetime
 
@@ -67,7 +66,6 @@ def create_category(**params):
     """Create and return a sample Category."""
     unique_suffix = str(uuid.uuid4())[:4]
     defaults = {
-        'warehouse': create_warehouse(),
         'name': f'TestCategory{unique_suffix}',
     }
     defaults.update(params)
@@ -91,17 +89,26 @@ def create_product(**params):
         'name': f'TestProduct{unique_suffix}',
         'code': f'CODE{unique_suffix}',
         'unit_of_measurement': 'UN',
-        'stock': 50,
-        'reserved_stock': 0,
-        'available_stock': 50,
         'description': 'Test product description',
-        'minimum_stock': 10,
-        'maximum_stock': 100,
         'minimum_sale_price': 10.00,
         'maximum_sale_price': 100.00,
     }
     defaults.update(params)
     return Product.objects.create(**defaults)
+
+def create_product_stock(**params):
+    """Create and return a sample ProductStock."""
+    defaults = {
+        'product': create_product(),
+        'warehouse': create_warehouse(),
+        'stock': 50,
+        'reserved_stock': 10,
+        'available_stock': 40,
+        'minimum_stock': 10,
+        'maximum_stock': 60,
+    }
+    defaults.update(params)
+    return ProductStock.objects.create(**defaults)
 
 def create_selling_channel(**params):
     defaults = {
@@ -134,7 +141,7 @@ def create_sale(**params):
     else:
         SaleItem.objects.create(
             sale=sale,
-            product=create_product(),
+            product_stock=create_product_stock(),
             quantity=10,
             unit_price=10.00,
             total_price=10.00,
@@ -147,12 +154,12 @@ class PublicSaleApiTests(TestCase):
     """Test API for unauthorized users."""
     def setUp(self):
         self.client = APIClient()
-        
+
     def test_auth_required(self):
         res = self.client.get(SALE_URL)
-        
+
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
-        
+
         
 class PrivateSaleApiTests(TestCase):
     """Test API request for authorized users."""
@@ -163,29 +170,29 @@ class PrivateSaleApiTests(TestCase):
         )
 
         self.client.force_authenticate(self.user)
-        
+
     def test_retrieve_sale(self):
         """Test for retrieve a list of sales."""
         sale1 = create_sale()
         sale2 = create_sale()
-        
+
         res = self.client.get(SALE_URL)
-        
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertIn('rows', res.data)
-        
+
         # Check that our created sales are in the response
         sale_ids = [sale['id'] for sale in res.data['rows']]
         self.assertIn(sale1.id, sale_ids)
         self.assertIn(sale2.id, sale_ids)
-        
+
         # Verify the structure of our sales in the response
         sale1_data = next(sale for sale in res.data['rows'] if sale['id'] == sale1.id)
         sale2_data = next(sale for sale in res.data['rows'] if sale['id'] == sale2.id)
-        
+
         self.assertEqual(float(sale1_data['total']), float(sale1.total))
         self.assertEqual(float(sale2_data['total']), float(sale2.total))
-        
+
     def test_create_sale(self):
         """Test for create a sale."""
         agency = create_agency()
@@ -200,10 +207,12 @@ class PrivateSaleApiTests(TestCase):
             'sale_date': '2024-01-01',
             'sale_items': [
                 {
-                    'product': create_product().id,
+                    'product_stock': create_product_stock().id,
                     'quantity': 10,
                     'unit_price': 10.00,
-                    'total_price': 100.00,
+                    'sub_total_price': 100.00,
+                    'discount': 5,
+                    'total_price': 95.00,
                 }
             ],
         }
@@ -215,21 +224,21 @@ class PrivateSaleApiTests(TestCase):
         self.assertEqual(payload['selling_channel'], sale.selling_channel.id)
         self.assertEqual(payload['total'], sale.total)
         for sale_item in sale.sale_items.all():
-            self.assertEqual(payload['sale_items'][0]['product'], sale_item.product.id)
+            self.assertEqual(payload['sale_items'][0]['product_stock'], sale_item.product_stock.id)
             self.assertEqual(payload['sale_items'][0]['quantity'], sale_item.quantity)
-            
+
     def test_partial_update_sale(self):
         """Test for partial update a sale."""
         sale = create_sale(total=100.00)
         payload = {'total': 150.00}
-        
+
         url = detail_url(sale.id)
         res = self.client.patch(url, payload)
         sale.refresh_from_db()
-        
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(payload['total'], sale.total)
-        
+
     def test_full_update_sale(self):
         """Test for full update a sale."""
         sale = create_sale()
@@ -244,18 +253,20 @@ class PrivateSaleApiTests(TestCase):
             'sale_date': '2024-01-01',
             'sale_items': [
                 {
-                    'product': create_product().id,
-                    'quantity': 5.00,
+                    'product_stock': create_product_stock().id,
+                    'quantity': 10,
                     'unit_price': 10.00,
-                    'total_price': 50.00,
+                    'sub_total_price': 100.00,
+                    'discount': 5,
+                    'total_price': 95.00,
                 }
             ]
         }
-        
+
         url = detail_url(sale.id)
         res = self.client.put(url, payload, format='json')
         sale.refresh_from_db()
-        
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(payload['total'], sale.total)
         self.assertEqual(payload['balance_due'], sale.balance_due)
@@ -269,4 +280,3 @@ class PrivateSaleApiTests(TestCase):
             self.assertEqual(payload_item['quantity'], db_item.quantity)
             self.assertEqual(payload_item['unit_price'], db_item.unit_price)
             self.assertEqual(payload_item['total_price'], db_item.total_price)
-        

@@ -15,7 +15,7 @@ class IncreaseProductStockService:
         """
         try:
             for item in self.entry.entry_items.all():
-                product = item.product
+                product = item.product_stock
                 product.stock += item.quantity
                 product.save()
 

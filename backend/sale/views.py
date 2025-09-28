@@ -8,6 +8,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -24,6 +25,56 @@ class PersonalizedPagination(LimitOffsetPagination):
             'rows': data,
             'total': self.count
         })
+
+
+class CatalogView(APIView):
+    def get(self, request, *args, **kwargs):
+        data = []
+        sellingchannel_id = request.query_params.get("sellingchannel_id")
+
+        if sellingchannel_id:
+            prices = ProductChannelPrice.objects.filter(selling_channel=sellingchannel_id)
+            stocks = {
+                ps.product_id: ps
+                for ps in ProductStock.objects.all()
+            }
+
+            for price in prices.select_related("product"):
+                product = price.product
+                ps = stocks.get(product.id)
+
+                data.append({
+                    "id": product.id,
+                    "agency": ps.warehouse.agency.name,
+                    "warehouse": ps.warehouse.name,
+                    "name": product.name,
+                    "code": product.code,
+                    "price": price.price,
+                    "stock": ps.stock,
+                    "minimum_stock": ps.minimum_stock,
+                    "maximum_stock": ps.maximum_stock,
+                    "minimum_sale_price": product.minimum_sale_price,
+                    "maximum_sale_price": product.maximum_sale_price,
+                })
+        else:
+            products = ProductStock.objects.all().select_related('product')
+
+            for product in products:
+                data.append({
+                    "id": product.id,
+                    "agency": product.warehouse.agency.name,
+                    "warehouse": product.product.warehouse.name,
+                    "name": product.product.name,
+                    "code": product.product.code,
+                    "price": 0,
+                    "stock": product.stock,
+                    "minimum_stock": product.minimum_stock,
+                    "maximum_stock": product.maximum_stock,
+                    "minimum_sale_price": product.product.minimum_sale_price,
+                    "maximum_sale_price": product.product.maximum_sale_price,
+                })
+
+        return Response(CatalogProductSerializer(data, many=True).data)
 
 
 class AgencyViewSet(viewsets.ModelViewSet):
@@ -210,6 +261,9 @@ class EntryViewSet(viewsets.ModelViewSet):
     search_fields = ['id', 'invoice_number',
                      'warehouse_keeper__first_name', 'warehouse_keeper__last_name', 'supplier__name']
     pagination_class = PersonalizedPagination
+    
+    def perform_create(self, serializer):
+        serializer.save(warehouse_keeper=self.request.user)
 
     def get_queryset(self):
         """Retrieve entries ordered by id."""

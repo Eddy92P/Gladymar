@@ -8,16 +8,7 @@ from rest_framework import status
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from sale.serializers import OutputSerializer
-from core.models import (
-    Client,
-    Batch,
-    Warehouse,
-    Output,
-    OutputItem,
-    Product,
-    Category,
-    Agency
-)
+from core.models import *
 import uuid
 from datetime import timedelta
 
@@ -80,7 +71,6 @@ def create_category(**params):
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
         'name': f'Sample Category {unique_suffix}',
-        'warehouse': create_warehouse(),
     }
     defaults.update(params)
     category = Category.objects.create(**defaults)
@@ -103,13 +93,8 @@ def create_product(**params):
     defaults = {
         'name': f'Sample Product {unique_suffix}',
         'batch': create_batch(),
-        'stock': 50,
-        'reserved_stock': 0,
-        'available_stock': 50,
         'code': f'CODE-{unique_suffix}',
         'unit_of_measurement': 'Unit',
-        'minimum_stock': 10,
-        'maximum_stock': 200,
         'minimum_sale_price': 10.00,
         'maximum_sale_price': 100.00,
     }
@@ -117,12 +102,27 @@ def create_product(**params):
     product = Product.objects.create(**defaults)
     return product
 
+def create_product_stock(**params):
+    """Create and return a sample ProductStock."""
+    defaults = {
+        'product': create_product(),
+        'warehouse': create_warehouse(),
+        'stock': 50,
+        'reserved_stock': 10,
+        'available_stock': 40,
+        'minimum_stock': 10,
+        'maximum_stock': 60,
+    }
+    defaults.update(params)
+    return ProductStock.objects.create(**defaults)
+
 def detail_url(output_id):
     return reverse('sale:output-detail', args=[output_id])
 
 def create_output(**params):
     """Create and return a sample output."""
     defaults = {
+        'warehouse': create_warehouse(),
         'warehouse_keeper': create_user(),
         'client': create_client(),
         'output_date': timezone.now().date(),
@@ -139,7 +139,7 @@ def create_output(**params):
     else:
         OutputItem.objects.create(
             output=output,
-            product=create_product(),
+            product_stock=create_product_stock(),
             quantity=10,
         )
 
@@ -147,6 +147,13 @@ def create_output(**params):
 
 class PublicOutputApiTests(TestCase):
     """Test API request for unathenticated users."""
+    
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        from django.core.management import call_command
+        call_command('migrate', verbosity=0, interactive=False)
+    
     def setUp(self):
         self.client = APIClient()
 
@@ -158,6 +165,13 @@ class PublicOutputApiTests(TestCase):
 
 class PrivateOutputApiTests(TestCase):
     """Test API request for authorized users."""
+    
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        from django.core.management import call_command
+        call_command('migrate', verbosity=0, interactive=False)
+    
     def setUp(self):
         self.client = APIClient()
         self.user = create_user()
@@ -178,12 +192,13 @@ class PrivateOutputApiTests(TestCase):
     def test_create_output(self):
         """Test for create an output."""
         payload = {
+            'warehouse': create_warehouse().id,
             'warehouse_keeper': create_user().id,
             'client': create_client().id,
             'output_date': timezone.now().date(),
             'output_items': [
                 {
-                    'product': create_product().id,
+                    'product_stock': create_product_stock().id,
                     'quantity': 10,
                 }
             ]
@@ -216,7 +231,7 @@ class PrivateOutputApiTests(TestCase):
             'output_date': timezone.now().date(),
             'output_items': [
                 {
-                    'product': create_product().id,
+                    'product_stock': create_product_stock().id,
                     'quantity': 5,
                 }
             ]
@@ -225,7 +240,7 @@ class PrivateOutputApiTests(TestCase):
         url = detail_url(output.id)
         res = self.client.patch(url, payload, format='json')
         output.refresh_from_db()
-        
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
         self.assertEqual(output.client.id, payload['client'])
@@ -235,5 +250,5 @@ class PrivateOutputApiTests(TestCase):
 
         for i, payload_item in enumerate(payload['output_items']):
             db_item = output.output_items.all()[i]
-            self.assertEqual(db_item.product.id, payload_item['product'])
+            self.assertEqual(db_item.product_stock.id, payload_item['product_stock'])
             self.assertEqual(db_item.quantity, payload_item['quantity'])

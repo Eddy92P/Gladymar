@@ -60,17 +60,7 @@ class UpdateTransactionServiceTest(TestCase):
         
     def create_test_product(self, **kwargs):
         unique_suffix = str(uuid.uuid4())[:8]
-        agency = Agency.objects.create(
-            name = f'Test Warehouse{unique_suffix}',
-            location = 'Test Location',
-        )
-        warehouse = Warehouse.objects.create(
-            agency=agency,
-            name = f'Test Warehouse{unique_suffix}',
-            location = 'Test Location',
-        )
         category = Category.objects.create(
-            warehouse = warehouse,
             name = f'Test Category{unique_suffix}',
         )
         batch = Batch.objects.create(
@@ -80,10 +70,7 @@ class UpdateTransactionServiceTest(TestCase):
         defaults = {
             'name': f'Test Product{unique_suffix}',
             'batch': batch,
-            'stock': 50,
             'code': f'TEST-{unique_suffix}',
-            'minimum_stock': 10,
-            'maximum_stock': 200,
             'minimum_sale_price': 10.00,
             'maximum_sale_price': 100.00
         }

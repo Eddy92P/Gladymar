@@ -190,15 +190,6 @@ class ModelTest(TestCase):
     def test_create_category(self):
         """Test creating a Category."""
         category = Category.objects.create(
-            warehouse=Warehouse.objects.create(
-                agency=Agency.objects.create(
-                    name='Test Agency',
-                    location='Test Agency Location',
-                    city='LP',
-                ),
-                name='Test Warehouse',
-                location='Test Location',
-            ),
             name='Test Category',
         )
         self.assertEqual(category.name, 'Test Category')
@@ -207,15 +198,6 @@ class ModelTest(TestCase):
         """Test creating a Batch."""
         batch = Batch.objects.create(
             category=Category.objects.create(
-                warehouse=Warehouse.objects.create(
-                    agency=Agency.objects.create(
-                        name='Test Agency',
-                        location='Test Agency Location',
-                        city='LP',
-                    ),
-                    name='Test Warehouse',
-                    location='Test Location',
-                ),
                 name='Test Category',
             ),
             name='Test Batch',
@@ -227,71 +209,57 @@ class ModelTest(TestCase):
         product = Product.objects.create(
             batch=Batch.objects.create(
                 category=Category.objects.create(
-                    warehouse=Warehouse.objects.create(
-                        agency=Agency.objects.create(
-                            name='Test Agency',
-                            location='Test Agency Location',
-                            city='LP',
-                        ),
-                        name='Test Warehouse',
-                        location='Test Location',
-                    ),
                     name='Test Category',
                 ),
                 name='Test Batch',
             ),
             name='Test Product',
-            stock=10,
-            reserved_stock=0,
-            available_stock=10,
             code='1234567890',
             unit_of_measurement='Test Unit',
             description='Test Description',
-            minimum_stock=10,
-            maximum_stock=20,
             minimum_sale_price=10,
             maximum_sale_price=20,
         )
         self.assertEqual(product.name, 'Test Product')
-        self.assertEqual(product.stock, 10)
         self.assertEqual(product.code, '1234567890')
         self.assertEqual(product.unit_of_measurement, 'Test Unit')
         self.assertEqual(product.description, 'Test Description')
-        self.assertEqual(product.minimum_stock, 10)
-        self.assertEqual(product.maximum_stock, 20)
         self.assertEqual(product.minimum_sale_price, 10)
         self.assertEqual(product.maximum_sale_price, 20)
         
     def test_create_product_with_invalid_stock(self):
-        """Test creating a Product with invalid stock."""
+        """Test creating a Product Stock with invalid stock."""
         with self.assertRaises(ValidationError):
-            Product.objects.create(
-                batch=Batch.objects.create(
-                    category=Category.objects.create(
-                        warehouse=Warehouse.objects.create(
-                            agency=Agency.objects.create(
-                                name='Test Agency',
-                                location='Test Agency Location',
-                                city='LP',
-                            ),
-                            name='Test Warehouse',
-                            location='Test Location',
+            ProductStock.objects.create(
+                product=Product.objects.create(
+                    batch=Batch.objects.create(
+                        category=Category.objects.create(
+                            name='Test Category',
                         ),
-                        name='Test Category',
+                        name='Test Batch',
                     ),
-                    name='Test Batch',
+                    name='Test Product',
+                    code='1234567890',
+                    unit_of_measurement='Test Unit',
+                    description='Test Description',
+                    minimum_sale_price=10,
+                    maximum_sale_price=20,
                 ),
-                name='Test Product',
-                stock=20,
-                reserved_stock=0,
-                available_stock=20,
-                code='1234567890',
-                unit_of_measurement='Test Unit',
-                minimum_stock=20,
-                maximum_stock=10,
-                minimum_sale_price=10,
-                maximum_sale_price=20,
-            )
+                warehouse=Warehouse.objects.create(
+                    agency=Agency.objects.create(
+                        name='Test Agency 5',
+                        location='Test Location',
+                        city='LP',
+                    ),
+                    name='Test Warehouse',
+                    location='Test Location 2',
+                ),
+                stock=50,
+                reserved_stock=10,
+                available_stock=40,
+                minimum_stock=70,
+                maximum_stock=60,
+            ),
             
     def test_create_product_with_invalid_sale_price(self):
         """Test creating a Product with invalid sale price."""
@@ -299,27 +267,13 @@ class ModelTest(TestCase):
             Product.objects.create(
                 batch=Batch.objects.create(
                     category=Category.objects.create(
-                        warehouse=Warehouse.objects.create(
-                            agency=Agency.objects.create(
-                                name='Test Agency',
-                                location='Test Agency Location',
-                                city='LP',
-                            ),
-                            name='Test Warehouse',
-                            location='Test Location',
-                        ),
                         name='Test Category',
                     ),
                     name='Test Batch',
                 ),
                 name='Test Product',
-                stock=10,
-                reserved_stock=0,
-                available_stock=10,
                 code='1234567890',
                 unit_of_measurement='Test Unit',
-                minimum_stock=10,
-                maximum_stock=20,
                 minimum_sale_price=20,
                 maximum_sale_price=10,
             )
@@ -332,6 +286,15 @@ class ModelTest(TestCase):
             city='LP',
         )
         entry = Entry.objects.create(
+            warehouse=Warehouse.objects.create(
+                agency=Agency.objects.create(
+                    name='Test Agency 8',
+                    location='Test Location',
+                    city='LP',
+                ),
+                name='Test Warehouse 3',
+                location='Test Location 2',
+            ),
             warehouse_keeper=get_user_model().objects.create_user(
                 email='testuser@example.com',
                 password='testpass123',
@@ -365,6 +328,15 @@ class ModelTest(TestCase):
         )
         entry_item = EntryItem.objects.create(
             entry=Entry.objects.create(
+                warehouse=Warehouse.objects.create(
+                    agency=Agency.objects.create(
+                        name='Test Agency 7',
+                        location='Test Location',
+                        city='LP',
+                    ),
+                    name='Test Warehouse 2',
+                    location='Test Location 2',
+                ),
                 warehouse_keeper=get_user_model().objects.create_user(
                     email='testuser@example.com',
                     password='testpass123',
@@ -386,33 +358,35 @@ class ModelTest(TestCase):
                 entry_date='2025-01-01',
                 invoice_number='1234567890',
             ),
-            product=Product.objects.create(
-                batch=Batch.objects.create(
-                    category=Category.objects.create(
-                        warehouse=Warehouse.objects.create(
-                            agency=Agency.objects.create(
-                                name='Test Agency',
-                                location='Test Agency Location',
-                                city='LP',
-                            ),
-                            name='Test Warehouse',
-                            location='Test Location',
+            product_stock=ProductStock.objects.create(
+                product=Product.objects.create(
+                    batch=Batch.objects.create(
+                        category=Category.objects.create(
+                            name='Test Category',
                         ),
-                        name='Test Category',
+                        name='Test Batch',
                     ),
-                    name='Test Batch',
+                    name='Test Product',
+                    code='1234567890',
+                    unit_of_measurement='Test Unit',
+                    description='Test Description',
+                    minimum_sale_price=10,
+                    maximum_sale_price=20,
                 ),
-                name='Test Product',
-                stock=10,
-                reserved_stock=0,
-                available_stock=10,
-                code='1234567890',
-                unit_of_measurement='Test Unit',
-                description='Test Description',
+                warehouse=Warehouse.objects.create(
+                    agency=Agency.objects.create(
+                        name='Test Agency 5',
+                        location='Test Location',
+                        city='LP',
+                    ),
+                    name='Test Warehouse',
+                    location='Test Location 2',
+                ),
+                stock=50,
+                reserved_stock=10,
+                available_stock=40,
                 minimum_stock=10,
-                maximum_stock=20,
-                minimum_sale_price=10,
-                maximum_sale_price=20,
+                maximum_stock=60,
             ),
             quantity=10,
             unit_price=10,
@@ -428,6 +402,15 @@ class ModelTest(TestCase):
             city='LP',
         )
         output = Output.objects.create(
+            warehouse=Warehouse.objects.create(
+                agency=Agency.objects.create(
+                    name='Test Agency 5',
+                    location='Test Location',
+                    city='LP',
+                ),
+                name='Test Warehouse',
+                location='Test Location 2',
+            ),
             warehouse_keeper=get_user_model().objects.create_user(
                 'test@example.com',
                 'testpass123',
@@ -458,6 +441,15 @@ class ModelTest(TestCase):
         )
         output_item = OutputItem.objects.create(
             output=Output.objects.create(
+                warehouse=Warehouse.objects.create(
+                    agency=Agency.objects.create(
+                        name='Test Agency 6',
+                        location='Test Location',
+                        city='LP',
+                    ),
+                    name='Test Warehouse 1',
+                    location='Test Location 2',
+                ),
                 warehouse_keeper=get_user_model().objects.create_user(
                     'test@example.com',
                     'testpass123',
@@ -477,32 +469,35 @@ class ModelTest(TestCase):
                 ),
                 output_date='2025-01-01',
             ),
-            product=Product.objects.create(
-                batch=Batch.objects.create(
-                    category=Category.objects.create(
-                        warehouse=Warehouse.objects.create(
-                            agency=Agency.objects.create(
-                                name='Test Agency',
-                                location='Test Agency Location',
-                            ),
-                            name='Test Warehouse',
-                            location='Test Location',
+            product_stock=ProductStock.objects.create(
+                product=Product.objects.create(
+                    batch=Batch.objects.create(
+                        category=Category.objects.create(
+                            name='Test Category',
                         ),
-                        name='Test Category',
+                        name='Test Batch',
                     ),
-                    name='Test Batch',
+                    name='Test Product',
+                    code='1234567890',
+                    unit_of_measurement='Test Unit',
+                    description='Test Description',
+                    minimum_sale_price=10,
+                    maximum_sale_price=20,
                 ),
-                name='Test Product',
-                stock=10,
-                reserved_stock=0,
-                available_stock=10,
-                code='1234567890',
-                unit_of_measurement='Test Unit',
-                description='Test Description',
+                warehouse=Warehouse.objects.create(
+                    agency=Agency.objects.create(
+                        name='Test Agency 5',
+                        location='Test Location',
+                        city='LP',
+                    ),
+                    name='Test Warehouse',
+                    location='Test Location 2',
+                ),
+                stock=50,
+                reserved_stock=10,
+                available_stock=40,
                 minimum_stock=10,
-                maximum_stock=20,
-                minimum_sale_price=10,
-                maximum_sale_price=20,
+                maximum_stock=60,
             ),
             quantity=10,
         )
@@ -578,33 +573,35 @@ class ModelTest(TestCase):
                 status='pending',
                 sale_date='2025-01-01',
             ),
-            product=Product.objects.create(
-                batch=Batch.objects.create(
-                    category=Category.objects.create(
-                        warehouse=Warehouse.objects.create(
-                            agency=Agency.objects.create(
-                                name='Test Agency',
-                                location='Test Agency Location',
-                                city='LP',
-                            ),
-                            name='Test Warehouse',
-                            location='Test Location',
+            product_stock=ProductStock.objects.create(
+                product=Product.objects.create(
+                    batch=Batch.objects.create(
+                        category=Category.objects.create(
+                            name='Test Category',
                         ),
-                        name='Test Category',
+                        name='Test Batch',
                     ),
-                    name='Test Batch',
+                    name='Test Product',
+                    code='1234567890',
+                    unit_of_measurement='Test Unit',
+                    description='Test Description',
+                    minimum_sale_price=10,
+                    maximum_sale_price=20,
                 ),
-                name='Test Product',
-                stock=10,
-                reserved_stock=0,
-                available_stock=10,
-                code='1234567890',
-                unit_of_measurement='Test Unit',
-                description='Test Description',
+                warehouse=Warehouse.objects.create(
+                    agency=Agency.objects.create(
+                        name='Test Agency 5',
+                        location='Test Location',
+                        city='LP',
+                    ),
+                    name='Test Warehouse',
+                    location='Test Location 2',
+                ),
+                stock=50,
+                reserved_stock=10,
+                available_stock=40,
                 minimum_stock=10,
-                maximum_stock=20,
-                minimum_sale_price=10,
-                maximum_sale_price=20,
+                maximum_stock=60,
             ),
             quantity=10,
             unit_price=10,

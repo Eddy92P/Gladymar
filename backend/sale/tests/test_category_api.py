@@ -54,7 +54,6 @@ def create_category(**params):
     
     defaults = {
         'name': f'Sample Category {str(uuid.uuid4())[:8]}',
-        'warehouse': create_warehouse(),
     }
     defaults.update(params)
     
@@ -104,14 +103,12 @@ class PrivatCategoryApiTests(TestCase):
         warehouse = create_warehouse()
         payload = {
             'name': 'Test category',
-            'warehouse_id': warehouse.id,
         }
         res = self.client.post(CATEGORY_URL, payload)
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         category = Category.objects.get(id=res.data['id'])
 
         self.assertEqual(category.name, payload['name'])
-        self.assertEqual(category.warehouse.id, payload['warehouse_id'])
             
     def test_partial_update_category(self):
         """Test partial update of a category."""
@@ -122,19 +119,18 @@ class PrivatCategoryApiTests(TestCase):
         category.refresh_from_db()
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(category.name, payload['name'])
-        
+
     def test_full_update_category(self):
         """Test full update of a category."""
         category = create_category(name='Original Name')
         warehouse = create_warehouse()
-        payload = {'name': 'New Name', 'warehouse_id': warehouse.id}
+        payload = {'name': 'New Name'}
         url = detail_url(category.id)
         res = self.client.put(url, payload)
         category.refresh_from_db()
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(category.name, payload['name'])
-        self.assertEqual(category.warehouse.id, payload['warehouse_id'])
-        
+
     def test_not_delete_category(self):
         """Test that a category cannot be deleted via API."""
         category = create_category()

@@ -57,7 +57,6 @@ def create_category(**params):
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
         'name': f'Sample Category {unique_suffix}',
-        'warehouse': create_warehouse(),
     }
     defaults.update(params)
     category = Category.objects.create(**defaults)
@@ -94,15 +93,10 @@ def create_product(**params):
     defaults = {
         'name': f'Sample Product {unique_suffix}',
         'batch': create_batch(),
-        'stock': 100,
-        'reserved_stock': 0,
-        'available_stock': 100,
         'code': f'Sample Code {unique_suffix}',
         'unit_of_measurement': 'Unit',
         'description': 'Sample Description',
         'image': None,
-        'minimum_stock': 10,
-        'maximum_stock': 100,
         'minimum_sale_price': 100,
         'maximum_sale_price': 100,
     }
@@ -207,15 +201,10 @@ class PrivateProductApiTests(TestCase):
         payload = {
             'name': f'Test Product with Image {unique_suffix}',
             'batch_id': batch.id,
-            'stock': 50,
-            'reserved_stock': 0,
-            'available_stock': 50,
             'code': f'TEST001_{unique_suffix}',
             'unit_of_measurement': 'Unit',
             'description': 'Test product with image',
             'image': image,
-            'minimum_stock': 10,
-            'maximum_stock': 100,
             'minimum_sale_price': 120.00,
             'maximum_sale_price': 200.00,
             'supplier': [supplier.id],
@@ -243,14 +232,9 @@ class PrivateProductApiTests(TestCase):
         payload = {
             'name': f'Test Product without Image {unique_suffix}',
             'batch_id': batch.id,
-            'stock': 25,
-            'reserved_stock': 0,
-            'available_stock': 25,
             'code': f'TEST002_{unique_suffix}',
             'unit_of_measurement': 'Unit',
             'description': 'Test product without image',
-            'minimum_stock': 5,
-            'maximum_stock': 50,
             'minimum_sale_price': 80.00,
             'maximum_sale_price': 150.00,
             'supplier': [supplier.id],
@@ -337,9 +321,6 @@ class PrivateProductApiTests(TestCase):
         payload = {
             'name': f'Test Product {unique_suffix}',
             'batch_id': batch.id,
-            'stock': 10,
-            'reserved_stock': 0,
-            'available_stock': 10,
             'code': f'TEST003_{unique_suffix}',
             'unit_of_measurement': 'Unit',
             'image': invalid_file,
@@ -381,15 +362,10 @@ class PrivateProductApiTests(TestCase):
         payload = {
             'name': 'Updated Name',
             'batch_id': product.batch.id,
-            'stock': 100,
-            'reserved_stock': 0,
-            'available_stock': 100,
             'code': f'TEST004_{unique_suffix}',
             'unit_of_measurement': 'Unit',
             'description': 'Updated Description',
             'image': new_image,
-            'minimum_stock': 10,
-            'maximum_stock': 100,
             'minimum_sale_price': 120.00,
             'maximum_sale_price': 200.00,
             'supplier': supplier_ids,
@@ -408,21 +384,3 @@ class PrivateProductApiTests(TestCase):
         res = self.client.delete(url)
         self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
         self.assertTrue(Product.objects.filter(id=product.id).exists())
-        
-    def test_minimum_stock_and_maximum_stock(self):
-        """Test minimum stock can't be greater than maximum stock"""
-        product = create_product(minimum_stock=0, maximum_stock=0)
-        payload = {'minimum_stock': 15, 'maximum_stock': 10}
-        url = detail_url(product.id)
-        res = self.client.patch(url, payload)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(res.data['minimum_stock'][0], 'El stock mínimo no puede ser mayor al máximo.')
-        
-    def test_minimum_sale_price_and_maximum_sale_price(self):
-        """Test minimum sale price can't be greater than maximum sale price"""
-        product = create_product(minimum_sale_price=0, maximum_sale_price=0)
-        payload = {'minimum_sale_price': 15, 'maximum_sale_price': 10}
-        url = detail_url(product.id)
-        res = self.client.patch(url, payload)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(res.data['minimum_sale_price'][0], 'El precio de venta mínimo no puede ser mayor al máximo.')

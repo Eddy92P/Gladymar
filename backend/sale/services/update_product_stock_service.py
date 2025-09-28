@@ -21,13 +21,13 @@ class UpdateProductStockService:
                      if item_data.get('id') == item.id), 
                     previous_item_quantity
                 )
-                product = item.product
+                product_stock = item.product_stock
                 if actual_item_quantity > previous_item_quantity or actual_item_quantity < previous_item_quantity:
                     new_item_quantity = actual_item_quantity - previous_item_quantity
-                    if product.stock + new_item_quantity > product.maximum_stock:
+                    if product_stock.stock + new_item_quantity > product_stock.maximum_stock:
                         raise ValidationError('El nuevo stock no puede ser mayor al máximo permitido.')
-                    product.stock += new_item_quantity
-                    product.save()
+                    product_stock.stock += new_item_quantity
+                    product_stock.save()
         except Exception as e:
             raise e
         
@@ -43,13 +43,13 @@ class UpdateProductStockService:
                      if item_data.get('id') == item.id), 
                     previous_item_quantity
                 )
-                product = item.product
+                product_stock = item.product_stock
                 if actual_item_quantity > previous_item_quantity or actual_item_quantity < previous_item_quantity:
                     new_item_quantity = actual_item_quantity - previous_item_quantity
-                    if product.stock - new_item_quantity < product.minimum_stock:
+                    if product_stock.stock - new_item_quantity < product_stock.minimum_stock:
                         raise ValidationError('El nuevo stock no puede ser menor al mínimo permitido.')
-                    product.stock -= new_item_quantity
-                    product.save()
+                    product_stock.stock -= new_item_quantity
+                    product_stock.save()
         except Exception as e:
             raise e
         

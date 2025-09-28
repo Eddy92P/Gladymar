@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from core.models import Batch, Category, Warehouse, Agency, Supplier, Product, Purchase, PurchaseItem, Payment
+from core.models import *
 from sale.serializers import PurchaseSerializer
 import uuid
 from datetime import date
@@ -54,7 +54,6 @@ def create_category(**params):
     """Create and return a sample Category."""
     unique_suffix = str(uuid.uuid4())[:4]
     defaults = {
-        'warehouse': create_warehouse(),
         'name': f'TestCategory{unique_suffix}',
     }
     defaults.update(params)
@@ -78,17 +77,25 @@ def create_product(**params):
         'name': f'TestProduct{unique_suffix}',
         'code': f'CODE{unique_suffix}',
         'unit_of_measurement': 'UN',
-        'stock': 50,
-        'reserved_stock': 0,
-        'available_stock': 50,
         'description': 'Test product description',
-        'minimum_stock': 10,
-        'maximum_stock': 100,
         'minimum_sale_price': 10.00,
         'maximum_sale_price': 50.00,
     }
     defaults.update(params)
     return Product.objects.create(**defaults)
+
+def create_product_stock(**params):
+    defaults = {
+        'product': create_product(),
+        'warehouse': create_warehouse(),
+        'stock': 50,
+        'reserved_stock': 10,
+        'available_stock': 40,
+        'minimum_stock': 10,
+        'maximum_stock': 60,
+    }
+    defaults.update(params)
+    return ProductStock.objects.create(**defaults)
 
 def create_supplier(**params):
     """Create and return a sample Supplier."""
@@ -100,7 +107,7 @@ def create_supplier(**params):
         'email': f'supplier{unique_suffix}@test.com',
         'address': 'Test Address',
     }
-    
+
     # Separar los campos many-to-many de los campos normales
     products = params.pop('product', None)
     defaults.update(params)
@@ -111,7 +118,6 @@ def create_supplier(**params):
         supplier.product.set(products)
 
     return supplier
-
 
 def create_purchase(**params):
     """Create and return a sample Purchase."""
@@ -137,7 +143,7 @@ def create_purchase(**params):
     else:
         PurchaseItem.objects.create(
             purchase=purchase,
-            product=create_product(),
+            product_stock=create_product_stock(),
             quantity=10,
             unit_price=10.00,
             total_price=100.00,
@@ -164,13 +170,13 @@ class PublicPurchaseApiTests(TestCase):
     """Tests for an user when is unauthenticated."""
     def setUp(self):
         self.client = APIClient()
-        
+
     def test_auth_required(self):
         res = self.client.get(PURCHASE_URL)
-        
+
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
-    
-    
+
+
 class PrivatePurchaseApiTests(TestCase):
     """Test for an user is authorized."""
     def setUp(self):
@@ -207,13 +213,13 @@ class PrivatePurchaseApiTests(TestCase):
             'balance_due': 150.00,
             'purchase_items': [
                 {
-                    'product': create_product().id,
+                    'product_stock': create_product_stock().id,
                     'quantity': 2,
                     'unit_price': 25.00,
                     'total_price': 50.00
                 },
                 {
-                    'product': create_product().id,
+                    'product_stock': create_product_stock().id,
                     'quantity': 1,
                     'unit_price': 100.00,
                     'total_price': 100.00

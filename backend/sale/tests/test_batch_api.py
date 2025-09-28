@@ -54,7 +54,6 @@ def create_category(**params):
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
         'name': f'Sample Category {unique_suffix}',
-        'warehouse': create_warehouse(),
     }
     defaults.update(params)
     category = Category.objects.create(**defaults)

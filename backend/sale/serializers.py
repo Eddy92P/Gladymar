@@ -20,40 +20,10 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         exclude = ['password']
         read_only_fields = ['id', 'created_at', 'updated_at']
-
-
-class AgencySerializer(serializers.ModelSerializer):
-    """Serializer for Agency model"""
-
-    class Meta:
-        model = Agency
-        fields = '__all__'
-        read_only_fields = ['id', 'created_at', 'updated_at']
-
-
-class WarehouseSerializer(serializers.ModelSerializer):
-    """Serializer for Warehouse model"""
-    agency = AgencySerializer(read_only=True)
-    agency_id = serializers.PrimaryKeyRelatedField(
-        queryset=Agency.objects.all(),
-        source='agency',
-        write_only=True
-    )
-
-    class Meta:
-        model = Warehouse
-        fields = '__all__'
-        read_only_fields = ['id', 'created_at', 'updated_at']
         
 
 class CategorySerializer(serializers.ModelSerializer):
     """Serializer for Category model"""
-    warehouse = WarehouseSerializer(read_only=True)
-    warehouse_id = serializers.PrimaryKeyRelatedField(
-        queryset=Warehouse.objects.all(),
-        source='warehouse',
-        write_only=True
-    )
 
     class Meta:
         model = Category
@@ -89,19 +59,8 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = '__all__'
         read_only_fields = ['id', 'created_at', 'updated_at']
-        
+
     def validate(self, data):
-        if data.get('minimum_stock') is not None and data.get('maximum_stock') is not None:
-            if data['minimum_stock'] > data['maximum_stock']:
-                raise serializers.ValidationError({
-                    'minimum_stock': "El stock mínimo no puede ser mayor al máximo."
-                })
-        if data.get('minimum_sale_price') is not None and data.get('maximum_sale_price') is not None:
-            if data['minimum_sale_price'] > data['maximum_sale_price']:
-                raise serializers.ValidationError({
-                    'minimum_sale_price': "El precio de venta mínimo no puede ser mayor al máximo."
-                })
-        
         # Validate image file if provided
         image = data.get('image')
         if image:
@@ -111,13 +70,9 @@ class ProductSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({
                     'image': "Formato de archivo no soportado. Use JPG, PNG o GIF."
                 })
-        
+
         return data
-    
-    def create(self, validated_data):
-        validated_data['available_stock'] = validated_data['stock']
-        return super().create(validated_data)
-    
+
     def update(self, instance, validated_data):
         """Custom update method to handle image deletion."""
         # If image is explicitly set to None, clear the field
@@ -129,6 +84,152 @@ class ProductSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
     
     
+class CatalogProductSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    agency = serializers.CharField()
+    warehouse = serializers.CharField()
+    name = serializers.CharField()
+    code = serializers.CharField()
+    price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    stock = serializers.IntegerField()
+    minimum_stock = serializers.IntegerField()
+    maximum_stock = serializers.IntegerField()
+    minimum_sale_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    maximum_sale_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+
+class NestedProductStockSerializer(serializers.ModelSerializer):
+    """Nested Serializer for intermediate table for product and stock model."""
+    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), write_only=True)
+    products = ProductSerializer(read_only=True, source='product')
+    id = serializers.IntegerField(required=False, allow_null=True)
+
+    class Meta:
+        model = ProductStock
+        fields = [
+            'id', 'product', 'products',
+            'stock', 'reserved_stock', 'available_stock', 'minimum_stock',
+            'maximum_stock'
+        ]
+        read_only_fields = ['id']
+
+    def validate(self, data):
+        if data.get('minimum_stock') is not None and data.get('maximum_stock') is not None:
+            if data['minimum_stock'] > data['maximum_stock']:
+                raise serializers.ValidationError({
+                    'minimum_stock': "El stock mínimo no puede ser mayor al máximo."
+                })
+        if data.get('minimum_sale_price') is not None and data.get('maximum_sale_price') is not None:
+            if data['minimum_sale_price'] > data['maximum_sale_price']:
+                raise serializers.ValidationError({
+                    'minimum_sale_price': "El precio de venta mínimo no puede ser mayor al máximo."
+                })
+     
+    def create(self, validated_data):
+        validated_data['available_stock'] = validated_data['stock']
+        return super().create(validated_data)
+
+
+class AgencySerializer(serializers.ModelSerializer):
+    """Serializer for Agency model"""
+
+    class Meta:
+        model = Agency
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class WarehouseSerializer(serializers.ModelSerializer):
+    """Serializer for Warehouse model"""
+    agency = AgencySerializer(read_only=True)
+    agency_id = serializers.PrimaryKeyRelatedField(
+        queryset=Agency.objects.all(),
+        source='agency',
+        write_only=True
+    )
+    product_stock = NestedProductStockSerializer(many=True, required=False)
+
+    class Meta:
+        model = Warehouse
+        fields = ['id', 'product_stock','agency', 'agency_id', 'name', 'location', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    @transaction.atomic
+    def create(self, validated_data):
+        products_stock_data = validated_data.pop('product_stock', [])
+        try:
+            warehouse = Warehouse.objects.create(**validated_data)
+
+            for product_stock_data in products_stock_data:
+                ProductStock.objects.create(warehouse=warehouse, **product_stock_data)
+        except Exception as e:
+            raise e
+
+        return warehouse
+
+    def update(self, instance, validated_data):
+        products_stock_data = validated_data.pop('product_stock', None)
+        try:
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+
+            if products_stock_data is not None:
+                existing_items = instance.product_stock.all()
+
+                for item in existing_items:
+                    if item.id not in [item_data.get('id') for item_data in products_stock_data if item_data.get('id')]:
+                        item.delete()
+                for item_data in products_stock_data:
+                    if item_data.get('id'):
+                        item = existing_items.get(id=item_data['id'])
+                        for attr, value in item_data.items():
+                            if attr != 'id':
+                                setattr(item, attr, value)
+                        item.save()
+                    else:
+                        item_data_copy = item_data.copy()
+                        item_data_copy.pop('warehouse', None)
+                        ProductStock.objects.create(warehouse=instance, **item_data_copy)
+        except Exception as e:
+            raise e
+
+        return instance
+
+
+class ProductStockSerializer(serializers.ModelSerializer):
+    """Serializer for intermediate table for product and stock model."""
+    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), write_only=True)
+    products = ProductSerializer(read_only=True, source='product')
+    warehouse = serializers.PrimaryKeyRelatedField(queryset=Warehouse.objects.all(), write_only=True)
+    warehouses = WarehouseSerializer(read_only=True, source='warehouse')
+    id = serializers.IntegerField(required=False, allow_null=True)
+
+    class Meta:
+        model = ProductStock
+        fields = [
+            'id', 'product', 'products', 'warehouse', 'warehouses', 
+            'stock', 'reserved_stock', 'available_stock', 'minimum_stock',
+            'maximum_stock'
+        ]
+        read_only_fields = ['id']
+
+    def validate(self, data):
+        if data.get('minimum_stock') is not None and data.get('maximum_stock') is not None:
+            if data['minimum_stock'] > data['maximum_stock']:
+                raise serializers.ValidationError({
+                    'minimum_stock': "El stock mínimo no puede ser mayor al máximo."
+                })
+        if data.get('minimum_sale_price') is not None and data.get('maximum_sale_price') is not None:
+            if data['minimum_sale_price'] > data['maximum_sale_price']:
+                raise serializers.ValidationError({
+                    'minimum_sale_price': "El precio de venta mínimo no puede ser mayor al máximo."
+                })
+
+    def create(self, validated_data):
+        validated_data['available_stock'] = validated_data['stock']
+        return super().create(validated_data)
+
+
 class ProductMinimumSerializer(serializers.ModelSerializer):
     """Serializer to get products only to read in sales, purchases and suppliers."""
     
@@ -176,17 +277,19 @@ class ClientSerializer(serializers.ModelSerializer):
 
 class EntryItemSerializer(serializers.ModelSerializer):
     """Serializer for EntryItem model"""
-    products = ProductSerializer(read_only=True, source='product')
-    product = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Product.objects.all())
+    products_stock = ProductStockSerializer(read_only=True, source='product_stock')
+    product_stock = serializers.PrimaryKeyRelatedField(write_only=True, queryset=ProductStock.objects.all())
 
     class Meta:
         model = EntryItem
-        fields = ['id', 'product', 'products', 'quantity', 'unit_price']
+        fields = ['id', 'product_stock', 'products_stock', 'quantity', 'unit_price']
         read_only_fields = ['id']
 
 
 class EntrySerializer(serializers.ModelSerializer):
     """Serializer for Entry model"""
+    warehouse = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Warehouse.objects.all())
+    warehouses = WarehouseSerializer(read_only=True, source='warehouse')
     warehouse_keeper = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     suppliers = SupplierSerializer(read_only=True, source='supplier')
     supplier = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Supplier.objects.all())
@@ -194,7 +297,9 @@ class EntrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Entry
-        fields = ['id', 'warehouse_keeper', 'supplier', 'suppliers', 'entry_date', 'invoice_number', 'entry_items', 'created_at', 'updated_at']
+        fields = ['id', 'warehouse', 'warehouses', 'warehouse_keeper',
+                  'supplier', 'suppliers', 'entry_date', 'invoice_number',
+                  'entry_items', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
  
     @transaction.atomic
@@ -241,15 +346,18 @@ class EntrySerializer(serializers.ModelSerializer):
 
 class OutputItemSerializer(serializers.ModelSerializer):
     """Serializer for OutputItem model"""
-    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
+    product_stock = serializers.PrimaryKeyRelatedField(queryset=ProductStock.objects.all())
+    products_stock = ProductStockSerializer(read_only=True, source='product_stock')
 
     class Meta:
         model = OutputItem
-        fields = ['id', 'product', 'quantity']
+        fields = ['id', 'product_stock', 'products_stock', 'quantity']
         read_only_fields = ['id']
     
 class OutputSerializer(serializers.ModelSerializer):
     """Serializer for Output model"""
+    warehouse = serializers.PrimaryKeyRelatedField(queryset=Warehouse.objects.all(), write_only=True)
+    warehouses = WarehouseSerializer(read_only=True, source='warehouse')
     warehouse_keeper = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     clients = ClientSerializer(read_only=True, source='client')
     client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all(), write_only=True)
@@ -257,7 +365,9 @@ class OutputSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Output
-        fields = ['id', 'warehouse_keeper', 'client', 'clients', 'output_date', 'output_items', 'created_at', 'updated_at']
+        fields = ['id', 'warehouse', 'warehouses', 'warehouse_keeper',
+                  'client', 'clients', 'output_date', 'output_items',
+                  'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     @transaction.atomic
@@ -467,18 +577,18 @@ class PaymentSerializer(serializers.ModelSerializer):
 
 class PurchaseItemSerializer(serializers.ModelSerializer):
     """Serializer for Purchase Item model."""
-    products = ProductSerializer(read_only=True, source='product')
-    product = serializers.PrimaryKeyRelatedField(
-        queryset=Product.objects.all(),
+    products_stock = ProductStockSerializer(read_only=True, source='product_stock')
+    product_stock = serializers.PrimaryKeyRelatedField(
+        queryset=ProductStock.objects.all(),
         write_only=True,
     )
     
     class Meta:
         model = PurchaseItem
-        fields = ['product', 'products', 'quantity', 'unit_price', 'total_price']
+        fields = ['product_stock', 'products_stock', 'quantity', 'unit_price', 'total_price']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
-        
+
 class NestedPaymentSerializer(serializers.ModelSerializer):
     """Serializer for Payment model when nested in Purchase."""
     
@@ -561,21 +671,20 @@ class PurchaseSerializer(serializers.ModelSerializer):
             Payment.objects.create(transaction_id=purchase.id, **payment_data)
         except Exception as e:
             raise e
-        
+
         return purchase
 
 
 class SaleItemSerializer(serializers.ModelSerializer):
     """Serializer for Sale Item model."""
-    products = ProductSerializer(read_only=True, source='product')
-    product = serializers.PrimaryKeyRelatedField(
-        queryset=Product.objects.all(),
+    products_stock = ProductStockSerializer(read_only=True, source='product_stock')
+    product_stock = serializers.PrimaryKeyRelatedField(
+        queryset=ProductStock.objects.all(),
         write_only=True,
     )
     id = serializers.IntegerField(required=False, allow_null=True)
 
     def validate(self, data):
-        print(data['total_price'])
         if data.get('product') is not None and data.get('quantity') is not None and data.get('total_price') is not None:
             if data['product'].available_stock - data['quantity'] < 0:
                 raise serializers.ValidationError({
@@ -587,10 +696,9 @@ class SaleItemSerializer(serializers.ModelSerializer):
                 })
         return data
 
-
     class Meta:
         model = SaleItem
-        fields = ['id', 'product', 'products', 'quantity', 'unit_price', 'sub_total_price', 'discount', 'total_price']
+        fields = ['id', 'product_stock', 'products_stock', 'quantity', 'unit_price', 'sub_total_price', 'discount', 'total_price']
 
 
 class SaleSerializer(serializers.ModelSerializer):

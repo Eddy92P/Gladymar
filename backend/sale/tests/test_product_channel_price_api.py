@@ -3,7 +3,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from core.models import SellingChannel, Product, Batch, Category, Warehouse, Agency, ProductChannelPrice
+from core.models import *
 from sale.serializers import ProductChannelPriceSerializer
 import uuid
 from datetime import datetime
@@ -62,7 +62,6 @@ def create_category(**params):
     """Create and return a sample Category."""
     unique_suffix = str(uuid.uuid4())[:4]
     defaults = {
-        'warehouse': create_warehouse(),
         'name': f'TestCategory{unique_suffix}',
     }
     defaults.update(params)
@@ -86,12 +85,7 @@ def create_product(**params):
         'name': f'TestProduct{unique_suffix}',
         'code': f'CODE{unique_suffix}',
         'unit_of_measurement': 'UN',
-        'stock': 50,
-        'reserved_stock': 0,
-        'available_stock': 50,
         'description': 'Test product description',
-        'minimum_stock': 10,
-        'maximum_stock': 100,
         'minimum_sale_price': 10.00,
         'maximum_sale_price': 50.00,
     }
@@ -124,7 +118,7 @@ class PublicProductChannelApiTests(TestCase):
         res = self.client.get(PRODUCT_CHANNEL_URL)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
-        
+
         
 class PrivateProductChannelApiTests(TestCase):
     """Test API requests for authorized users."""
@@ -132,19 +126,19 @@ class PrivateProductChannelApiTests(TestCase):
         self.client = APIClient()
         self.user = create_user()
         self.client.force_authenticate(self.user)
-        
+
     def test_retrieve_product_channel(self):
         """Test for retrieve a list of product channels."""
         create_product_channel()
         create_product_channel()
-        
+
         res = self.client.get(PRODUCT_CHANNEL_URL)
         product_channel = ProductChannelPrice.objects.all().order_by('-id')
         serializer = ProductChannelPriceSerializer(product_channel, many=True)
-        
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data['rows'], serializer.data)
-        
+
     def test_create_product_channel(self):
         """Test for create a product channel."""
         payload = {
@@ -152,15 +146,15 @@ class PrivateProductChannelApiTests(TestCase):
             'selling_channel': create_selling_channel().id,
             'price': 30.00,
         }
-        
+
         res = self.client.post(PRODUCT_CHANNEL_URL, payload)
         product_channel = ProductChannelPrice.objects.get(id=res.data['id'])
-        
+
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(payload['product'], product_channel.product.id)
         self.assertEqual(payload['selling_channel'], product_channel.selling_channel.id)
         self.assertEqual(payload['price'], product_channel.price)
-        
+
     def test_partial_update_product_channel(self):
         """Test for partial update a product channel."""
         product_channel = create_product_channel()
@@ -169,14 +163,14 @@ class PrivateProductChannelApiTests(TestCase):
             'selling_channel': create_selling_channel().id,
             'price': 100.00,
         }
-        
+
         url = detail_url(product_channel.id)
         res = self.client.patch(url, payload)
         product_channel.refresh_from_db()
-        
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(payload['price'], product_channel.price)
-        
+
     def test_full_update_product_channel(self):
         """Test for full update a product channel."""
         product_channel = create_product_channel()
@@ -185,10 +179,10 @@ class PrivateProductChannelApiTests(TestCase):
             'selling_channel': create_selling_channel().id,
             'price': 500.00,
         }
-        
+
         url = detail_url(product_channel.id)
         res = self.client.patch(url, payload)
         product_channel.refresh_from_db()
-        
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(payload['price'], product_channel.price)

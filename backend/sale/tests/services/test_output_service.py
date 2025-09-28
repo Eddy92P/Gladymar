@@ -1,16 +1,7 @@
 """
 Tests for output product stock service.
 """
-from core.models import (
-    Warehouse,
-    Category,
-    Batch,
-    Product,
-    Output,
-    OutputItem,
-    Client,
-    Agency,
-)
+from core.models import *
 from unittest import TestCase
 from django.utils import timezone
 from sale.services.output_service import DecreaseProductStockService
@@ -20,8 +11,6 @@ import uuid
 
 def create_user(**params):
     """Create and return a sample user."""
-    from core.models import Agency
-    
     unique_suffix = str(uuid.uuid4())[:4]
     agency = Agency.objects.create(
         name=f'Test Agency {unique_suffix}',
@@ -41,13 +30,55 @@ def create_user(**params):
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
 
+def create_agency(**params):
+    """Create and return a sample agency."""
+    unique_suffix = str(uuid.uuid4())[:8]
+    defaults = {
+        'name': f'Test Agency {unique_suffix}',
+        'location': f'Test Agency Location {unique_suffix}',
+        'city': 'La Paz',
+    }
+    defaults.update(params)
+    return Agency.objects.create(**defaults)
+
+def create_warehouse(**params):
+    unique_suffix = str(uuid.uuid4())[:8]
+    defaults={
+        'agency': create_agency(),
+        'name': f'Warehouse {unique_suffix}',
+        'location': 'Test location',
+    }
+    defaults.update(params)
+
+    return Warehouse.objects.create(**defaults)
+
 
 class TestDecreaseProductStockService(TestCase):
     
     def setUp(self):
-        self.product = self.create_test_product()
+        self.product_stock = self.create_test_product_stock()
         
     def create_test_product(self, **kwargs):
+        unique_suffix = str(uuid.uuid4())[:8]
+        category = Category.objects.create(
+            name = f'Test Category {unique_suffix}',
+        )
+        batch = Batch.objects.create(
+            category = category,
+            name = f'Test Batch {unique_suffix}',
+        )
+        defaults = {
+            'name': f'Test Product {unique_suffix}',
+            'batch': batch,
+            'code': f'TEST-{unique_suffix}',
+            'minimum_sale_price': 10.00,
+            'maximum_sale_price': 100.00
+        }
+        defaults.update(kwargs)
+        
+        return Product.objects.create(**defaults)
+    
+    def create_test_product_stock(self, **kwargs):
         unique_suffix = str(uuid.uuid4())[:8]
         agency = Agency.objects.create(
             name = f'Test Warehouse{unique_suffix}',
@@ -58,33 +89,25 @@ class TestDecreaseProductStockService(TestCase):
             name = f'Test Warehouse {unique_suffix}',
             location = 'Test Location',
         )
-        category = Category.objects.create(
-            warehouse = warehouse,
-            name = f'Test Category {unique_suffix}',
-        )
-        batch = Batch.objects.create(
-            category = category,
-            name = f'Test Batch {unique_suffix}',
-        )
         defaults = {
-            'name': f'Test Product {unique_suffix}',
-            'batch': batch,
+            'product': self.create_test_product(),
+            'warehouse': warehouse,
             'stock': 50,
-            'available_stock': 50,
-            'code': f'TEST-{unique_suffix}',
+            'reserved_stock': 10,
+            'available_stock': 40,
             'minimum_stock': 10,
-            'maximum_stock': 200,
-            'minimum_sale_price': 10.00,
-            'maximum_sale_price': 100.00
+            'maximum_stock': 70
         }
+        
         defaults.update(kwargs)
-        
-        return Product.objects.create(**defaults)
-        
+
+        return ProductStock.objects.create(**defaults)
+
     def test_decrease_stock(self):
         """Test decreasing stock."""
         unique_suffix = str(uuid.uuid4())[:8]
         output = Output.objects.create(
+            warehouse=create_warehouse(),
             warehouse_keeper=create_user(),
             client = Client.objects.create(
                 name = 'Test Client 1',
@@ -97,19 +120,20 @@ class TestDecreaseProductStockService(TestCase):
         )
         OutputItem.objects.create(
             output = output,
-            product = self.product,
+            product_stock = self.product_stock,
             quantity = 30
         )
         
         service = DecreaseProductStockService(output)
         service.decrease_product_stock()
 
-        self.product.refresh_from_db()
-        self.assertEqual(self.product.stock, 20)
+        self.product_stock.refresh_from_db()
+        self.assertEqual(self.product_stock.stock, 20)
         
     def test_decrease_stock_raise_error(self):
         """Test service for increase product stock fails."""
         output = Output.objects.create(
+            warehouse=create_warehouse(),
             warehouse_keeper=create_user(),
             client = Client.objects.create(
                 name = 'Test Client 1',
@@ -122,7 +146,7 @@ class TestDecreaseProductStockService(TestCase):
         )
         OutputItem.objects.create(
             output = output,
-            product = self.product,
+            product_stock = self.product_stock,
             quantity = 60
         )
         

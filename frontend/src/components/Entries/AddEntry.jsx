@@ -74,7 +74,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 
 export const AddEntry = () => {
 	const url = config.url.HOST + api.API_URL_ENTRIES;
-	const urlClientChoices = config.url.HOST + api.API_URL_ALL_SUPPLIERS;
+	const urlSupplierChoices = config.url.HOST + api.API_URL_ALL_SUPPLIERS;
 
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);
@@ -214,8 +214,6 @@ export const AddEntry = () => {
 			name: purchaseItem.products.name,
 			code: purchaseItem.products.code,
 			stock: purchaseItem.products.available_stock,
-			minimumSalePrice: purchaseItem.products.minimum_sale_price,
-			maximumSalePrice: purchaseItem.products.maximum_sale_price,
 			price: {
 				value: purchaseItem.unit_price || '',
 				isValid: true,
@@ -223,21 +221,6 @@ export const AddEntry = () => {
 			},
 			quantity: {
 				value: purchaseItem.quantity || '',
-				isValid: true,
-				feedbackText: '',
-			},
-			subTotalPrice: {
-				value: purchaseItem.sub_total_price || '',
-				isValid: true,
-				feedbackText: '',
-			},
-			discount: {
-				value: purchaseItem.discount || 0,
-				isValid: true,
-				feedbackText: '',
-			},
-			totalPrice: {
-				value: purchaseItem.total_price || '',
 				isValid: true,
 				feedbackText: '',
 			},
@@ -264,129 +247,6 @@ export const AddEntry = () => {
 		setSupplier(option);
 	};
 
-	// Función para calcular y actualizar el precio sub total sin descuento de cada producto
-	const calculateAndUpdateSubTotalPrice = useCallback(
-		(id, price, quantity) => {
-			const subTotalPrice = price * quantity;
-			dispatchProductList({
-				type: 'SUB_TOTAL_PRICE_CHANGE',
-				id,
-				val: subTotalPrice.toString(),
-			});
-		},
-		[dispatchProductList]
-	);
-
-	// Función para calcular y actualizar el precio total de cada producto
-	const calculateAndUpdateTotalPrice = useCallback(
-		(id, subTotal, discount) => {
-			let totalPrice = 0;
-			if (parseFloat(discount) > 0) {
-				totalPrice = (subTotal - (subTotal * discount) / 100).toFixed(
-					2
-				);
-			} else {
-				totalPrice = subTotal;
-			}
-			dispatchProductList({
-				type: 'TOTAL_PRICE_CHANGE',
-				id,
-				val: totalPrice.toString(),
-			});
-		},
-		[dispatchProductList]
-	);
-
-	// Función para calcular y actualizar el precio total de la compra
-	const calculateAndUpdateTotalSalePrice = useCallback(() => {
-		const updated = [...productListState];
-		let totalSalePrice = 0;
-		for (const product of updated) {
-			totalSalePrice += parseFloat(product.totalPrice.value) || 0;
-		}
-
-		setSaleTotalAmount(totalSalePrice.toFixed(2));
-	}, [productListState]);
-
-	// Recalcular el total de la compra cuando cambie la lista de productos
-	useEffect(() => {
-		calculateAndUpdateTotalSalePrice();
-	}, [productListState, calculateAndUpdateTotalSalePrice]);
-
-	const priceInputChangeHandler = useCallback(
-		(id, value) => {
-			dispatchProductList({ type: 'UNIT_PRICE_CHANGE', id, val: value });
-
-			// Buscar el producto actual para obtener la cantidad
-			const product = productListState.find(p => p.id === id);
-			if (product) {
-				const price = parseFloat(value) || 0;
-				const quantity = parseFloat(product.quantity.value) || 0;
-				const discount = parseFloat(product.discount.value) || 0;
-
-				// Calcular el nuevo subtotal
-				const newSubTotal = price * quantity;
-				calculateAndUpdateSubTotalPrice(id, price, quantity);
-				calculateAndUpdateTotalPrice(id, newSubTotal, discount);
-			}
-		},
-		[
-			dispatchProductList,
-			productListState,
-			calculateAndUpdateSubTotalPrice,
-			calculateAndUpdateTotalPrice,
-		]
-	);
-
-	const quantityInputChangeHandler = useCallback(
-		(id, value) => {
-			dispatchProductList({ type: 'QUANTITY_CHANGE', id, val: value });
-
-			// Buscar el producto actual para obtener el precio
-			const product = productListState.find(p => p.id === id);
-			if (product) {
-				const price = parseFloat(product.price.value) || 0;
-				const quantity = parseFloat(value) || 0;
-				const discount = parseFloat(product.discount.value) || 0;
-
-				// Calcular el nuevo subtotal
-				const newSubTotal = price * quantity;
-				calculateAndUpdateSubTotalPrice(id, price, quantity);
-				calculateAndUpdateTotalPrice(id, newSubTotal, discount);
-			}
-		},
-		[
-			dispatchProductList,
-			productListState,
-			calculateAndUpdateSubTotalPrice,
-			calculateAndUpdateTotalPrice,
-		]
-	);
-
-	const discountInputChangeHandler = useCallback(
-		(id, value) => {
-			dispatchProductList({ type: 'DISCOUNT_CHANGE', id, val: value });
-
-			// Buscar el producto actual para obtener el precio
-			const product = productListState.find(p => p.id === id);
-			if (product) {
-				const subTotalPrice =
-					parseFloat(product.subTotalPrice.value) || 0;
-				const discount = parseFloat(value) || 0;
-				calculateAndUpdateTotalPrice(id, subTotalPrice, discount);
-			}
-		},
-		[dispatchProductList, productListState, calculateAndUpdateTotalPrice]
-	);
-
-	const clientInputChangeHandler = (event, option) => {
-		setClient(option);
-	};
-
-	const sellingChannelInputChangeHandler = (event, option) => {
-		setSellingChannel(option);
-	};
-
 	const handlerCancel = () => {
 		if (isForm) {
 			navigate(-1);
@@ -400,18 +260,15 @@ export const AddEntry = () => {
 		if (isForm) {
 			setIsForm(!isForm);
 		}
-		if (formIsValid && !isForm && saleData.length === 0) {
+		if (formIsValid && !isForm) {
 			handleSubmit();
-		}
-		if (formIsValid && !isForm && saleData.length !== 0) {
-			handleEdit();
 		}
 	};
 
 	useEffect(() => {
-		const fetchClients = async () => {
+		const fetchSuppliers = async () => {
 			try {
-				const response = await fetch(urlClientChoices, {
+				const response = await fetch(urlSupplierChoices, {
 					method: 'GET',
 					headers: {
 						Authorization: `Token ${authContext.token}`,
@@ -421,64 +278,22 @@ export const AddEntry = () => {
 				if (response.ok) {
 					const data = await response.json();
 					const choices = data || [];
-					setClientChoices(choices);
-					if (saleData.client && choices.length > 0) {
-						const matchingChoice = choices.find(
-							choice => choice.id === saleData.client.id
-						);
-						if (matchingChoice) {
-							setClient(matchingChoice);
-						}
-					}
+					setSupplierChoices(choices);
 				}
 			} catch (error) {
 				console.error(
-					'Error al recuperar las opciones de Clientes:',
+					'Error al recuperar las opciones de Proveedores:',
 					error
 				);
 			}
 		};
 
-		fetchClients();
-	}, [authContext.token, urlClientChoices, saleData]);
-
-	useEffect(() => {
-		const fetchSellingChannels = async () => {
-			try {
-				const response = await fetch(urlSellingChannelsChoices, {
-					method: 'GET',
-					headers: {
-						Authorization: `Token ${authContext.token}`,
-						'Content-Type': 'application/json',
-					},
-				});
-				if (response.ok) {
-					const data = await response.json();
-					const choices = data || [];
-					setSellingChannelChoices(choices);
-					if (saleData.sellingChannel && choices.length > 0) {
-						const matchingChoice = choices.find(
-							choice => choice.id === saleData.sellingChannel.id
-						);
-						if (matchingChoice) {
-							setSellingChannel(matchingChoice);
-						}
-					}
-				}
-			} catch (error) {
-				console.error(
-					'Error al recuperar las opciones de Canales de Ventas:',
-					error
-				);
-			}
-		};
-
-		fetchSellingChannels();
-	}, [authContext.token, urlSellingChannelsChoices, saleData]);
+		fetchSuppliers();
+	}, [authContext.token, urlSupplierChoices]);
 
 	const handleSubmit = async () => {
 		try {
-			// Preparar los datos básicos de la venta
+			// Preparar los datos básicos de la entrada
 			const saleInfo = {
 				agency: storeContext.agency,
 				client: client.id,

@@ -1,15 +1,6 @@
 from unittest import TestCase
 from sale.services.entries_service import IncreaseProductStockService
-from core.models import (
-    Warehouse,
-    Category,
-    Product,
-    Batch,
-    Entry,
-    EntryItem,
-    Supplier,
-    Agency,
-)
+from core.models import *
 
 from django.utils import timezone
 from django.core.exceptions import ValidationError
@@ -39,25 +30,37 @@ def create_user(**params):
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
 
+def create_agency(**params):
+    """Create and return a sample agency."""
+    unique_suffix = str(uuid.uuid4())[:8]
+    defaults = {
+        'name': f'Test Agency {unique_suffix}',
+        'location': f'Test Agency Location {unique_suffix}',
+        'city': 'La Paz',
+    }
+    defaults.update(params)
+    return Agency.objects.create(**defaults)
+
+def create_warehouse(**params):
+    unique_suffix = str(uuid.uuid4())[:8]
+    defaults={
+        'agency': create_agency(),
+        'name': f'Warehouse {unique_suffix}',
+        'location': 'Test location',
+    }
+    defaults.update(params)
+
+    return Warehouse.objects.create(**defaults)
+
 
 class TestIncreaseProductStockService(TestCase):
     """Tests of entry product service"""
     def setUp(self):
-        self.product = self.create_test_product()
+        self.product_stock = self.create_test_product_stock()
 
     def create_test_product(self, **kwargs):
         unique_suffix = str(uuid.uuid4())[:8]
-        agency = Agency.objects.create(
-            name = f'Test Warehouse{unique_suffix}',
-            location = 'Test Location',
-        )
-        warehouse = Warehouse.objects.create(
-            agency=agency,
-            name = f'Test Warehouse{unique_suffix}',
-            location = 'Test Location',
-        )
         category = Category.objects.create(
-            warehouse = warehouse,
             name = f'Test Category{unique_suffix}',
         )
         batch = Batch.objects.create(
@@ -67,21 +70,42 @@ class TestIncreaseProductStockService(TestCase):
         defaults = {
             'name': f'Test Product{unique_suffix}',
             'batch': batch,
-            'stock': 50,
-            'available_stock': 50,
             'code': f'TEST-{unique_suffix}',
-            'minimum_stock': 10,
-            'maximum_stock': 200,
             'minimum_sale_price': 10.00,
             'maximum_sale_price': 100.00
         }
         defaults.update(kwargs)
         
         return Product.objects.create(**defaults)
+
+    def create_test_product_stock(self, **kwargs):
+        unique_suffix = str(uuid.uuid4())[:8]
+        agency = Agency.objects.create(
+            name = f'Test Warehouse{unique_suffix}',
+            location = 'Test Location',
+        )
+        warehouse = Warehouse.objects.create(
+            agency=agency,
+            name = f'Test Warehouse {unique_suffix}',
+            location = 'Test Location',
+        )
+        defaults = {
+            'product': self.create_test_product(),
+            'warehouse': warehouse,
+            'stock': 50,
+            'reserved_stock': 10,
+            'available_stock': 40,
+            'minimum_stock': 10,
+            'maximum_stock': 70
+        }
+        defaults.update(kwargs)
+
+        return ProductStock.objects.create(**defaults)
     
     def test_increase_stock(self):
         """Test service for increase product stock."""
         entry = Entry.objects.create(
+            warehouse=create_warehouse(),
             warehouse_keeper=create_user(),
             supplier=Supplier.objects.create(
                 name='Test Supplier',
@@ -95,7 +119,7 @@ class TestIncreaseProductStockService(TestCase):
         )
         EntryItem.objects.create(
             entry=entry,
-            product=self.product,
+            product_stock=self.product_stock,
             quantity=10,
             unit_price=10.00,
         )
@@ -103,5 +127,5 @@ class TestIncreaseProductStockService(TestCase):
         service = IncreaseProductStockService(entry)
         service.increase_product_stock()
 
-        self.product.refresh_from_db()
-        self.assertEqual(self.product.stock, 60)
+        self.product_stock.refresh_from_db()
+        self.assertEqual(self.product_stock.stock, 60)

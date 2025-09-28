@@ -72,7 +72,6 @@ def create_category(**params):
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
         'name': f'Sample Category {unique_suffix}',
-        'warehouse': create_warehouse(),
     }
     defaults.update(params)
     category = Category.objects.create(**defaults)
@@ -109,20 +108,15 @@ def create_product(**params):
     defaults = {
         'name': f'Sample Product {unique_suffix}',
         'batch': create_batch(),
-        'stock': 100,
-        'reserved_stock': 0,
-        'available_stock': 100,
         'code': f'Sample Code {unique_suffix}',
         'unit_of_measurement': 'Unit',
         'description': 'Sample Description',
         'image': None,
-        'minimum_stock': 10,
-        'maximum_stock': 100,
         'minimum_sale_price': 100,
         'maximum_sale_price': 100,
     }
     defaults.update(params)
-    
+
     # Handle supplier separately since it's a ManyToManyField
     supplier = defaults.pop('supplier', None)
     if supplier is None:

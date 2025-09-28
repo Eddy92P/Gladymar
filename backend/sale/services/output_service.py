@@ -15,10 +15,10 @@ class DecreaseProductStockService:
         """
         try:
             for item in self.output.output_items.all():
-                product = item.product
-                if product.available_stock - item.quantity < 0:
+                product_stock = item.product_stock
+                if product_stock.available_stock - item.quantity < 0:
                     raise ValidationError("La cantidad excede el stock disponible.")
-                product.stock -= item.quantity
-                product.save()
+                product_stock.stock -= item.quantity
+                product_stock.save()
         except Exception as e:
             raise e

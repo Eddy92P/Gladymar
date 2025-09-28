@@ -189,7 +189,7 @@ class Client(models.Model):
         blank=False, 
         validators=[
             RegexValidator(
-                regex=r'^[a-zA-Z0-9\s]+$',
+                regex=r'^[a-zA-Z0-9\sñÑáéíóúÁÉÍÓÚ]+$',
                 message="El nombre solo puede contener letras, números y espacios."
             )
         ]
@@ -232,6 +232,7 @@ class Client(models.Model):
 
 class Warehouse(models.Model):
     agency = models.ForeignKey(Agency, on_delete=models.PROTECT, related_name='agencies')
+    product_stock = models.ManyToManyField('Product', related_name='warehouses', through='ProductStock')
     name = models.CharField(
         max_length=255, 
         unique=True, 
@@ -260,7 +261,6 @@ class Warehouse(models.Model):
 
 
 class Category(models.Model):
-    warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
     name = models.CharField(
         max_length=255, 
         unique=True, 
@@ -315,9 +315,6 @@ class Product(models.Model):
             )
         ]
     )
-    stock = models.PositiveIntegerField(default=0)
-    reserved_stock = models.PositiveIntegerField(default=0)
-    available_stock = models.PositiveIntegerField(default=0)
     code = models.CharField(
         max_length=50,
         unique=True,
@@ -337,8 +334,6 @@ class Product(models.Model):
     )
     description = models.TextField(null=True, blank=True)
     image = models.ImageField(upload_to='products/', null=True, blank=True)
-    minimum_stock = models.PositiveIntegerField(default=0)
-    maximum_stock = models.PositiveIntegerField(default=0)
     minimum_sale_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     maximum_sale_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -356,8 +351,6 @@ class Product(models.Model):
             self.save(update_fields=['image'])
     
     def save(self, *args, **kwargs):
-        if self.minimum_stock > self.maximum_stock:
-            raise ValidationError("El stock mínimo no puede ser mayor al stock máximo.")
         if self.minimum_sale_price > self.maximum_sale_price:
             raise ValidationError("El precio de venta mínimo no puede ser mayor al precio de venta máximo.")
         super().save(*args, **kwargs)
@@ -374,6 +367,24 @@ class Product(models.Model):
                 filename = self.image.name
                 self.image.save(filename, ContentFile(buffer.getvalue()), save=False)
                 super().save(*args, **kwargs)
+                
+                
+class ProductStock(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='stocks')
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
+    stock = models.PositiveIntegerField(default=0)
+    reserved_stock = models.PositiveIntegerField(default=0)
+    available_stock = models.PositiveIntegerField(default=0)
+    minimum_stock = models.PositiveIntegerField(default=0)
+    maximum_stock = models.PositiveIntegerField(default=0)
+    
+    class Meta:
+        unique_together = ("product", "warehouse")
+    
+    def save(self, *args, **kwargs):
+        if self.minimum_stock > self.maximum_stock:
+            raise ValidationError("El stock mínimo no puede ser mayor al stock máximo.")
+        super().save(*args, **kwargs)
                 
                 
 class Supplier(models.Model):
@@ -478,13 +489,14 @@ class Purchase(models.Model):
     
 class PurchaseItem(models.Model):
     purchase = models.ForeignKey(Purchase, on_delete=models.PROTECT, related_name='purchase_items')
-    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    product_stock = models.ForeignKey(ProductStock, on_delete=models.PROTECT)
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
 
 
 class Entry(models.Model):
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
     warehouse_keeper = models.ForeignKey(User, on_delete=models.PROTECT)
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
     purchase = models.OneToOneField(
@@ -515,7 +527,7 @@ class Entry(models.Model):
 
 class EntryItem(models.Model):
     entry = models.ForeignKey(Entry, on_delete=models.PROTECT, related_name='entry_items')
-    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    product_stock = models.ForeignKey(ProductStock, on_delete=models.PROTECT)
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     
@@ -524,6 +536,7 @@ class EntryItem(models.Model):
     
     
 class Output(models.Model):
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
     warehouse_keeper = models.ForeignKey(User, on_delete=models.PROTECT)
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
     sale = models.ForeignKey(
@@ -543,7 +556,7 @@ class Output(models.Model):
     
 class OutputItem(models.Model):
     output = models.ForeignKey(Output, on_delete=models.PROTECT, related_name='output_items')
-    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    product_stock = models.ForeignKey(ProductStock, on_delete=models.PROTECT)
     quantity = models.IntegerField()
 
     def __str__(self):
@@ -582,7 +595,7 @@ class Sale(models.Model):
 
 class SaleItem(models.Model):
     sale = models.ForeignKey(Sale, on_delete=models.PROTECT, related_name='sale_items')
-    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    product_stock = models.ForeignKey(ProductStock, on_delete=models.PROTECT)
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     sub_total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)

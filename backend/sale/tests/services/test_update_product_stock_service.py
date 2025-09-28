@@ -1,19 +1,7 @@
 """
 Tests for update product stock when an entry is updated.
 """
-from core.models import (
-    Warehouse,
-    Category,
-    Batch,
-    Product,
-    Entry,
-    EntryItem,
-    Output,
-    OutputItem,
-    Client,
-    Supplier,
-    Agency,
-)
+from core.models import *
 from sale.services.update_product_stock_service import UpdateProductStockService
 from unittest import TestCase
 from django.utils import timezone
@@ -47,24 +35,25 @@ def create_user(**params):
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
 
+def create_warehouse(**params):
+    unique_suffix = str(uuid.uuid4())[:8]
+    defaults={
+        'agency': create_agency(),
+        'name': f'Warehouse {unique_suffix}',
+        'location': 'Test location',
+    }
+    defaults.update(params)
+
+    return Warehouse.objects.create(**defaults)
+
 class TestUpdateProductStockService(TestCase):
     
     def setUp(self):
-        self.product = self.create_test_product()
+        self.product_stock = self.create_test_product_stock()
         
     def create_test_product(self, **kwargs):
         unique_suffix = str(uuid.uuid4())[:8]
-        agency = Agency.objects.create(
-            name = f'Test Warehouse{unique_suffix}',
-            location = 'Test Location',
-        )
-        warehouse = Warehouse.objects.create(
-            agency=agency,
-            name = f'Test Warehouse{unique_suffix}',
-            location = 'Test Location',
-        )
         category = Category.objects.create(
-            warehouse = warehouse,
             name = f'Test Category{unique_suffix}',
         )
         batch = Batch.objects.create(
@@ -74,16 +63,27 @@ class TestUpdateProductStockService(TestCase):
         defaults = {
             'name': f'Test Product{unique_suffix}',
             'batch': batch,
-            'stock': 50,
             'code': f'TEST-{unique_suffix}',
-            'minimum_stock': 10,
-            'maximum_stock': 200,
             'minimum_sale_price': 10.00,
             'maximum_sale_price': 100.00
         }
         defaults.update(kwargs)
 
         return Product.objects.create(**defaults)
+    
+    def create_test_product_stock(self, **params):
+        defaults={
+            'product': self.create_test_product(),
+            'warehouse': create_warehouse(),
+            'stock': 50,
+            'reserved_stock': 10,
+            'available_stock': 40,
+            'minimum_stock': 10,
+            'maximum_stock': 60,
+        }
+        defaults.update(params)
+
+        return ProductStock.objects.create(**defaults)
     
     def test_update_entry_product_stock(self):
         """Test for update an entry and update product stock"""
@@ -97,6 +97,7 @@ class TestUpdateProductStockService(TestCase):
         )
 
         entry = Entry.objects.create(
+            warehouse=create_warehouse(),
             warehouse_keeper=create_user(),
             supplier=supplier,
             entry_date=timezone.now(),
@@ -105,7 +106,7 @@ class TestUpdateProductStockService(TestCase):
 
         entry_item = EntryItem.objects.create(
             entry=entry,
-            product=self.product,
+            product_stock=self.product_stock,
             quantity=10,
             unit_price=10.00,
         )
@@ -123,8 +124,8 @@ class TestUpdateProductStockService(TestCase):
         service = UpdateProductStockService(entry, validated_data)
         service.update_entry_product_stock()
 
-        self.product.refresh_from_db()
-        self.assertEqual(self.product.stock, 55)
+        self.product_stock.refresh_from_db()
+        self.assertEqual(self.product_stock.stock, 55)
         
     def test_update_entry_product_stock_decrease(self):
         """Test for update an entry with decreased quantity and update product stock"""
@@ -138,6 +139,7 @@ class TestUpdateProductStockService(TestCase):
         )
 
         entry = Entry.objects.create(
+            warehouse=create_warehouse(),
             warehouse_keeper=create_user(),
             supplier=supplier,
             entry_date=timezone.now(),
@@ -146,7 +148,7 @@ class TestUpdateProductStockService(TestCase):
 
         entry_item = EntryItem.objects.create(
             entry=entry,
-            product=self.product,
+            product_stock=self.product_stock,
             quantity=20,
             unit_price=10.00,
         )
@@ -164,8 +166,8 @@ class TestUpdateProductStockService(TestCase):
         service = UpdateProductStockService(entry, validated_data)
         service.update_entry_product_stock()
 
-        self.product.refresh_from_db()
-        self.assertEqual(self.product.stock, 45)
+        self.product_stock.refresh_from_db()
+        self.assertEqual(self.product_stock.stock, 45)
         
     def test_update_entry_product_stock_exceeds_maximum(self):
         """Test for update an entry that would exceed maximum stock"""
@@ -179,6 +181,7 @@ class TestUpdateProductStockService(TestCase):
         )
 
         entry = Entry.objects.create(
+            warehouse=create_warehouse(),
             warehouse_keeper=create_user(),
             supplier=supplier,
             entry_date=timezone.now(),
@@ -187,7 +190,7 @@ class TestUpdateProductStockService(TestCase):
 
         entry_item = EntryItem.objects.create(
             entry=entry,
-            product=self.product,
+            product_stock=self.product_stock,
             quantity=10,
             unit_price=10.00,
         )
@@ -223,6 +226,7 @@ class TestUpdateProductStockService(TestCase):
         )
 
         output = Output.objects.create(
+            warehouse=create_warehouse(),
             warehouse_keeper=create_user(),
             client=client,
             output_date=timezone.now(),
@@ -230,7 +234,7 @@ class TestUpdateProductStockService(TestCase):
 
         output_item = OutputItem.objects.create(
             output=output,
-            product=self.product,
+            product_stock=self.product_stock,
             quantity=10,
         )
 
@@ -246,8 +250,8 @@ class TestUpdateProductStockService(TestCase):
         service = UpdateProductStockService(output, validated_data)
         service.update_output_product_stock()
         
-        self.product.refresh_from_db()
-        self.assertEqual(self.product.stock, 45)
+        self.product_stock.refresh_from_db()
+        self.assertEqual(self.product_stock.stock, 45)
         
     def test_update_output_product_decrease(self):
         """
@@ -263,6 +267,7 @@ class TestUpdateProductStockService(TestCase):
         )
 
         output = Output.objects.create(
+            warehouse=create_warehouse(),
             warehouse_keeper=create_user(),
             client=client,
             output_date=timezone.now(),
@@ -270,7 +275,7 @@ class TestUpdateProductStockService(TestCase):
 
         output_item = OutputItem.objects.create(
             output=output,
-            product=self.product,
+            product_stock=self.product_stock,
             quantity=10,
         )
 
@@ -286,8 +291,8 @@ class TestUpdateProductStockService(TestCase):
         service = UpdateProductStockService(output, validated_data)
         service.update_output_product_stock()
         
-        self.product.refresh_from_db()
-        self.assertEqual(self.product.stock, 55)
+        self.product_stock.refresh_from_db()
+        self.assertEqual(self.product_stock.stock, 55)
         
     def test_update_output_product_exceeds_minimum_stock(self):
         """
@@ -303,6 +308,7 @@ class TestUpdateProductStockService(TestCase):
         )
 
         output = Output.objects.create(
+            warehouse=create_warehouse(),
             warehouse_keeper=create_user(),
             client=client,
             output_date=timezone.now(),
@@ -310,7 +316,7 @@ class TestUpdateProductStockService(TestCase):
 
         output_item = OutputItem.objects.create(
             output=output,
-            product=self.product,
+            product_stock=self.product_stock,
             quantity=10,
         )
 
