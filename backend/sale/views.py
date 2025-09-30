@@ -30,10 +30,11 @@ class PersonalizedPagination(LimitOffsetPagination):
 class CatalogView(APIView):
     def get(self, request, *args, **kwargs):
         data = []
-        sellingchannel_id = request.query_params.get("sellingchannel_id")
+        selling_channel_id = request.query_params.get("selling_channel_id")
+        warehouse_id = request.query_params.get("warehouse_id")
 
-        if sellingchannel_id:
-            prices = ProductChannelPrice.objects.filter(selling_channel=sellingchannel_id)
+        if selling_channel_id:
+            prices = ProductChannelPrice.objects.filter(selling_channel=selling_channel_id)
             stocks = {
                 ps.product_id: ps
                 for ps in ProductStock.objects.all()
@@ -50,11 +51,28 @@ class CatalogView(APIView):
                     "name": product.name,
                     "code": product.code,
                     "price": price.price,
-                    "stock": ps.stock,
+                    "stock": ps.available_stock,
                     "minimum_stock": ps.minimum_stock,
                     "maximum_stock": ps.maximum_stock,
                     "minimum_sale_price": product.minimum_sale_price,
                     "maximum_sale_price": product.maximum_sale_price,
+                })
+        elif warehouse_id:
+            products = ProductStock.objects.filter(warehouse=warehouse_id).select_related('product')
+
+            for product in products:
+                data.append({
+                    "id": product.id,
+                    "agency": product.warehouse.agency.name,
+                    "warehouse": product.product.warehouse.name,
+                    "name": product.product.name,
+                    "code": product.product.code,
+                    "price": 0,
+                    "stock": product.available_stock,
+                    "minimum_stock": product.minimum_stock,
+                    "maximum_stock": product.maximum_stock,
+                    "minimum_sale_price": product.product.minimum_sale_price,
+                    "maximum_sale_price": product.product.maximum_sale_price,
                 })
         else:
             products = ProductStock.objects.all().select_related('product')

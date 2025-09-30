@@ -11,7 +11,11 @@ import Alert from '@mui/material/Alert';
 
 import AuthContext from '../../store/auth-context';
 import { api, config } from '../../Constants';
-import { validateNameLength, validateAddressLength } from '../../Validations';
+import {
+	validateNameLength,
+	validateAddressLength,
+	validatePositiveNumber,
+} from '../../Validations';
 
 import {
 	Grid,
@@ -21,9 +25,37 @@ import {
 	Box,
 	Typography,
 	Autocomplete,
+	Paper,
+	Table,
+	TableBody,
+	TableCell,
+	TableContainer,
+	TableHead,
+	TableRow,
+	IconButton,
+	Tooltip,
 } from '@mui/material';
 import classes from '../UI/List/List.module.css';
+import { tableCellClasses } from '@mui/material/TableCell';
+import { styled } from '@mui/material/styles';
+import { red } from '@mui/material/colors';
 
+// MUI Icons
+import CancelIcon from '@mui/icons-material/Cancel';
+import SearchIcon from '@mui/icons-material/Search';
+
+// Styled components defined outside the component
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+	[`&.${tableCellClasses.head}`]: {
+		backgroundColor: '#74353c',
+		color: theme.palette.common.white,
+	},
+	[`&.${tableCellClasses.body}`]: {
+		fontSize: 14,
+	},
+}));
+
+import AddProductDetailedList from '../Products/AddProductDetailedList';
 import AddWarehousePreview from './AddWarehousePreview';
 import AddWarehouseModal from './AddWarehouseModal';
 import ListHeader from '../UI/List/ListHeader';
@@ -53,6 +85,7 @@ function AddWarehouse() {
 	const [agencyChoices, setAgencyChoices] = useState([]);
 	const [agency, setAgency] = useState(null);
 	const [errorMessage, setErrorMessage] = useState('');
+	const [showProductsModal, setShowProductsModal] = useState(false);
 
 	const nameReducer = (state, action) => {
 		if (action.type === 'INPUT_FOCUS') {
@@ -95,6 +128,146 @@ function AddWarehouse() {
 		}
 		return { value: '', isValid: false };
 	};
+	const productListReducer = (state, action) => {
+		if (action.type === 'STOCK_CHANGE') {
+			return state.map(product =>
+				product.id === action.id
+					? {
+							...product,
+							stock: {
+								value: action.val,
+								isValid: validatePositiveNumber(action.val),
+								feedbackText: validatePositiveNumber(action.val)
+									? ''
+									: 'Ingrese un número válido',
+							},
+						}
+					: product
+			);
+		}
+		if (action.type === 'MINIMUM_STOCK_CHANGE') {
+			return state.map(product =>
+				product.id === action.id
+					? {
+							...product,
+							minimumStock: {
+								value: action.val,
+								isValid: validatePositiveNumber(action.val),
+								feedbackText: validatePositiveNumber(action.val)
+									? ''
+									: 'Ingrese un número válido',
+							},
+						}
+					: product
+			);
+		}
+		if (action.type === 'MAXIMUM_STOCK_CHANGE') {
+			return state.map(product =>
+				product.id === action.id
+					? {
+							...product,
+							maximumStock: {
+								value: action.val,
+								isValid: validatePositiveNumber(action.val),
+								feedbackText: validatePositiveNumber(action.val)
+									? ''
+									: 'Ingrese un número válido',
+							},
+						}
+					: product
+			);
+		}
+		if (action.type === 'SET_ERROR') {
+			return state.map(product => {
+				if (product.id === action.id) {
+					return {
+						...product,
+						[action.field]: {
+							...product[action.field],
+							isValid: false,
+							feedbackText: action.errorMessage,
+						},
+					};
+				}
+				return product;
+			});
+		}
+		if (action.type === 'REMOVE_PRODUCT') {
+			return state.filter(product => product.id !== action.id);
+		}
+		if (action.type === 'ADD_PRODUCT') {
+			return [...state, action.product];
+		}
+
+		return state;
+	};
+	// Transform the data structure to match the expected reducer format
+	const transformProductsForEditing = products => {
+		if (!products || !Array.isArray(products)) return [];
+
+		return products.map(product => {
+			// Handle different possible data structures from backend
+			const transformedProduct = {
+				// Core product information
+				productStockId: product.id,
+				id: product.products.id,
+				name:
+					product.name ||
+					product.products?.name ||
+					product.product?.name ||
+					'',
+				code:
+					product.code ||
+					product.products?.code ||
+					product.product?.code ||
+					'',
+				stock:
+					product.stock && typeof product.stock === 'object'
+						? product.stock
+						: {
+								value:
+									product.stock !== undefined
+										? product.stock
+										: '',
+								isValid: true,
+								feedbackText: '',
+							},
+				minimumStock:
+					product.minimumStock &&
+					typeof product.minimumStock === 'object'
+						? product.minimumStock
+						: {
+								value:
+									product.minimum_stock !== undefined
+										? product.minimum_stock
+										: product.minimumStock !== undefined
+											? product.minimumStock
+											: '',
+								isValid: true,
+								feedbackText: '',
+							},
+				maximumStock:
+					product.maximumStock &&
+					typeof product.maximumStock === 'object'
+						? product.maximumStock
+						: {
+								value:
+									product.maximum_stock !== undefined
+										? product.maximum_stock
+										: product.maximumStock !== undefined
+											? product.maximumStock
+											: '',
+								isValid: true,
+								feedbackText: '',
+							},
+			};
+
+			return transformedProduct;
+		});
+	};
+	const transformedProducts = transformProductsForEditing(
+		warehouseData.productStock
+	);
 
 	const [nameState, dispatchName] = useReducer(nameReducer, {
 		value: warehouseData.name ? warehouseData.name : '',
@@ -106,6 +279,10 @@ function AddWarehouse() {
 		isValid: true,
 		feedbackText: '',
 	});
+	const [productListState, dispatchProductList] = useReducer(
+		productListReducer,
+		transformedProducts
+	);
 
 	const { isValid: nameIsValid } = nameState;
 	const { isValid: locationIsValid } = locationState;
@@ -116,6 +293,10 @@ function AddWarehouse() {
 
 	const locationInputChangeHandler = e => {
 		dispatchLocation({ type: 'INPUT_CHANGE', val: e.target.value });
+	};
+
+	const stockInputChangeHandler = (id, value) => {
+		dispatchProductList({ type: 'STOCK_CHANGE', id, val: value });
 	};
 
 	const agencyInputChangeHandler = (event, option) => {
@@ -181,6 +362,12 @@ function AddWarehouse() {
 					name: nameState.value,
 					location: locationState.value,
 					agency_id: agency.id,
+					product_stock: productListState.map(product => ({
+						product: product.id,
+						stock: product.stock.value,
+						minimum_stock: product.minimumStock.value,
+						maximum_stock: product.maximumStock.value,
+					})),
 				}),
 				headers: {
 					Authorization: `Token ${authContext.token}`,
@@ -197,6 +384,44 @@ function AddWarehouse() {
 					dispatchName({
 						type: 'INPUT_ERROR',
 						errorMessage: data.name[0],
+					});
+				}
+				if (data.product_stock) {
+					data.product_stock.forEach((product_stock, index) => {
+						if (product_stock.stock) {
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productListState[index]?.id,
+								errorMessage: Array.isArray(product_stock.stock)
+									? product_stock.stock[0]
+									: product_stock.stock,
+								field: 'endDate',
+							});
+						}
+						if (product_stock.minimum_stock) {
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productListState[index]?.id,
+								errorMessage: Array.isArray(
+									product_stock.minimum_stock
+								)
+									? product_stock.minimum_stock[0]
+									: product_stock.minimum_stock,
+								field: 'minimumStock',
+							});
+						}
+						if (product_stock.maximum_stock) {
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productListState[index]?.id,
+								errorMessage: Array.isArray(
+									product_stock.maximum_stock
+								)
+									? product_stock.maximum_stock[0]
+									: product_stock.maximum_stock,
+								field: 'maximumStock',
+							});
+						}
 					});
 				}
 			} else {
@@ -216,6 +441,13 @@ function AddWarehouse() {
 					name: nameState.value,
 					location: locationState.value,
 					agency_id: agency.id,
+					product_stock: productListState.map(product => ({
+						id: product.productStockId,
+						product: product.id,
+						stock: product.stock.value,
+						minimum_stock: product.minimumStock.value,
+						maximum_stock: product.maximumStock.value,
+					})),
 				}),
 
 				headers: {
@@ -235,6 +467,44 @@ function AddWarehouse() {
 						errorMessage: data.name[0],
 					});
 				}
+				if (data.product_stock) {
+					data.product_stock.forEach((product_stock, index) => {
+						if (product_stock.stock) {
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productListState[index]?.id,
+								errorMessage: Array.isArray(product_stock.stock)
+									? product_stock.stock[0]
+									: product_stock.stock,
+								field: 'endDate',
+							});
+						}
+						if (product_stock.minimum_stock) {
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productListState[index]?.id,
+								errorMessage: Array.isArray(
+									product_stock.minimum_stock
+								)
+									? product_stock.minimum_stock[0]
+									: product_stock.minimum_stock,
+								field: 'minimumStock',
+							});
+						}
+						if (product_stock.maximum_stock) {
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productListState[index]?.id,
+								errorMessage: Array.isArray(
+									product_stock.maximum_stock
+								)
+									? product_stock.maximum_stock[0]
+									: product_stock.maximum_stock,
+								field: 'maximumStock',
+							});
+						}
+					});
+				}
 			} else {
 				setIsLoading(true);
 				setShowModal(true);
@@ -244,18 +514,40 @@ function AddWarehouse() {
 			setMessage(e.message);
 		}
 	};
+	const handleRemoveProduct = (e, id) => {
+		dispatchProductList({ type: 'REMOVE_PRODUCT', id });
+	};
+
 	useEffect(() => {
-		if (nameState.value && locationState.value && agency) {
-			const isValid = nameIsValid && locationIsValid;
+		if (
+			nameState.value &&
+			locationState.value &&
+			agency &&
+			productListState.length > 0
+		) {
+			// Check if all required fields are filled and valid
+			const allFieldsValid = productListState.every(
+				product =>
+					product.stock?.value &&
+					product.stock?.isValid &&
+					product.minimumStock?.isValid &&
+					product.maximumStock?.isValid
+			);
+			const isValid =
+				nameIsValid && locationIsValid && agency && allFieldsValid;
 
 			setFormIsValid(isValid);
 			setDisabled(!isValid);
+		} else if (nameState.value && locationState.value && agency) {
+			setFormIsValid(nameIsValid && locationIsValid && agency);
+			setDisabled(!nameIsValid && !locationIsValid && !agency);
 		} else {
 			setDisabled(true);
 		}
 	}, [
 		nameState.value,
 		locationState.value,
+		productListState,
 		agency,
 		nameIsValid,
 		locationIsValid,
@@ -344,6 +636,276 @@ function AddWarehouse() {
 									</Grid>
 								</Grid>
 							</Box>
+							{productListState.length > 0 && (
+								<Box sx={{ mt: 2, flexGrow: 1 }}>
+									<h5>Productos</h5>
+									<TableContainer component={Paper}>
+										<Table
+											sx={{ minWidth: 650 }}
+											aria-label="simple table"
+										>
+											<TableHead>
+												<TableRow>
+													<StyledTableCell>
+														Nombre
+													</StyledTableCell>
+													<StyledTableCell>
+														Código
+													</StyledTableCell>
+													<StyledTableCell>
+														Stock
+													</StyledTableCell>
+													<StyledTableCell>
+														Stock Mínimo
+													</StyledTableCell>
+													<StyledTableCell>
+														Stock Máximo
+													</StyledTableCell>
+													<StyledTableCell>
+														Acciones
+													</StyledTableCell>
+												</TableRow>
+											</TableHead>
+											<TableBody>
+												{productListState.map(
+													product => (
+														<TableRow
+															key={`row-${product.id}`}
+														>
+															<TableCell>
+																{product.name}
+															</TableCell>
+															<TableCell>
+																{product.code}
+															</TableCell>
+															<TableCell>
+																<TextField
+																	label="Stock"
+																	variant="outlined"
+																	onChange={e =>
+																		stockInputChangeHandler(
+																			product.id,
+																			e
+																				.target
+																				.value
+																		)
+																	}
+																	value={
+																		product
+																			.stock
+																			?.value !==
+																		undefined
+																			? product
+																					.stock
+																					.value
+																			: ''
+																	}
+																	error={
+																		(product
+																			.stock
+																			?.value !==
+																			undefined &&
+																			!product
+																				.stock
+																				?.isValid) ||
+																		(!product
+																			.stock
+																			?.isValid &&
+																			product
+																				.stock
+																				?.feedbackText)
+																	}
+																	helperText={
+																		(product
+																			.stock
+																			?.value !==
+																			undefined &&
+																			!product
+																				.stock
+																				?.isValid) ||
+																		(!product
+																			.stock
+																			?.isValid &&
+																			product
+																				.stock
+																				?.feedbackText)
+																			? product
+																					.stock
+																					?.feedbackText ||
+																				''
+																			: ''
+																	}
+																	fullWidth
+																/>
+															</TableCell>
+															<TableCell>
+																<TextField
+																	label="Stock Mínimo"
+																	variant="outlined"
+																	onChange={e =>
+																		dispatchProductList(
+																			{
+																				type: 'MINIMUM_STOCK_CHANGE',
+																				id: product.id,
+																				val: e
+																					.target
+																					.value,
+																			}
+																		)
+																	}
+																	value={
+																		product
+																			.minimumStock
+																			?.value !==
+																		undefined
+																			? product
+																					.minimumStock
+																					.value
+																			: ''
+																	}
+																	error={
+																		(product
+																			.minimumStock
+																			?.value !==
+																			undefined &&
+																			!product
+																				.minimumStock
+																				?.isValid) ||
+																		(!product
+																			.minimumStock
+																			?.isValid &&
+																			product
+																				.minimumStock
+																				?.feedbackText)
+																	}
+																	helperText={
+																		(product
+																			.minimumStock
+																			?.value !==
+																			undefined &&
+																			!product
+																				.minimumStock
+																				?.isValid) ||
+																		(!product
+																			.minimumStock
+																			?.isValid &&
+																			product
+																				.minimumStock
+																				?.feedbackText)
+																			? product
+																					.minimumStock
+																					?.feedbackText ||
+																				''
+																			: ''
+																	}
+																	fullWidth
+																	slotProps={{
+																		inputLabel:
+																			{
+																				shrink: true,
+																			},
+																	}}
+																/>
+															</TableCell>
+															<TableCell>
+																<TextField
+																	label="Stock Máximo"
+																	variant="outlined"
+																	onChange={e =>
+																		dispatchProductList(
+																			{
+																				type: 'MAXIMUM_STOCK_CHANGE',
+																				id: product.id,
+																				val: e
+																					.target
+																					.value,
+																			}
+																		)
+																	}
+																	value={
+																		product
+																			.maximumStock
+																			?.value !==
+																		undefined
+																			? product
+																					.maximumStock
+																					.value
+																			: ''
+																	}
+																	error={
+																		(product
+																			.maximumStock
+																			?.value &&
+																			!product
+																				.maximumStock
+																				?.isValid) ||
+																		(!product
+																			.maximumStock
+																			?.isValid &&
+																			product
+																				.maximumStock
+																				?.feedbackText)
+																	}
+																	helperText={
+																		(product
+																			.maximumStock
+																			?.value &&
+																			!product
+																				.maximumStock
+																				?.isValid) ||
+																		(!product
+																			.maximumStock
+																			?.isValid &&
+																			product
+																				.maximumStock
+																				?.feedbackText)
+																			? product
+																					.maximumStock
+																					?.feedbackText ||
+																				''
+																			: ''
+																	}
+																	fullWidth
+																	slotProps={{
+																		inputLabel:
+																			{
+																				shrink: true,
+																			},
+																	}}
+																/>
+															</TableCell>
+															<TableCell align="center">
+																<Tooltip
+																	title={
+																		'Quitar'
+																	}
+																	placement="top"
+																>
+																	<IconButton
+																		aria-label="add"
+																		onClick={e =>
+																			handleRemoveProduct(
+																				e,
+																				product.id
+																			)
+																		}
+																	>
+																		<CancelIcon
+																			sx={{
+																				color: red[500],
+																			}}
+																		/>
+																	</IconButton>
+																</Tooltip>
+															</TableCell>
+														</TableRow>
+													)
+												)}
+											</TableBody>
+										</Table>
+									</TableContainer>
+								</Box>
+							)}
 						</FormControl>
 						<Box
 							mt={2}
@@ -377,6 +939,18 @@ function AddWarehouse() {
 							>
 								{buttonText}
 							</Button>
+							<Button
+								variant="contained"
+								style={{
+									textTransform: 'none',
+									width: '200px',
+								}}
+								onClick={() => setShowProductsModal(true)}
+								color="success"
+								startIcon={<SearchIcon />}
+							>
+								Buscar Productos
+							</Button>
 							{isForm && (
 								<Typography
 									ml={3}
@@ -398,6 +972,7 @@ function AddWarehouse() {
 							name={nameState.value}
 							location={locationState.value}
 							agency={agency.name}
+							productStock={productListState}
 							message={message}
 						/>
 						<Box
@@ -447,6 +1022,20 @@ function AddWarehouse() {
 							)}
 						</Box>
 					</div>
+				)}
+				{showProductsModal && (
+					<AddProductDetailedList
+						onProductList={products => {
+							products.forEach(product => {
+								dispatchProductList({
+									type: 'ADD_PRODUCT',
+									product,
+								});
+							});
+						}}
+						onClose={() => setShowProductsModal(false)}
+						addedProducts={productListState}
+					/>
 				)}
 				{showModal && (
 					<AddWarehouseModal editWarehouse={warehouseData} />

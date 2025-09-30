@@ -93,31 +93,6 @@ function AddProduct() {
 		return { value: '', isValid: false };
 	};
 
-	const stockReducer = (state, action) => {
-		if (action.type === 'INPUT_FOCUS') {
-			return {
-				value: state.value,
-				isValid: validatePositiveNumber(state.value),
-				feedbackText: 'Ingrese un número válido.',
-			};
-		}
-		if (action.type === 'INPUT_CHANGE') {
-			return {
-				value: action.val,
-				isValid: validatePositiveNumber(action.val),
-				feedbackText: 'Ingrese un número válido.',
-			};
-		}
-		if (action.type === 'INPUT_ERROR') {
-			return {
-				value: state.value,
-				isValid: false,
-				feedbackText: action.errorMessage,
-			};
-		}
-		return { value: '', isValid: false };
-	};
-
 	const unitMeasurementReducer = (state, action) => {
 		if (action.type === 'INPUT_FOCUS') {
 			return {
@@ -131,49 +106,6 @@ function AddProduct() {
 				value: action.val,
 				isValid: action.val.length > 0,
 				feedbackText: 'Ingrese una unidad de medida válida.',
-			};
-		}
-		return { value: '', isValid: false };
-	};
-
-	const minimumStockReducer = (state, action) => {
-		if (action.type === 'INPUT_FOCUS') {
-			return {
-				value: state.value,
-				isValid: validatePositiveNumber(state.value),
-				feedbackText: 'Ingrese un número válido.',
-			};
-		}
-		if (action.type === 'INPUT_CHANGE') {
-			return {
-				value: action.val,
-				isValid: validatePositiveNumber(action.val),
-				feedbackText: 'Ingrese un número válido.',
-			};
-		}
-		if (action.type === 'INPUT_ERROR') {
-			return {
-				value: state.value,
-				isValid: false,
-				feedbackText: action.errorMessage,
-			};
-		}
-		return { value: '', isValid: false };
-	};
-
-	const maximumStockReducer = (state, action) => {
-		if (action.type === 'INPUT_FOCUS') {
-			return {
-				value: state.value,
-				isValid: validatePositiveNumber(state.value),
-				feedbackText: 'Ingrese un número válido.',
-			};
-		}
-		if (action.type === 'INPUT_CHANGE') {
-			return {
-				value: action.val,
-				isValid: validatePositiveNumber(action.val),
-				feedbackText: 'Ingrese un número válido.',
 			};
 		}
 		return { value: '', isValid: false };
@@ -253,30 +185,6 @@ function AddProduct() {
 		feedbackText: '',
 	});
 
-	const [stockState, dispatchStock] = useReducer(stockReducer, {
-		value: productData.stock ? productData.stock : 0,
-		isValid: true,
-		feedbackText: '',
-	});
-
-	const [minimumStockState, dispatchMinimumStock] = useReducer(
-		minimumStockReducer,
-		{
-			value: productData.minimumStock ? productData.minimumStock : 0,
-			isValid: true,
-			feedbackText: '',
-		}
-	);
-
-	const [maximumStockState, dispatchMaximumStock] = useReducer(
-		maximumStockReducer,
-		{
-			value: productData.maximumStock ? productData.maximumStock : 0,
-			isValid: true,
-			feedbackText: '',
-		}
-	);
-
 	const [minimumSalePriceState, dispatchMinimumSalePrice] = useReducer(
 		minimumSalePriceReducer,
 		{
@@ -318,9 +226,6 @@ function AddProduct() {
 
 	const { isValid: nameIsValid } = nameState;
 	const { isValid: codeIsValid } = codeState;
-	const { isValid: stockIsValid } = stockState;
-	const { isValid: minimumStockIsValid } = minimumStockState;
-	const { isValid: maximumStockIsValid } = maximumStockState;
 	const { isValid: minimumSalePriceIsValid } = minimumSalePriceState;
 	const { isValid: maximumSalePriceIsValid } = maximumSalePriceState;
 	const { isValid: unitMeasurementIsValid } = unitMeasurementState;
@@ -331,18 +236,6 @@ function AddProduct() {
 
 	const codeInputChangeHandler = e => {
 		dispatchCode({ type: 'INPUT_CHANGE', val: e.target.value });
-	};
-
-	const stockInputChangeHandler = e => {
-		dispatchStock({ type: 'INPUT_CHANGE', val: e.target.value });
-	};
-
-	const minimumStockInputChangeHandler = e => {
-		dispatchMinimumStock({ type: 'INPUT_CHANGE', val: e.target.value });
-	};
-
-	const maximumStockInputChangeHandler = e => {
-		dispatchMaximumStock({ type: 'INPUT_CHANGE', val: e.target.value });
 	};
 
 	const minimumSalePriceInputChangeHandler = e => {
@@ -453,7 +346,6 @@ function AddProduct() {
 		const formData = new FormData();
 		formData.append('batch_id', batch.id);
 		formData.append('name', nameState.value);
-		formData.append('stock', stockState.value);
 		formData.append('code', codeState.value);
 		formData.append('description', description);
 
@@ -461,8 +353,6 @@ function AddProduct() {
 			formData.append('image', file);
 		}
 
-		formData.append('minimum_stock', minimumStockState.value);
-		formData.append('maximum_stock', maximumStockState.value);
 		formData.append('minimum_sale_price', minimumSalePriceState.value);
 		formData.append('maximum_sale_price', maximumSalePriceState.value);
 		formData.append('unit_of_measurement', unitMeasurementState.value);
@@ -491,22 +381,10 @@ function AddProduct() {
 						errorMessage: data.name[0],
 					});
 				}
-				if (data.minimum_stock) {
-					dispatchMinimumStock({
-						type: 'INPUT_ERROR',
-						errorMessage: data.minimum_stock[0],
-					});
-				}
 				if (data.minimum_sale_price) {
 					dispatchMinimumSalePrice({
 						type: 'INPUT_ERROR',
 						errorMessage: data.minimum_sale_price[0],
-					});
-				}
-				if (data.stock) {
-					dispatchStock({
-						type: 'INPUT_ERROR',
-						errorMessage: data.stock[0],
 					});
 				}
 				if (data.code) {
@@ -533,11 +411,8 @@ function AddProduct() {
 		}
 		formData.append('batch_id', batch.id);
 		formData.append('name', nameState.value);
-		formData.append('stock', stockState.value);
 		formData.append('code', codeState.value);
 		formData.append('description', description);
-		formData.append('minimum_stock', minimumStockState.value);
-		formData.append('maximum_stock', maximumStockState.value);
 		formData.append('minimum_sale_price', minimumSalePriceState.value);
 		formData.append('maximum_sale_price', maximumSalePriceState.value);
 		formData.append('unit_of_measurement', unitMeasurementState.value);
@@ -566,22 +441,10 @@ function AddProduct() {
 						errorMessage: data.name[0],
 					});
 				}
-				if (data.minimum_stock) {
-					dispatchMinimumStock({
-						type: 'INPUT_ERROR',
-						errorMessage: data.minimum_stock[0],
-					});
-				}
 				if (data.minimum_sale_price) {
 					dispatchMinimumSalePrice({
 						type: 'INPUT_ERROR',
 						errorMessage: data.minimum_sale_price[0],
-					});
-				}
-				if (data.stock) {
-					dispatchStock({
-						type: 'INPUT_ERROR',
-						errorMessage: data.stock[0],
 					});
 				}
 				if (data.code) {
@@ -602,10 +465,7 @@ function AddProduct() {
 	useEffect(() => {
 		if (
 			nameState.value &&
-			stockState.value !== null &&
 			codeState.value &&
-			minimumStockState.value !== null &&
-			maximumStockState.value !== null &&
 			minimumSalePriceState.value !== null &&
 			maximumSalePriceState.value !== null &&
 			unitMeasurementState.value &&
@@ -613,10 +473,7 @@ function AddProduct() {
 		) {
 			const isValid =
 				nameIsValid &&
-				stockIsValid &&
 				codeIsValid &&
-				minimumStockIsValid &&
-				maximumStockIsValid &&
 				minimumSalePriceIsValid &&
 				maximumSalePriceIsValid &&
 				unitMeasurementIsValid;
@@ -628,19 +485,13 @@ function AddProduct() {
 		}
 	}, [
 		nameState.value,
-		stockState.value,
 		codeState.value,
-		minimumStockState.value,
-		maximumStockState.value,
 		minimumSalePriceState.value,
 		maximumSalePriceState.value,
 		unitMeasurementState.value,
 		batch,
 		nameIsValid,
-		stockIsValid,
 		codeIsValid,
-		minimumStockIsValid,
-		maximumStockIsValid,
 		minimumSalePriceIsValid,
 		maximumSalePriceIsValid,
 		unitMeasurementIsValid,
@@ -904,27 +755,6 @@ function AddProduct() {
 												fullWidth
 											/>
 										</Grid>
-										<Grid size={{ xs: 12, sm: 2 }}>
-											<TextField
-												label="Stock"
-												variant="outlined"
-												onChange={
-													stockInputChangeHandler
-												}
-												value={stockState.value}
-												error={!stockIsValid}
-												helperText={
-													!stockIsValid
-														? stockState.feedbackText
-														: ''
-												}
-												disabled={
-													productData.length !== 0
-												}
-												required
-												fullWidth
-											/>
-										</Grid>
 										<Grid size={{ xs: 12, sm: 3 }}>
 											<TextField
 												label="Código"
@@ -966,42 +796,6 @@ function AddProduct() {
 									</Grid>
 									<h6>2. Datos de Validación</h6>
 									<Grid container spacing={2} mt={1} mb={2}>
-										<Grid size={{ xs: 12, sm: 2 }}>
-											<TextField
-												label="Stock Mínimo"
-												variant="outlined"
-												onChange={
-													minimumStockInputChangeHandler
-												}
-												value={minimumStockState.value}
-												error={!minimumStockIsValid}
-												helperText={
-													!minimumStockIsValid
-														? minimumStockState.feedbackText
-														: ''
-												}
-												required
-												fullWidth
-											/>
-										</Grid>
-										<Grid size={{ xs: 12, sm: 2 }}>
-											<TextField
-												label="Stock Máximo"
-												variant="outlined"
-												onChange={
-													maximumStockInputChangeHandler
-												}
-												value={maximumStockState.value}
-												error={!maximumStockIsValid}
-												helperText={
-													!maximumStockIsValid
-														? maximumStockState.feedbackText
-														: ''
-												}
-												required
-												fullWidth
-											/>
-										</Grid>
 										{authContext.isSuperuser && (
 											<Grid size={{ xs: 12, sm: 2 }}>
 												<TextField
@@ -1121,13 +915,10 @@ function AddProduct() {
 						<AddProductPreview
 							batch={batch.name}
 							name={nameState.value}
-							stock={stockState.value}
 							code={codeState.value}
 							image={selectedFileUrl || existingImage}
 							unitMeasurement={unitMeasurementState.value}
 							description={description}
-							minimumStock={minimumStockState.value}
-							maximumStock={maximumStockState.value}
 							minimumSalePrice={minimumSalePriceState.value}
 							maximumSalePrice={maximumSalePriceState.value}
 							message={message}

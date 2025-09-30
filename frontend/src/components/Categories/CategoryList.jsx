@@ -39,11 +39,6 @@ const CategoryList = () => {
 			sortable: true,
 		},
 		{
-			name: 'Almacén',
-			selector: row => row.warehouse.name,
-			sortable: true,
-		},
-		{
 			name: 'Acciones',
 			button: 'true',
 			cell: row => (
@@ -93,7 +88,6 @@ const CategoryList = () => {
 						return {
 							id: listData.id,
 							name: listData.name,
-							warehouse: listData.warehouse,
 						};
 					});
 					setList(parsedList);

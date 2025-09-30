@@ -32,7 +32,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 function AddCategory() {
 	const url = config.url.HOST + api.API_URL_CATEGORIES;
-	const urlWarehouseChoices = config.url.HOST + api.API_URL_WAREHOUSES;
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');
@@ -50,8 +49,6 @@ function AddCategory() {
 	const [title, setTitle] = useState('');
 	const [buttonText, setButtonText] = useState('');
 	const [disabled, setDisabled] = useState(true);
-	const [warehouseChoices, setWarehouseChoices] = useState([]);
-	const [warehouse, setWarehouse] = useState(null);
 	const [errorMessage, setErrorMessage] = useState('');
 
 	const nameReducer = (state, action) => {
@@ -91,10 +88,6 @@ function AddCategory() {
 		dispatchName({ type: 'INPUT_CHANGE', val: e.target.value });
 	};
 
-	const warehouseInputChangeHandler = (event, option) => {
-		setWarehouse(option);
-	};
-
 	const handlerCancel = () => {
 		if (isForm) {
 			navigate(-1);
@@ -116,43 +109,12 @@ function AddCategory() {
 		}
 	};
 
-	useEffect(() => {
-		const fetchCategoryChoices = async () => {
-			try {
-				const response = await fetch(urlWarehouseChoices, {
-					headers: {
-						Authorization: `Token ${authContext.token}`,
-						'Content-Type': 'application/json',
-					},
-				});
-				if (response.ok) {
-					const data = await response.json();
-					const choices = data.rows || [];
-					setWarehouseChoices(choices);
-					if (categoryData.warehouse && choices.length > 0) {
-						const matchingChoice = choices.find(
-							choice => choice.id === categoryData.warehouse.id
-						);
-						if (matchingChoice) {
-							setWarehouse(matchingChoice);
-						}
-					}
-				}
-			} catch (error) {
-				console.error('Error fetching warehouse choices:', error);
-			}
-		};
-
-		fetchCategoryChoices();
-	}, [urlWarehouseChoices, authContext.token, categoryData.warehouse]);
-
 	const handleSubmit = async () => {
 		try {
 			const response = await fetch(url, {
 				method: 'POST',
 				body: JSON.stringify({
 					name: nameState.value,
-					warehouse_id: warehouse.id,
 				}),
 				headers: {
 					Authorization: `Token ${authContext.token}`,
@@ -186,7 +148,6 @@ function AddCategory() {
 				method: 'PUT',
 				body: JSON.stringify({
 					name: nameState.value,
-					warehouse_id: warehouse.id,
 				}),
 
 				headers: {
@@ -216,7 +177,7 @@ function AddCategory() {
 		}
 	};
 	useEffect(() => {
-		if (nameState.value && warehouse) {
+		if (nameState.value) {
 			const isValid = nameIsValid;
 
 			setFormIsValid(isValid);
@@ -224,7 +185,7 @@ function AddCategory() {
 		} else {
 			setDisabled(true);
 		}
-	}, [nameState.value, warehouse, nameIsValid]);
+	}, [nameState.value, nameIsValid]);
 
 	useEffect(() => {
 		setTitle(
@@ -264,31 +225,6 @@ function AddCategory() {
 											}
 											required
 											fullWidth
-										/>
-									</Grid>
-									<Grid size={{ xs: 6, sm: 3 }}>
-										<Autocomplete
-											disablePortal
-											value={warehouse}
-											options={warehouseChoices}
-											getOptionLabel={option =>
-												option ? option.name || '' : ''
-											}
-											renderOption={(props, option) => (
-												<li {...props} key={option.id}>
-													{option.name}
-												</li>
-											)}
-											renderInput={params => (
-												<TextField
-													{...params}
-													label="Almacén"
-													required
-												/>
-											)}
-											onChange={
-												warehouseInputChangeHandler
-											}
 										/>
 									</Grid>
 								</Grid>
@@ -345,7 +281,6 @@ function AddCategory() {
 					<div className={classes.listContainer}>
 						<AddCategoryPreview
 							name={nameState.value}
-							warehouse={warehouse.name}
 							message={message}
 						/>
 						<Box

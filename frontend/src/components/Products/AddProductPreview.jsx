@@ -93,24 +93,6 @@ function AddProductPreview(props) {
 						</Grid>
 						<Grid item md={3}>
 							<TextField
-								label="Stock"
-								value={props.stock}
-								fullWidth
-								variant="standard"
-								sx={{
-									'& .MuiInput-underline:before': {
-										borderBottom: 'none',
-									},
-									'& .MuiInput-underline:after': {
-										borderBottom: 'none',
-									},
-								}}
-								disabled
-								className={classes.textStyle}
-							/>
-						</Grid>
-						<Grid item md={3}>
-							<TextField
 								label="Código"
 								value={props.code}
 								fullWidth
@@ -148,42 +130,6 @@ function AddProductPreview(props) {
 					</Grid>
 					<h6>2. Datos de Validación</h6>
 					<Grid container spacing={2} mt={1} mb={2}>
-						<Grid item md={3}>
-							<TextField
-								label="Stock minimo"
-								value={props.minimumStock}
-								fullWidth
-								variant="standard"
-								sx={{
-									'& .MuiInput-underline:before': {
-										borderBottom: 'none',
-									},
-									'& .MuiInput-underline:after': {
-										borderBottom: 'none',
-									},
-								}}
-								disabled
-								className={classes.textStyle}
-							/>
-						</Grid>
-						<Grid item md={3}>
-							<TextField
-								label="Stock máximo"
-								value={props.maximumStock}
-								fullWidth
-								variant="standard"
-								sx={{
-									'& .MuiInput-underline:before': {
-										borderBottom: 'none',
-									},
-									'& .MuiInput-underline:after': {
-										borderBottom: 'none',
-									},
-								}}
-								disabled
-								className={classes.textStyle}
-							/>
-						</Grid>
 						<Grid item md={3}>
 							<TextField
 								label="Precio de venta minimo"

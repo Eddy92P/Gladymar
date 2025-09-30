@@ -87,7 +87,7 @@ const WarehouseList = () => {
 				});
 
 				if (!response.ok) {
-					throw new Error('Failed to fetch clients');
+					throw new Error('Error al recuperar los almacenes.');
 				}
 
 				const data = await response.json();
@@ -100,6 +100,7 @@ const WarehouseList = () => {
 							name: listData.name,
 							location: listData.location,
 							agency: listData.agency,
+							productStock: listData.product_stock,
 						};
 					});
 					setList(parsedList);

@@ -83,6 +83,119 @@ function AddWarehousePreview(props) {
 						</Grid>
 					</Grid>
 				</Box>
+				<Box>
+					{props.productStock.length > 0 && (
+						<h6>2. Datos de los Productos </h6>
+					)}
+					<Grid
+						container
+						spacing={2}
+						mt={2}
+						mb={2}
+						direction="column"
+					>
+						{props.productStock.length > 0 &&
+							props.productStock.map((product, index) => (
+								<Grid container spacing={2} key={index}>
+									<Grid item md={3}>
+										<TextField
+											label="Nombre del Producto"
+											value={product.name}
+											fullWidth
+											variant="standard"
+											sx={{
+												'& .MuiInput-underline:before':
+													{
+														borderBottom: 'none',
+													},
+												'& .MuiInput-underline:after': {
+													borderBottom: 'none',
+												},
+											}}
+											disabled
+											className={classes.textStyle}
+										/>
+									</Grid>
+									<Grid item md={3}>
+										<TextField
+											label="Código del Producto"
+											value={product.code}
+											fullWidth
+											variant="standard"
+											sx={{
+												'& .MuiInput-underline:before':
+													{
+														borderBottom: 'none',
+													},
+												'& .MuiInput-underline:after': {
+													borderBottom: 'none',
+												},
+											}}
+											disabled
+											className={classes.textStyle}
+										/>
+									</Grid>
+									<Grid item md={3}>
+										<TextField
+											label="Stock"
+											value={product.stock.value}
+											fullWidth
+											variant="standard"
+											sx={{
+												'& .MuiInput-underline:before':
+													{
+														borderBottom: 'none',
+													},
+												'& .MuiInput-underline:after': {
+													borderBottom: 'none',
+												},
+											}}
+											disabled
+											className={classes.textStyle}
+										/>
+									</Grid>
+									<Grid item md={3}>
+										<TextField
+											label="Stock Mínimo"
+											value={product.minimumStock.value}
+											fullWidth
+											variant="standard"
+											sx={{
+												'& .MuiInput-underline:before':
+													{
+														borderBottom: 'none',
+													},
+												'& .MuiInput-underline:after': {
+													borderBottom: 'none',
+												},
+											}}
+											disabled
+											className={classes.textStyle}
+										/>
+									</Grid>
+									<Grid item md={3}>
+										<TextField
+											label="Stock Máximo"
+											value={product.maximumStock.value}
+											fullWidth
+											variant="standard"
+											sx={{
+												'& .MuiInput-underline:before':
+													{
+														borderBottom: 'none',
+													},
+												'& .MuiInput-underline:after': {
+													borderBottom: 'none',
+												},
+											}}
+											disabled
+											className={classes.textStyle}
+										/>
+									</Grid>
+								</Grid>
+							))}
+					</Grid>
+				</Box>
 			</Box>
 		</>
 	);

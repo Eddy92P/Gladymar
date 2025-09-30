@@ -123,7 +123,9 @@ class NestedProductStockSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({
                     'minimum_sale_price': "El precio de venta mínimo no puede ser mayor al máximo."
                 })
-     
+    
+        return data
+
     def create(self, validated_data):
         validated_data['available_stock'] = validated_data['stock']
         return super().create(validated_data)
@@ -146,7 +148,7 @@ class WarehouseSerializer(serializers.ModelSerializer):
         source='agency',
         write_only=True
     )
-    product_stock = NestedProductStockSerializer(many=True, required=False)
+    product_stock = NestedProductStockSerializer(many=True, required=False, source='product_stocks')
 
     class Meta:
         model = Warehouse
@@ -155,11 +157,12 @@ class WarehouseSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        products_stock_data = validated_data.pop('product_stock', [])
+        products_stock_data = validated_data.pop('product_stocks', [])
         try:
             warehouse = Warehouse.objects.create(**validated_data)
 
             for product_stock_data in products_stock_data:
+                product_stock_data['available_stock'] = product_stock_data['stock']
                 ProductStock.objects.create(warehouse=warehouse, **product_stock_data)
         except Exception as e:
             raise e
@@ -167,14 +170,14 @@ class WarehouseSerializer(serializers.ModelSerializer):
         return warehouse
 
     def update(self, instance, validated_data):
-        products_stock_data = validated_data.pop('product_stock', None)
+        products_stock_data = validated_data.pop('product_stocks', None)
         try:
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
             instance.save()
 
             if products_stock_data is not None:
-                existing_items = instance.product_stock.all()
+                existing_items = instance.product_stocks.all()
 
                 for item in existing_items:
                     if item.id not in [item_data.get('id') for item_data in products_stock_data if item_data.get('id')]:
@@ -224,6 +227,8 @@ class ProductStockSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({
                     'minimum_sale_price': "El precio de venta mínimo no puede ser mayor al máximo."
                 })
+                
+        return data
 
     def create(self, validated_data):
         validated_data['available_stock'] = validated_data['stock']

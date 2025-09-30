@@ -15,6 +15,7 @@ const AddProductDetailedList = ({
 	onProductList,
 	addedProducts = [],
 	sellingChannel,
+	warehouse,
 }) => {
 	const [list, setList] = useState([]);
 	const [error, setError] = useState('');
@@ -24,51 +25,57 @@ const AddProductDetailedList = ({
 	const authContext = useContext(AuthContext);
 
 	useEffect(() => {
-		let url = config.url.HOST + api.API_URL_PRODUCTS;
-		let sellingChannelUrl = config.url.HOST + api.API_URL_SELLING_CHANNEL;
+		let url = '';
+		if (sellingChannel || warehouse) {
+			url = config.url.HOST + api.API_URL_CATALOG;
+		} else {
+			url = config.url.HOST + api.API_URL_PRODUCTS;
+		}
 		let isMounted = true;
 
 		const controller = new AbortController();
 
-		if (filterText) {
+		if (sellingChannel) {
+			url += `?selling_channel_id=${sellingChannel.id}`;
+		}
+		if (warehouse) {
+			url += `?warehouse_id=${sellingChannel.id}`;
+		}
+		if (filterText && (sellingChannel || warehouse)) {
+			url += `&?search=${filterText}`;
+		} else if (filterText) {
 			url += `?search=${filterText}`;
 		}
 
 		const fetchProducts = async () => {
 			try {
 				let products = [];
-				if (sellingChannel || sellingChannel?.id) {
+				if (sellingChannel || warehouse) {
 					let allProducts = [];
-					const channelResponse = await fetch(
-						sellingChannelUrl + `${sellingChannel.id}`,
-						{
-							method: 'GET',
-							headers: {
-								Authorization: `Token ${authContext.token}`,
-								'Content-Type': 'application/json',
-							},
-							signal: controller.signal,
-						}
-					);
+					const response = await fetch(url, {
+						method: 'GET',
+						headers: {
+							Authorization: `Token ${authContext.token}`,
+							'Content-Type': 'application/json',
+						},
+						signal: controller.signal,
+					});
 
-					if (!channelResponse.ok) {
+					if (!response.ok) {
 						throw new Error(
 							'Failed to fetch Products from Selling Channel'
 						);
 					}
-
-					const channelData = await channelResponse.json();
-					allProducts = channelData.product_channel_price.map(
-						item => ({
-							id: item.products.id,
-							name: item.products.name,
-							code: item.products.code,
-							price: item.price,
-							stock: item.products.available_stock,
-							minimumSalePrice: item.products.minimum_sale_price,
-							maximumSalePrice: item.products.maximum_sale_price,
-						})
-					);
+					const productStockData = await response.json();
+					allProducts = productStockData.map(item => ({
+						id: item.id,
+						name: item.name,
+						code: item.code,
+						price: item.price,
+						stock: item.stock,
+						minimumSalePrice: item.minimum_sale_price,
+						maximumSalePrice: item.maximum_sale_price,
+					}));
 					products = allProducts.filter(
 						item =>
 							item.minimumSalePrice > 0 &&
@@ -86,7 +93,7 @@ const AddProductDetailedList = ({
 					});
 
 					if (!response.ok) {
-						throw new Error('Failed to fetch Products');
+						throw new Error('Falló al obtener los productos.');
 					}
 
 					const data = await response.json();
@@ -118,7 +125,7 @@ const AddProductDetailedList = ({
 			isMounted = false;
 			controller.abort();
 		};
-	}, [authContext.token, filterText, sellingChannel]);
+	}, [authContext.token, filterText, sellingChannel, warehouse]);
 
 	const handleCloseModal = () => {
 		setShowModal(false);

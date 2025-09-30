@@ -35,6 +35,7 @@ const apiUrl = {
 	API_URL_PURCHASES: '/api/sale/purchases/',
 	API_URL_SALES: '/api/sale/sales/',
 	API_URL_PAYMENTS: '/api/sale/payments/',
+	API_URL_CATALOG: '/api/sale/catalog',
 };
 
 export const config = import.meta.env.MODE === 'development' ? dev : prod;

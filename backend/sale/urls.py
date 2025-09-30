@@ -27,4 +27,5 @@ app_name = 'sale'
 
 urlpatterns = [
     path('', include(router.urls)),
+    path("catalog/", views.CatalogView.as_view(), name="catalog"),
 ]

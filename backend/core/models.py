@@ -371,7 +371,7 @@ class Product(models.Model):
                 
 class ProductStock(models.Model):
     product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='stocks')
-    warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT, related_name='product_stocks')
     stock = models.PositiveIntegerField(default=0)
     reserved_stock = models.PositiveIntegerField(default=0)
     available_stock = models.PositiveIntegerField(default=0)
@@ -395,8 +395,8 @@ class Supplier(models.Model):
         blank=False, 
         validators=[
             RegexValidator(
-                regex=r'^[a-zA-ZÀ-ÿ\s]+$',
-                message="El nombre solo puede contener letras y espacios."
+                regex=r'^[a-zA-Z0-9\sñÑáéíóúÁÉÍÓÚ]+$',
+                message="El nombre solo puede contener letras, números y espacios."
             )
         ]
     )

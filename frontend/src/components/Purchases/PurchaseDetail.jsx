@@ -45,7 +45,7 @@ const PurchaseDetail = () => {
 			setActiveStep(2);
 		}
 	}, [purchaseData.status]);
-
+	console.log(purchaseData);
 	return (
 		<Box p={2}>
 			<Grid container spacing={2} mt={1} mb={2}>
@@ -176,12 +176,14 @@ const PurchaseDetail = () => {
 													<TableCell>
 														{
 															purchaseItem
+																.products_stock
 																.products.code
 														}
 													</TableCell>
 													<TableCell>
 														{
 															purchaseItem
+																.products_stock
 																.products.name
 														}
 													</TableCell>

@@ -44,11 +44,6 @@ const ProductList = () => {
 			sortable: true,
 		},
 		{
-			name: 'Stock',
-			selector: row => row.stock,
-			sortable: true,
-		},
-		{
 			name: 'Código',
 			selector: row => row.code,
 			sortable: true,
@@ -56,16 +51,6 @@ const ProductList = () => {
 		{
 			name: 'Unidad de medida',
 			selector: row => row.unitMeasurement,
-			sortable: true,
-		},
-		{
-			name: 'Stock mínimo',
-			selector: row => row.minimumStock,
-			sortable: true,
-		},
-		{
-			name: 'Stock máximo',
-			selector: row => row.maximumStock,
 			sortable: true,
 		},
 		{
@@ -129,13 +114,10 @@ const ProductList = () => {
 							id: listData.id,
 							name: listData.name,
 							batch: listData.batch,
-							stock: listData.stock,
 							code: listData.code,
 							image: listData.image,
 							description: listData.description,
 							unitMeasurement: listData.unit_of_measurement,
-							minimumStock: listData.minimum_stock,
-							maximumStock: listData.maximum_stock,
 							minimumSalePrice: listData.minimum_sale_price,
 							maximumSalePrice: listData.maximum_sale_price,
 						};
