@@ -45,7 +45,6 @@ const PurchaseDetail = () => {
 			setActiveStep(2);
 		}
 	}, [purchaseData.status]);
-	console.log(purchaseData);
 	return (
 		<Box p={2}>
 			<Grid container spacing={2} mt={1} mb={2}>

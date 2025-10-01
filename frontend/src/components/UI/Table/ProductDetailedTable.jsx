@@ -76,7 +76,11 @@ const ProductDetailedTable = ({
 				isValid: true,
 				feedbackText: '',
 			},
-			stock: { value: 0, isValid: true, feedbackText: '' },
+			stock: {
+				value: product.stock ? product.stock : 0,
+				isValid: true,
+				feedbackText: '',
+			},
 			minimumStock: { value: 0, isValid: true, feedbackText: '' },
 			maximumStock: { value: 0, isValid: true, feedbackText: '' },
 			quantity: { value: '', isValid: true, feedbackText: '' },

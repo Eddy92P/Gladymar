@@ -42,9 +42,11 @@ function AddSaleModal(props) {
 		navigate(-1);
 	};
 	useEffect(() => {
-		setDescriptionText(props.saleData ? 'editada' : 'registrada');
+		setDescriptionText(
+			props.saleData.length > 0 ? 'editada' : 'registrada'
+		);
 		setMessageText(
-			props.saleData
+			props.saleData.length > 0
 				? 'Todos los cambios fueron registrados.'
 				: ' La venta fue registrada exitosamente.'
 		);

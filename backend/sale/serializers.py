@@ -806,9 +806,9 @@ class SaleSerializer(serializers.ModelSerializer):
                     
                     # Actualizar stock para productos existentes y nuevos cuando el status es 'realizado'
                     if validated_data['status'] == 'realizado':
-                        item_data['product'].reserved_stock += item_data['quantity']
-                        item_data['product'].available_stock -= item_data['quantity']
-                        item_data['product'].save()
+                        item_data['product_stock'].reserved_stock += item_data['quantity']
+                        item_data['product_stock'].available_stock -= item_data['quantity']
+                        item_data['product_stock'].save()
                         
             if payments_data is not None:
                 payment_amount = payments_data['amount']

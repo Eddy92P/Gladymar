@@ -578,7 +578,6 @@ export const AddSellingChannel = () => {
 															</TableCell>
 															<TableCell>
 																<TextField
-																	label="Precio"
 																	variant="outlined"
 																	onChange={e =>
 																		priceInputChangeHandler(
@@ -633,7 +632,6 @@ export const AddSellingChannel = () => {
 															</TableCell>
 															<TableCell>
 																<TextField
-																	label="Fecha Inicio"
 																	type="date"
 																	variant="outlined"
 																	onChange={e =>
@@ -687,17 +685,10 @@ export const AddSellingChannel = () => {
 																			: ''
 																	}
 																	fullWidth
-																	slotProps={{
-																		inputLabel:
-																			{
-																				shrink: true,
-																			},
-																	}}
 																/>
 															</TableCell>
 															<TableCell>
 																<TextField
-																	label="Fecha Fin"
 																	type="date"
 																	variant="outlined"
 																	onChange={e =>
@@ -751,12 +742,6 @@ export const AddSellingChannel = () => {
 																			: ''
 																	}
 																	fullWidth
-																	slotProps={{
-																		inputLabel:
-																			{
-																				shrink: true,
-																			},
-																	}}
 																/>
 															</TableCell>
 															<TableCell align="center">

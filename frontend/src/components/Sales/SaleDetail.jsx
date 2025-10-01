@@ -55,6 +55,7 @@ const SaleDetail = () => {
 		}
 	}, [saleData.status]);
 
+	console.log(saleData);
 	return (
 		<Box p={2}>
 			<Grid container spacing={2} mt={1} mb={2}>
@@ -189,10 +190,18 @@ const SaleDetail = () => {
 											(saleItem, index) => (
 												<TableRow key={index}>
 													<TableCell>
-														{saleItem.products.code}
+														{
+															saleItem
+																.products_stock
+																.products.code
+														}
 													</TableCell>
 													<TableCell>
-														{saleItem.products.name}
+														{
+															saleItem
+																.products_stock
+																.products.name
+														}
 													</TableCell>
 													<TableCell align="right">
 														{saleItem.quantity}

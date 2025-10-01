@@ -39,10 +39,10 @@ const AddProductDetailedList = ({
 			url += `?selling_channel_id=${sellingChannel.id}`;
 		}
 		if (warehouse) {
-			url += `?warehouse_id=${sellingChannel.id}`;
+			url += `?warehouse_id=${warehouse.id}`;
 		}
 		if (filterText && (sellingChannel || warehouse)) {
-			url += `&?search=${filterText}`;
+			url += `&search=${filterText}`;
 		} else if (filterText) {
 			url += `?search=${filterText}`;
 		}

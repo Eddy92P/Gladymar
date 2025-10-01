@@ -45,7 +45,7 @@ class CatalogView(APIView):
                 ps = stocks.get(product.id)
 
                 data.append({
-                    "id": product.id,
+                    "id": ps.id,
                     "agency": ps.warehouse.agency.name,
                     "warehouse": ps.warehouse.name,
                     "name": product.name,

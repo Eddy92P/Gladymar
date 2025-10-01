@@ -314,12 +314,14 @@ export const AddSale = () => {
 	const saleProducts = saleData.saleItems?.map(saleItem => {
 		return {
 			saleItemId: saleItem.id,
-			id: saleItem.products.id,
-			name: saleItem.products.name,
-			code: saleItem.products.code,
-			stock: saleItem.products.available_stock,
-			minimumSalePrice: saleItem.products.minimum_sale_price,
-			maximumSalePrice: saleItem.products.maximum_sale_price,
+			id: saleItem.products_stock.id,
+			name: saleItem.products_stock.products.name,
+			code: saleItem.products_stock.products.code,
+			stock: saleItem.products_stock.available_stock,
+			minimumSalePrice:
+				saleItem.products_stock.products.minimum_sale_price,
+			maximumSalePrice:
+				saleItem.products_stock.products.maximum_sale_price,
 			price: {
 				value: saleItem.unit_price || '',
 				isValid: true,
@@ -615,7 +617,7 @@ export const AddSale = () => {
 				total: saleTotalAmount,
 				balance_due: 0,
 				sale_items: productListState.map(product => ({
-					product: product.id,
+					product_stock: product.id,
 					quantity: product.quantity.value,
 					unit_price: product.price.value,
 					sub_total_price: product.subTotalPrice.value,
@@ -759,7 +761,7 @@ export const AddSale = () => {
 				balance_due: isSale ? saleTotalAmount : 0,
 				sale_items: productListState.map(product => ({
 					id: product.saleItemId,
-					product: product.id,
+					product_stock: product.id,
 					quantity: product.quantity.value,
 					unit_price: product.price.value,
 					sub_total_price: product.subTotalPrice.value,
@@ -1222,9 +1224,10 @@ export const AddSale = () => {
 																	}
 																</TableCell>
 																<TableCell>
-																	{
-																		product.stock
-																	}
+																	{product
+																		.stock
+																		.value ||
+																		product.stock}
 																</TableCell>
 																<TableCell>
 																	{

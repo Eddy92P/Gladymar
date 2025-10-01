@@ -680,7 +680,6 @@ function AddWarehouse() {
 															</TableCell>
 															<TableCell>
 																<TextField
-																	label="Stock"
 																	variant="outlined"
 																	onChange={e =>
 																		stockInputChangeHandler(
@@ -740,7 +739,6 @@ function AddWarehouse() {
 															</TableCell>
 															<TableCell>
 																<TextField
-																	label="Stock Mínimo"
 																	variant="outlined"
 																	onChange={e =>
 																		dispatchProductList(
@@ -809,7 +807,6 @@ function AddWarehouse() {
 															</TableCell>
 															<TableCell>
 																<TextField
-																	label="Stock Máximo"
 																	variant="outlined"
 																	onChange={e =>
 																		dispatchProductList(
