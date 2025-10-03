@@ -458,6 +458,11 @@ class Purchase(models.Model):
         ('realizado', 'Realizada'),
         ('terminado', 'Terminada'),
     )
+    DELIVER_STATUS_CHOICES = (
+        ('pendiente', 'Pendiente'),
+        ('parcial', 'Parcialmente Ingresado'),
+        ('completado', 'Completado')
+    )
     PURCHASE_TYPE_CHOICES = (
         ('contado', 'Pago al contado'),
         ('credito', 'Pago a crédito')
@@ -467,6 +472,7 @@ class Purchase(models.Model):
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
     purchase_type = models.CharField(max_length=25, choices=PURCHASE_TYPE_CHOICES, default='contado')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='realizado')
+    deliver_status = models.CharField(max_length=15, choices=DELIVER_STATUS_CHOICES, default='pendiente')
     purchase_date = models.DateField(null=False, blank=False)
     purchase_end_date=models.DateField(null=True, blank=True)
     invoice_number = models.CharField(
@@ -490,21 +496,16 @@ class Purchase(models.Model):
 class PurchaseItem(models.Model):
     purchase = models.ForeignKey(Purchase, on_delete=models.PROTECT, related_name='purchase_items')
     product_stock = models.ForeignKey(ProductStock, on_delete=models.PROTECT)
-    quantity = models.IntegerField()
+    quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    entered_stock = models.PositiveIntegerField(default=0)
 
 
 class Entry(models.Model):
     warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
     warehouse_keeper = models.ForeignKey(User, on_delete=models.PROTECT)
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
-    purchase = models.OneToOneField(
-        Purchase,
-        on_delete=models.PROTECT,
-        blank=True,
-        null=True
-    )
     entry_date = models.DateField(null=False, blank=False)
     invoice_number = models.CharField(
         max_length=50, 
@@ -526,9 +527,15 @@ class Entry(models.Model):
 
 
 class EntryItem(models.Model):
+    purchase_item = models.ForeignKey(
+        PurchaseItem,
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+    )
     entry = models.ForeignKey(Entry, on_delete=models.PROTECT, related_name='entry_items')
     product_stock = models.ForeignKey(ProductStock, on_delete=models.PROTECT)
-    quantity = models.IntegerField()
+    quantity = models.PositiveIntegerField(default=0)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     
     def __str__(self):
@@ -539,13 +546,6 @@ class Output(models.Model):
     warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
     warehouse_keeper = models.ForeignKey(User, on_delete=models.PROTECT)
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
-    sale = models.ForeignKey(
-        'Sale',
-        on_delete=models.PROTECT,
-        related_name='outputs',
-        blank=True,
-        null=True
-    )
     output_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -555,9 +555,15 @@ class Output(models.Model):
     
     
 class OutputItem(models.Model):
+    sale_item = models.ForeignKey(
+        'SaleItem',
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True
+    )
     output = models.ForeignKey(Output, on_delete=models.PROTECT, related_name='output_items')
     product_stock = models.ForeignKey(ProductStock, on_delete=models.PROTECT)
-    quantity = models.IntegerField()
+    quantity = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f"{self.product.name} - {self.quantity}"
@@ -569,6 +575,11 @@ class Sale(models.Model):
         ('realizado', 'Realizada'),
         ('terminado', 'Terminada'),
         ('rechazado', 'Rechazada')
+    )
+    DELIVER_STATUS_CHOICES = (
+        ('pendiente', 'Pendiente'),
+        ('parcial', 'Parcialmente Entregado'),
+        ('completado', 'Completado')
     )
     SALE_TYPE_CHOICES = (
         ('proforma', 'Proforma'),
@@ -601,6 +612,7 @@ class SaleItem(models.Model):
     sub_total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
     discount = models.FloatField(default=0.0)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    dispatched_stock = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return f"Sale item {self.product.name} - {self.quantity}"

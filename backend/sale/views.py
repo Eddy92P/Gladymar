@@ -44,6 +44,10 @@ class CatalogView(APIView):
                 product = price.product
                 ps = stocks.get(product.id)
 
+                # Skip products without stock records
+                if ps is None:
+                    continue
+
                 data.append({
                     "id": ps.id,
                     "agency": ps.warehouse.agency.name,

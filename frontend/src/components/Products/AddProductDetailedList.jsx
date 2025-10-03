@@ -63,7 +63,7 @@ const AddProductDetailedList = ({
 
 					if (!response.ok) {
 						throw new Error(
-							'Failed to fetch Products from Selling Channel'
+							'Falló al obtener productos del canal de ventas'
 						);
 					}
 					const productStockData = await response.json();

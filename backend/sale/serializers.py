@@ -11,6 +11,7 @@ from sale.services.entries_service import IncreaseProductStockService
 from sale.services.update_product_stock_service import UpdateProductStockService
 from sale.services.output_service import DecreaseProductStockService
 from sale.services.update_transaction_service import UpdateTransactionService
+from sale.services.entry_purchase_service import UpdatePurchaseItem
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -283,12 +284,29 @@ class ClientSerializer(serializers.ModelSerializer):
 class EntryItemSerializer(serializers.ModelSerializer):
     """Serializer for EntryItem model"""
     products_stock = ProductStockSerializer(read_only=True, source='product_stock')
-    product_stock = serializers.PrimaryKeyRelatedField(write_only=True, queryset=ProductStock.objects.all())
+    product_stock = serializers.PrimaryKeyRelatedField(
+        write_only=True,
+        queryset=ProductStock.objects.all()
+    )
+    purchase_item = serializers.PrimaryKeyRelatedField(
+        write_only=True,
+        queryset=PurchaseItem.objects.all(),
+        required=False
+    )
 
     class Meta:
         model = EntryItem
-        fields = ['id', 'product_stock', 'products_stock', 'quantity', 'unit_price']
+        fields = ['id', 'purchase_item', 'product_stock', 'products_stock', 'quantity', 'unit_price']
         read_only_fields = ['id']
+        
+    def create(self, validated_data):
+        entry_item = super().create(validated_data)
+
+        if validated_data['purchase_item'] is not None:
+            UpdatePurchaseItem(entry_item).update_purchase_item()
+        IncreaseProductStockService(entry_item).increase_product_stock()
+
+        return entry_item
 
 
 class EntrySerializer(serializers.ModelSerializer):
@@ -314,7 +332,6 @@ class EntrySerializer(serializers.ModelSerializer):
             entry = Entry.objects.create(**validated_data)
             for item_data in items_data:
                 EntryItem.objects.create(entry=entry, **item_data)
-            IncreaseProductStockService(entry).increase_product_stock()
         except Exception as e:
             raise e
         return entry

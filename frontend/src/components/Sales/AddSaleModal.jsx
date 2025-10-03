@@ -43,10 +43,12 @@ function AddSaleModal(props) {
 	};
 	useEffect(() => {
 		setDescriptionText(
-			props.saleData.length > 0 ? 'editada' : 'registrada'
+			props.saleData.length > 0 || props.saleData
+				? 'editada'
+				: 'registrada'
 		);
 		setMessageText(
-			props.saleData.length > 0
+			props.saleData.length > 0 || props.saleData
 				? 'Todos los cambios fueron registrados.'
 				: ' La venta fue registrada exitosamente.'
 		);

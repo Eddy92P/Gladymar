@@ -147,6 +147,7 @@ def create_purchase(**params):
             quantity=10,
             unit_price=10.00,
             total_price=100.00,
+            entered_stock=5,
         )
 
     return purchase
@@ -216,13 +217,15 @@ class PrivatePurchaseApiTests(TestCase):
                     'product_stock': create_product_stock().id,
                     'quantity': 2,
                     'unit_price': 25.00,
-                    'total_price': 50.00
+                    'total_price': 50.00,
+                    'entered_stock': 5,
                 },
                 {
                     'product_stock': create_product_stock().id,
                     'quantity': 1,
                     'unit_price': 100.00,
-                    'total_price': 100.00
+                    'total_price': 100.00,
+                    'entered_stock': 10,
                 }
             ],
             'payments': {

@@ -117,14 +117,14 @@ class TestIncreaseProductStockService(TestCase):
             entry_date=timezone.now(),
             invoice_number='123456'
         )
-        EntryItem.objects.create(
+        entry_item = EntryItem.objects.create(
             entry=entry,
             product_stock=self.product_stock,
             quantity=10,
             unit_price=10.00,
         )
         
-        service = IncreaseProductStockService(entry)
+        service = IncreaseProductStockService(entry_item)
         service.increase_product_stock()
 
         self.product_stock.refresh_from_db()

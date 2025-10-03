@@ -2,22 +2,19 @@
 Service to increase product stock when an entry is created
 """
 
-from django.core.exceptions import ValidationError
-
 
 class IncreaseProductStockService:
-    def __init__(self, entry):
-        self.entry = entry
+    def __init__(self, entry_item):
+        self.entry_item = entry_item
 
     def increase_product_stock(self):
         """
         Increase product stock when an entry is created
         """
         try:
-            for item in self.entry.entry_items.all():
-                product = item.product_stock
-                product.stock += item.quantity
-                product.save()
+            product = self.entry_item.product_stock
+            product.stock += self.entry_item.quantity
+            product.save()
 
         except Exception as e:
             raise e

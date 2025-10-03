@@ -503,6 +503,114 @@ class ModelTest(TestCase):
         )
         self.assertEqual(output_item.quantity, 10)
         
+    def test_create_purchase(self):
+        """Test creating a Purchase."""
+        agency = Agency.objects.create(
+            name='Test Agency Purchase',
+            location='Test Agency1 Location',
+            city='LP',
+        )
+        purchase = Purchase.objects.create(
+            agency=agency,
+            supplier=Supplier.objects.create(
+                name='Test Supplier',
+                phone='75871255',
+                nit='12345677',
+                email='test@example.com',
+                address='Test Address',
+            ),
+            purchase_type= 'contado',
+            buyer=User.objects.create(
+                email='test13@example.com',
+                password='testpass41234',
+                first_name='Test231',
+                last_name='User412',
+                ci='1234577',
+                phone='12345611',
+                address='Test Address',
+                agency=agency,
+            ),
+            total=100,
+            balance_due=100,
+            status='pending',
+            purchase_date='2025-01-01',
+            purchase_end_date='2025-01-10',
+        )
+        self.assertEqual(purchase.total, 100)
+        self.assertEqual(purchase.status, 'pending')
+        
+    def test_create_purchase_item(self):
+        """Test creating a Purchase Item."""
+        agency = Agency.objects.create(
+            name='Test Agency1 Purchase Item',
+            location='Test Agency1 Location',
+            city='LP',
+        )
+        purchase_item = PurchaseItem.objects.create(
+            purchase=Purchase.objects.create(
+                agency=agency,
+                supplier=Supplier.objects.create(
+                    name='Test Supplier 2',
+                    phone='75872256',
+                    nit='12347678',
+                    email='test32@example.com',
+                    address='Test Address',
+                ),
+                purchase_type= 'contado',
+                buyer=User.objects.create(
+                    email='test111@example.com',
+                    password='testpass1123',
+                    first_name='Test11',
+                    last_name='UserE',
+                    ci='1234561',
+                    phone='12345678',
+                    address='Test Address',
+                    agency=agency,
+                ),
+                total=100,
+                balance_due=100,
+                status='pending',
+                purchase_date='2025-01-01',
+            ),
+            product_stock=ProductStock.objects.create(
+                product=Product.objects.create(
+                    batch=Batch.objects.create(
+                        category=Category.objects.create(
+                            name='Test Category',
+                        ),
+                        name='Test Batch',
+                    ),
+                    name='Test Product',
+                    code='1234567890',
+                    unit_of_measurement='Test Unit',
+                    description='Test Description',
+                    minimum_sale_price=10,
+                    maximum_sale_price=20,
+                ),
+                warehouse=Warehouse.objects.create(
+                    agency=Agency.objects.create(
+                        name='Test Agency 5',
+                        location='Test Location',
+                        city='LP',
+                    ),
+                    name='Test Warehouse',
+                    location='Test Location 2',
+                ),
+                stock=50,
+                reserved_stock=10,
+                available_stock=40,
+                minimum_stock=10,
+                maximum_stock=60,
+            ),
+            quantity=10,
+            unit_price=10,
+            total_price=100,
+            entered_stock=5,
+        )
+        self.assertEqual(purchase_item.quantity, 10)
+        self.assertEqual(purchase_item.unit_price, 10)
+        self.assertEqual(purchase_item.total_price, 100)
+        
     def test_create_sale(self):
         """Test creating a Sale."""
         agency = Agency.objects.create(
@@ -606,6 +714,7 @@ class ModelTest(TestCase):
             quantity=10,
             unit_price=10,
             total_price=100,
+            dispatched_stock=5,
         )
         self.assertEqual(sale_item.quantity, 10)
         self.assertEqual(sale_item.unit_price, 10)

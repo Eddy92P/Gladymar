@@ -145,6 +145,7 @@ def create_sale(**params):
             quantity=10,
             unit_price=10.00,
             total_price=10.00,
+            dispatched_stock=5,
         )
     
     return sale
@@ -213,6 +214,7 @@ class PrivateSaleApiTests(TestCase):
                     'sub_total_price': 100.00,
                     'discount': 5,
                     'total_price': 95.00,
+                    'dispatched_stock': 5,
                 }
             ],
         }
@@ -259,6 +261,7 @@ class PrivateSaleApiTests(TestCase):
                     'sub_total_price': 100.00,
                     'discount': 5,
                     'total_price': 95.00,
+                    'dispatched_stock': 5,
                 }
             ]
         }
