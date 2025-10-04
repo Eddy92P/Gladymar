@@ -184,8 +184,9 @@ class TestUpdateSaleItem(TestCase):
             product_stock=create_product_stock(),
             quantity=10,
         )
+        product_stock = create_product_stock()
         
-        service = UpdateSaleItem(output_item)
+        service = UpdateSaleItem(output_item, product_stock)
         service.update_sale_item()
         
         self.sale_item.refresh_from_db()
@@ -199,8 +200,9 @@ class TestUpdateSaleItem(TestCase):
             product_stock=create_product_stock(),
             quantity=60,
         )
+        product_stock = create_product_stock()
 
-        service = UpdateSaleItem(output_item)
+        service = UpdateSaleItem(output_item, product_stock)
 
         with self.assertRaises(ValidationError) as context:
             service.update_sale_item()

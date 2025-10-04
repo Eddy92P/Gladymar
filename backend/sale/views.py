@@ -31,7 +31,8 @@ class CatalogView(APIView):
     def get(self, request, *args, **kwargs):
         data = []
         selling_channel_id = request.query_params.get("selling_channel_id")
-        warehouse_id = request.query_params.get("warehouse_id")
+        agency_id = request.query_params.get("agency_id")
+        sale_id = request.query_params.get("sale_id")
 
         if selling_channel_id:
             prices = ProductChannelPrice.objects.filter(selling_channel=selling_channel_id)
@@ -61,17 +62,18 @@ class CatalogView(APIView):
                     "minimum_sale_price": product.minimum_sale_price,
                     "maximum_sale_price": product.maximum_sale_price,
                 })
-        elif warehouse_id:
-            products = ProductStock.objects.filter(warehouse=warehouse_id).select_related('product')
+        elif agency_id and sale_id:
+            sale_items = SaleItem.objects.filter(sale=sale_id, sale__agency=agency_id).prefetch_related('product_stock')
 
-            for product in products:
+            for sale_item in sale_items:
                 data.append({
-                    "id": product.id,
-                    "agency": product.warehouse.agency.name,
-                    "warehouse": product.product.warehouse.name,
-                    "name": product.product.name,
-                    "code": product.product.code,
-                    "price": 0,
+                    "sale_item_id": sale_item.id,
+                    "id": sale_item.product_stock.id,
+                    "agency": sale_item.product_stock.warehouse.agency.name,
+                    "warehouse": sale_item.product_stock.warehouse.name,
+                    "name": sale_item.product_stock.product.name,
+                    "code": sale_item.product_stock.product.code,
+                    "price": sale_item.total_price,
                     "stock": product.available_stock,
                     "minimum_stock": product.minimum_stock,
                     "maximum_stock": product.maximum_stock,
@@ -85,7 +87,7 @@ class CatalogView(APIView):
                 data.append({
                     "id": product.id,
                     "agency": product.warehouse.agency.name,
-                    "warehouse": product.product.warehouse.name,
+                    "warehouse": product.warehouse.name,
                     "name": product.product.name,
                     "code": product.product.code,
                     "price": 0,

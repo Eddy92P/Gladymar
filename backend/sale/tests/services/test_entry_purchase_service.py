@@ -175,7 +175,6 @@ class TestUpdatePurchaseItem(TestCase):
             entry=create_entry(),
             product_stock=create_product_stock(),
             quantity=10,
-            unit_price=10.00,
         )
         
         service = UpdatePurchaseItem(entry_item)
@@ -191,7 +190,6 @@ class TestUpdatePurchaseItem(TestCase):
             entry=create_entry(),
             product_stock=create_product_stock(),
             quantity=60,
-            unit_price=10.00,
         )
 
         service = UpdatePurchaseItem(entry_item)

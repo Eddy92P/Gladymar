@@ -536,7 +536,6 @@ class EntryItem(models.Model):
     entry = models.ForeignKey(Entry, on_delete=models.PROTECT, related_name='entry_items')
     product_stock = models.ForeignKey(ProductStock, on_delete=models.PROTECT)
     quantity = models.PositiveIntegerField(default=0)
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     
     def __str__(self):
         return f"{self.product.name} - {self.quantity}"

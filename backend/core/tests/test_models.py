@@ -389,10 +389,8 @@ class ModelTest(TestCase):
                 maximum_stock=60,
             ),
             quantity=10,
-            unit_price=10,
         )
         self.assertEqual(entry_item.quantity, 10)
-        self.assertEqual(entry_item.unit_price, 10)
         
     def test_create_output(self):
         """Test creating a Output."""

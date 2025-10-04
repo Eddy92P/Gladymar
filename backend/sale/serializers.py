@@ -297,7 +297,7 @@ class EntryItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EntryItem
-        fields = ['id', 'purchase_item', 'product_stock', 'products_stock', 'quantity', 'unit_price']
+        fields = ['id', 'purchase_item', 'product_stock', 'products_stock', 'quantity']
         read_only_fields = ['id']
         
     def create(self, validated_data):

@@ -108,7 +108,6 @@ class TestUpdateProductStockService(TestCase):
             entry=entry,
             product_stock=self.product_stock,
             quantity=10,
-            unit_price=10.00,
         )
 
         validated_data = {
@@ -150,7 +149,6 @@ class TestUpdateProductStockService(TestCase):
             entry=entry,
             product_stock=self.product_stock,
             quantity=20,
-            unit_price=10.00,
         )
 
         validated_data = {
@@ -192,7 +190,6 @@ class TestUpdateProductStockService(TestCase):
             entry=entry,
             product_stock=self.product_stock,
             quantity=10,
-            unit_price=10.00,
         )
 
         validated_data = {
@@ -334,4 +331,3 @@ class TestUpdateProductStockService(TestCase):
             service.update_output_product_stock()
 
         self.assertIn('El nuevo stock no puede ser menor al mínimo permitido.', str(context.exception))
-    

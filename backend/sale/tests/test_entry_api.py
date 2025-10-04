@@ -136,7 +136,6 @@ def create_entry(**params):
             entry=entry,
             product_stock=create_product_stock(),
             quantity=10,
-            unit_price=10.00,
         )
     
     return entry
@@ -186,7 +185,6 @@ class PrivateEntryApiTests(TestCase):
                 {
                     'product_stock': create_product_stock().id,
                     'quantity': 10,
-                    'unit_price': 10.00,
                 }
             ]
         }
@@ -220,7 +218,6 @@ class PrivateEntryApiTests(TestCase):
                 {
                     'product_stock': create_product_stock().id,
                     'quantity': 15,
-                    'unit_price': 15.00,
                 }
             ]
         }
@@ -236,4 +233,3 @@ class PrivateEntryApiTests(TestCase):
             db_item = entry.entry_items.all()[i]
             self.assertEqual(db_item.product_stock.id, payload_item['product_stock'])
             self.assertEqual(db_item.quantity, payload_item['quantity'])
-            self.assertEqual(float(db_item.unit_price), payload_item['unit_price'])
