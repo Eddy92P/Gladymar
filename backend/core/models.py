@@ -458,11 +458,6 @@ class Purchase(models.Model):
         ('realizado', 'Realizada'),
         ('terminado', 'Terminada'),
     )
-    DELIVER_STATUS_CHOICES = (
-        ('pendiente', 'Pendiente'),
-        ('parcial', 'Parcialmente Ingresado'),
-        ('completado', 'Completado')
-    )
     PURCHASE_TYPE_CHOICES = (
         ('contado', 'Pago al contado'),
         ('credito', 'Pago a crédito')
@@ -472,7 +467,6 @@ class Purchase(models.Model):
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
     purchase_type = models.CharField(max_length=25, choices=PURCHASE_TYPE_CHOICES, default='contado')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='realizado')
-    deliver_status = models.CharField(max_length=15, choices=DELIVER_STATUS_CHOICES, default='pendiente')
     purchase_date = models.DateField(null=False, blank=False)
     purchase_end_date=models.DateField(null=True, blank=True)
     invoice_number = models.CharField(
@@ -494,8 +488,14 @@ class Purchase(models.Model):
     
     
 class PurchaseItem(models.Model):
+    STATUS_CHOICES = (
+        ('pendiente', 'Pendiente'),
+        ('parcial', 'Parcialmente Ingresado'),
+        ('completado', 'Completado')
+    )
     purchase = models.ForeignKey(Purchase, on_delete=models.PROTECT, related_name='purchase_items')
     product_stock = models.ForeignKey(ProductStock, on_delete=models.PROTECT)
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pendiente')
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -576,11 +576,6 @@ class Sale(models.Model):
         ('terminado', 'Terminada'),
         ('rechazado', 'Rechazada')
     )
-    DELIVER_STATUS_CHOICES = (
-        ('pendiente', 'Pendiente'),
-        ('parcial', 'Parcialmente Entregado'),
-        ('completado', 'Completado')
-    )
     SALE_TYPE_CHOICES = (
         ('proforma', 'Proforma'),
         ('contado', 'Pago al contado'),
@@ -605,8 +600,14 @@ class Sale(models.Model):
     
 
 class SaleItem(models.Model):
+    STATUS_CHOICES = (
+        ('pendiente', 'Pendiente'),
+        ('parcial', 'Parcialmente Entregado'),
+        ('completado', 'Completado')
+    )
     sale = models.ForeignKey(Sale, on_delete=models.PROTECT, related_name='sale_items')
     product_stock = models.ForeignKey(ProductStock, on_delete=models.PROTECT)
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pendiente')
     quantity = models.IntegerField()
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     sub_total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)

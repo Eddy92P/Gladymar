@@ -12,6 +12,7 @@ from sale.services.update_product_stock_service import UpdateProductStockService
 from sale.services.output_service import DecreaseProductStockService
 from sale.services.update_transaction_service import UpdateTransactionService
 from sale.services.entry_purchase_service import UpdatePurchaseItem
+from sale.services.output_sale_service import UpdateSaleItem
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -368,13 +369,24 @@ class EntrySerializer(serializers.ModelSerializer):
 
 class OutputItemSerializer(serializers.ModelSerializer):
     """Serializer for OutputItem model"""
-    product_stock = serializers.PrimaryKeyRelatedField(queryset=ProductStock.objects.all())
+    product_stock = serializers.PrimaryKeyRelatedField(write_only=True, queryset=ProductStock.objects.all())
     products_stock = ProductStockSerializer(read_only=True, source='product_stock')
+    sale_item = serializers.PrimaryKeyRelatedField(write_only=True, required=False, queryset=SaleItem.objects.all())
 
     class Meta:
         model = OutputItem
-        fields = ['id', 'product_stock', 'products_stock', 'quantity']
+        fields = ['id', 'sale_item', 'product_stock', 'products_stock', 'quantity']
         read_only_fields = ['id']
+        
+    def create(self, validated_data):
+        output_item = super().create(validated_data)
+        product_stock = validated_data['products_stock']
+        if validated_data['sale_item'] is not None:
+            UpdateSaleItem(output_item, product_stock).update_sale_item()
+        DecreaseProductStockService(output_item, product_stock).decrease_product_stock()
+
+        return output_item
+        
     
 class OutputSerializer(serializers.ModelSerializer):
     """Serializer for Output model"""
@@ -399,7 +411,6 @@ class OutputSerializer(serializers.ModelSerializer):
             output = Output.objects.create(**validated_data)
             for item_data in items_data:
                 OutputItem.objects.create(output=output, **item_data)
-            DecreaseProductStockService(output).decrease_product_stock()
         except Exception as e:
             raise e
 
@@ -595,6 +606,16 @@ class PaymentSerializer(serializers.ModelSerializer):
                 })
 
         return data
+    
+    @transaction.atomic
+    def create(self, validated_data):
+        payment = super().create(validated_data)
+        transaction_id = validated_data['transaction_id']
+        payment_amount = validated_data['amount']
+        transaction_type = validated_data['transaction_type']
+        UpdateTransactionService(transaction_id, payment_amount, transaction_type).update_transaction_balance_due()
+        
+        return payment
 
 
 class PurchaseItemSerializer(serializers.ModelSerializer):

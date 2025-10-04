@@ -1,7 +1,7 @@
 """
 Tests for client API.
 """
-from unittest import TestCase
+from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status

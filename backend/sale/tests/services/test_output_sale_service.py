@@ -1,8 +1,7 @@
 from unittest import TestCase
-from sale.services.entry_purchase_service import UpdatePurchaseItem
+from sale.services.output_sale_service import UpdateSaleItem
 from core.models import *
 
-from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 import uuid
@@ -52,18 +51,18 @@ def create_warehouse(**params):
 
     return Warehouse.objects.create(**defaults)
 
-def create_supplier(**params):
+def create_client(**params):
     unique_suffix = str(uuid.uuid4())[:8]
     defaults={
-        'name': f'Supplier {unique_suffix}',
+        'name': f'Client {unique_suffix}',
         'phone': '78885521',
         'nit': f'123456789{unique_suffix}',
         'email': f'test{unique_suffix}@example.com',
         'address': 'Test Address 123',
     }
     defaults.update(params)
-    
-    return Supplier.objects.create(**defaults)
+
+    return Client.objects.create(**defaults)
 
 def create_category(**params):
     """Create and return a sample category."""
@@ -116,88 +115,94 @@ def create_product_stock(**params):
     defaults.update(params)
 
     return ProductStock.objects.create(**defaults)
-    
-def create_entry(**params):
+
+def create_selling_channel(**params):
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
-        'warehouse': create_warehouse(),
-        'warehouse_keeper': create_user(),
-        'supplier': create_supplier(),
-        'entry_date': '2025-10-02',
-        'invoice_number': f'123{unique_suffix}',
-        'note': 'This a test note',
+        'name': f'Canal de ventas {unique_suffix}',
     }
     defaults.update(params)
 
-    return Entry.objects.create(**defaults)
+    return SellingChannel.objects.create(**defaults)
+    
+def create_output(**params):
+    defaults = {
+        'warehouse': create_warehouse(),
+        'warehouse_keeper': create_user(),
+        'client': create_client(),
+        'output_date': '2025-10-02',
+    }
+    defaults.update(params)
 
-def create_purchase(**params):
-    unique_suffix = str(uuid.uuid4())[:8]
+    return Output.objects.create(**defaults)
+
+def create_sale(**params):
     defaults = {
         'agency': create_agency(),
-        'buyer': create_user(),
-        'supplier': create_supplier(),
-        'purchase_type': 'contado',
-        'status': 'realizado',
-        'purchase_date': '2025-10-02',
-        'purchase_end_date': '2025-10-05',
-        'invoice_number': f'784{unique_suffix}',
+        'seller': create_user(),
+        'client': create_client(),
+        'selling_channel': create_selling_channel(),
+        'sale_type': 'contado',
+        'status': 'proforma',
+        'sale_date': '2025-10-02',
+        'sale_perform_date': '2025-10-05',
+        'sale_done_date': '2025-10-10',
         'total': 200,
         'balance_due': 200,
     }
     defaults.update(params)
 
-    return Purchase.objects.create(**defaults)
+    return Sale.objects.create(**defaults)
 
 
-class TestUpdatePurchaseItem(TestCase):
-    """Tests for update purchase items when an entry is done."""
+class TestUpdateSaleItem(TestCase):
+    """Tests for update sale items when an output is done."""
     def setUp(self):
-        self.purchase_item = self.create_test_purchase_item()
+        self.sale_item = self.create_test_sale_item()
         
-    def create_test_purchase_item(self, **kwargs):
+    def create_test_sale_item(self, **kwargs):
         defaults = {
-            'purchase': create_purchase(),
+            'sale': create_sale(),
             'product_stock': create_product_stock(),
+            'status': 'pendiente',
             'quantity': 50,
             'unit_price': 50,
-            'total_price': 2500,
-            'entered_stock': 0,
+            'sub_total_price': 2500,
+            'discount': 5,
+            'total_price': 2000,
+            'dispatched_stock': 0,
         }
         defaults.update(kwargs)
 
-        return PurchaseItem.objects.create(**defaults)
-        
-    def test_update_purchase_item(self):
-        """Test update purchase item"""
-        entry_item = EntryItem.objects.create(
-            purchase_item=self.purchase_item,
-            entry=create_entry(),
+        return SaleItem.objects.create(**defaults)
+
+    def test_update_sale_item(self):
+        """Test update sale item"""
+        output_item = OutputItem.objects.create(
+            sale_item=self.sale_item,
+            output=create_output(),
             product_stock=create_product_stock(),
             quantity=10,
-            unit_price=10.00,
         )
         
-        service = UpdatePurchaseItem(entry_item)
-        service.update_purchase_item()
+        service = UpdateSaleItem(output_item)
+        service.update_sale_item()
         
-        self.purchase_item.refresh_from_db()
-        self.assertEqual(self.purchase_item.entered_stock, 10)
+        self.sale_item.refresh_from_db()
+        self.assertEqual(self.sale_item.dispatched_stock, 10)
         
-    def test_entered_stock_exceeds_quantity(self):
+    def test_dispatched_stock_exceeds_quantity(self):
         """Test entered stock exceeds quantity selled."""
-        entry_item = EntryItem.objects.create(
-            purchase_item=self.purchase_item,
-            entry=create_entry(),
+        output_item = OutputItem.objects.create(
+            sale_item=self.sale_item,
+            output=create_output(),
             product_stock=create_product_stock(),
             quantity=60,
-            unit_price=10.00,
         )
 
-        service = UpdatePurchaseItem(entry_item)
+        service = UpdateSaleItem(output_item)
 
         with self.assertRaises(ValidationError) as context:
-            service.update_purchase_item()
+            service.update_sale_item()
 
-        self.assertIn("La cantidad ingresada excede la cantidad comprada.", str(context.exception))
-        
+        self.assertIn("La cantidad despachada excede la cantidad vendida.", str(context.exception))

@@ -129,3 +129,4 @@ class TestIncreaseProductStockService(TestCase):
 
         self.product_stock.refresh_from_db()
         self.assertEqual(self.product_stock.stock, 60)
+        self.assertEqual(self.product_stock.available_stock, 50)

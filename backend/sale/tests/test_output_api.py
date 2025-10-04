@@ -1,7 +1,7 @@
 """
 Tests for output APIs
 """
-from unittest import TestCase
+from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
@@ -129,12 +129,12 @@ def create_output(**params):
     }
     defaults.update(params)
 
-    entry_items_data = defaults.pop('output_items', None)
+    output_items_data = defaults.pop('output_items', None)
 
     output = Output.objects.create(**defaults)
 
-    if entry_items_data:
-        for item_data in entry_items_data:
+    if output_items_data:
+        for item_data in output_items_data:
             OutputItem.objects.create(output=output, **item_data)
     else:
         OutputItem.objects.create(
@@ -147,13 +147,6 @@ def create_output(**params):
 
 class PublicOutputApiTests(TestCase):
     """Test API request for unathenticated users."""
-    
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        from django.core.management import call_command
-        call_command('migrate', verbosity=0, interactive=False)
-    
     def setUp(self):
         self.client = APIClient()
 
@@ -165,13 +158,6 @@ class PublicOutputApiTests(TestCase):
 
 class PrivateOutputApiTests(TestCase):
     """Test API request for authorized users."""
-    
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        from django.core.management import call_command
-        call_command('migrate', verbosity=0, interactive=False)
-    
     def setUp(self):
         self.client = APIClient()
         self.user = create_user()
