@@ -97,7 +97,6 @@ class TestUpdateProductStockService(TestCase):
         )
 
         entry = Entry.objects.create(
-            warehouse=create_warehouse(),
             warehouse_keeper=create_user(),
             supplier=supplier,
             entry_date=timezone.now(),
@@ -138,7 +137,6 @@ class TestUpdateProductStockService(TestCase):
         )
 
         entry = Entry.objects.create(
-            warehouse=create_warehouse(),
             warehouse_keeper=create_user(),
             supplier=supplier,
             entry_date=timezone.now(),
@@ -179,7 +177,6 @@ class TestUpdateProductStockService(TestCase):
         )
 
         entry = Entry.objects.create(
-            warehouse=create_warehouse(),
             warehouse_keeper=create_user(),
             supplier=supplier,
             entry_date=timezone.now(),
@@ -223,7 +220,6 @@ class TestUpdateProductStockService(TestCase):
         )
 
         output = Output.objects.create(
-            warehouse=create_warehouse(),
             warehouse_keeper=create_user(),
             client=client,
             output_date=timezone.now(),
@@ -264,7 +260,6 @@ class TestUpdateProductStockService(TestCase):
         )
 
         output = Output.objects.create(
-            warehouse=create_warehouse(),
             warehouse_keeper=create_user(),
             client=client,
             output_date=timezone.now(),
@@ -305,7 +300,6 @@ class TestUpdateProductStockService(TestCase):
         )
 
         output = Output.objects.create(
-            warehouse=create_warehouse(),
             warehouse_keeper=create_user(),
             client=client,
             output_date=timezone.now(),

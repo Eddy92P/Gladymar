@@ -1144,7 +1144,9 @@ export const AddPurchase = () => {
 						<AddPurchasePreview
 							supplier={supplier}
 							invoiceNumber={invoiceNumberState.value}
-							purchaseDate={purchaseDateState.value}
+							purchaseDate={purchaseDateState.value.format(
+								'DD-MM-YYYY'
+							)}
 							purchaseType={purchaseType}
 							products={productListState}
 							paymentMethod={paymentMethod}
@@ -1214,6 +1216,7 @@ export const AddPurchase = () => {
 						}}
 						onClose={() => setShowProductsModal(false)}
 						addedProducts={productListState}
+						isPurchase={true}
 					/>
 				)}
 

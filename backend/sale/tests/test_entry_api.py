@@ -116,7 +116,6 @@ def create_entry(**params):
     """Create and return a sample entry."""
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
-        'warehouse': create_warehouse(),
         'warehouse_keeper': create_user(),
         'supplier': create_supplier(),
         'entry_date': timezone.now().date(),
@@ -176,7 +175,6 @@ class PrivateEntryApiTests(TestCase):
     def test_create_entry(self):
         """Test creating an entry."""
         payload = {
-            'warehouse': create_warehouse().id,
             'warehouse_keeper': create_user().id,
             'supplier': create_supplier().id,
             'entry_date': '2021-01-01',
@@ -209,7 +207,6 @@ class PrivateEntryApiTests(TestCase):
         """Test full update of an entry"""
         entry = create_entry(invoice_number='1234567890')
         payload = {
-            'warehouse': create_warehouse().id,
             'warehouse_keeper': create_user().id,
             'supplier': entry.supplier.id,
             'invoice_number': '1234567891',

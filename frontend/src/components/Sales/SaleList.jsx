@@ -19,7 +19,7 @@ const useStyles = makeStyles({
 	},
 });
 
-const PurchaseList = () => {
+const SaleList = () => {
 	const classes = useStyles();
 	const authContext = useContext(AuthContext);
 
@@ -223,4 +223,4 @@ const PurchaseList = () => {
 	);
 };
 
-export default PurchaseList;
+export default SaleList;

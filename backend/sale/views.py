@@ -33,6 +33,8 @@ class CatalogView(APIView):
         selling_channel_id = request.query_params.get("selling_channel_id")
         agency_id = request.query_params.get("agency_id")
         sale_id = request.query_params.get("sale_id")
+        purchase_id = request.query_params.get("purchase_id")
+        warehouse_id = request.query_params.get("warehouse_id")
 
         if selling_channel_id:
             prices = ProductChannelPrice.objects.filter(selling_channel=selling_channel_id)
@@ -63,9 +65,9 @@ class CatalogView(APIView):
                     "maximum_sale_price": product.maximum_sale_price,
                 })
         elif agency_id and sale_id:
-            sale_items = SaleItem.objects.filter(sale=sale_id, sale__agency=agency_id).prefetch_related('product_stock')
+            sale = Sale.objects.get(id=sale_id, agency=agency_id)
 
-            for sale_item in sale_items:
+            for sale_item in sale.sale_items.all().prefetch_related('product_stock'):
                 data.append({
                     "sale_item_id": sale_item.id,
                     "id": sale_item.product_stock.id,
@@ -73,8 +75,44 @@ class CatalogView(APIView):
                     "warehouse": sale_item.product_stock.warehouse.name,
                     "name": sale_item.product_stock.product.name,
                     "code": sale_item.product_stock.product.code,
-                    "price": sale_item.total_price,
-                    "stock": product.available_stock,
+                    "price": 0,
+                    "stock": sale_item.product_stock.available_stock,
+                    "minimum_stock": sale_item.product_stock.minimum_stock,
+                    "maximum_stock": sale_item.product_stock.maximum_stock,
+                    "minimum_sale_price": sale_item.product_stock.product.minimum_sale_price,
+                    "maximum_sale_price": sale_item.product_stock.product.maximum_sale_price,
+                })
+        elif agency_id and purchase_id:
+            purchase = Purchase.objects.get(id=purchase_id, agency=agency_id)
+
+            for purchase_item in purchase.purchase_items.all().prefetch_related('product_stock'):
+                data.append({
+                    "purchase_item_id": purchase_item.id,
+                    "id": purchase_item.product_stock.id,
+                    "agency": purchase_item.product_stock.warehouse.agency.name,
+                    "warehouse": purchase_item.product_stock.warehouse.name,
+                    "name": purchase_item.product_stock.product.name,
+                    "code": purchase_item.product_stock.product.code,
+                    "price": 0,
+                    "stock": purchase_item.product_stock.available_stock,
+                    "minimum_stock": purchase_item.product_stock.minimum_stock,
+                    "maximum_stock": purchase_item.product_stock.maximum_stock,
+                    "minimum_sale_price": purchase_item.product_stock.product.minimum_sale_price,
+                    "maximum_sale_price": purchase_item.product_stock.product.maximum_sale_price,
+                    "status": purchase_item.status,
+                })
+        elif agency_id:
+            products = ProductStock.objects.filter(warehouse__agency=agency_id).select_related('product')
+
+            for product in products:
+                data.append({
+                    "id": product.id,
+                    "agency": product.warehouse.agency.name,
+                    "warehouse": product.warehouse.name,
+                    "name": product.product.name,
+                    "code": product.product.code,
+                    "price": 0,
+                    "stock": product.stock,
                     "minimum_stock": product.minimum_stock,
                     "maximum_stock": product.maximum_stock,
                     "minimum_sale_price": product.product.minimum_sale_price,

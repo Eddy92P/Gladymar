@@ -98,6 +98,9 @@ class CatalogProductSerializer(serializers.Serializer):
     maximum_stock = serializers.IntegerField()
     minimum_sale_price = serializers.DecimalField(max_digits=10, decimal_places=2)
     maximum_sale_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    purchase_item_id = serializers.IntegerField(required=False, allow_null=True)
+    sale_item_id = serializers.IntegerField(required=False, allow_null=True)
+    status = serializers.CharField(required=False, allow_null=True)
 
 class NestedProductStockSerializer(serializers.ModelSerializer):
     """Nested Serializer for intermediate table for product and stock model."""
@@ -299,11 +302,24 @@ class EntryItemSerializer(serializers.ModelSerializer):
         model = EntryItem
         fields = ['id', 'purchase_item', 'product_stock', 'products_stock', 'quantity']
         read_only_fields = ['id']
+    
+    def validate(self, data):
+        """Validate the entire entry item"""
+        quantity = data.get('quantity')
+        purchase_item = data.get('purchase_item')
+        
+        # Validate quantity against purchase item if it exists
+        if purchase_item and quantity:
+            if purchase_item.entered_stock + quantity > purchase_item.quantity:
+                raise serializers.ValidationError({
+                    'quantity': "La cantidad ingresada excede la cantidad comprada."
+                })
+        
+        return data
         
     def create(self, validated_data):
         entry_item = super().create(validated_data)
-
-        if validated_data['purchase_item'] is not None:
+        if validated_data.get('purchase_item') is not None:
             UpdatePurchaseItem(entry_item).update_purchase_item()
         IncreaseProductStockService(entry_item).increase_product_stock()
 
@@ -312,18 +328,15 @@ class EntryItemSerializer(serializers.ModelSerializer):
 
 class EntrySerializer(serializers.ModelSerializer):
     """Serializer for Entry model"""
-    warehouse = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Warehouse.objects.all())
-    warehouses = WarehouseSerializer(read_only=True, source='warehouse')
-    warehouse_keeper = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    warehouse_keeper = UserSerializer(read_only=True)
     suppliers = SupplierSerializer(read_only=True, source='supplier')
     supplier = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Supplier.objects.all())
     entry_items = EntryItemSerializer(many=True)
 
     class Meta:
         model = Entry
-        fields = ['id', 'warehouse', 'warehouses', 'warehouse_keeper',
-                  'supplier', 'suppliers', 'entry_date', 'invoice_number',
-                  'entry_items', 'created_at', 'updated_at']
+        fields = ['id', 'warehouse_keeper', 'supplier', 'suppliers', 'entry_date',
+                  'invoice_number', 'entry_items', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
  
     @transaction.atomic
@@ -332,7 +345,8 @@ class EntrySerializer(serializers.ModelSerializer):
             items_data = validated_data.pop('entry_items')
             entry = Entry.objects.create(**validated_data)
             for item_data in items_data:
-                EntryItem.objects.create(entry=entry, **item_data)
+                item_data['entry'] = entry
+                EntryItemSerializer().create(item_data)
         except Exception as e:
             raise e
         return entry
@@ -390,8 +404,6 @@ class OutputItemSerializer(serializers.ModelSerializer):
     
 class OutputSerializer(serializers.ModelSerializer):
     """Serializer for Output model"""
-    warehouse = serializers.PrimaryKeyRelatedField(queryset=Warehouse.objects.all(), write_only=True)
-    warehouses = WarehouseSerializer(read_only=True, source='warehouse')
     warehouse_keeper = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     clients = ClientSerializer(read_only=True, source='client')
     client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all(), write_only=True)
@@ -399,7 +411,7 @@ class OutputSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Output
-        fields = ['id', 'warehouse', 'warehouses', 'warehouse_keeper',
+        fields = ['id', 'warehouse_keeper',
                   'client', 'clients', 'output_date', 'output_items',
                   'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
@@ -625,10 +637,12 @@ class PurchaseItemSerializer(serializers.ModelSerializer):
         queryset=ProductStock.objects.all(),
         write_only=True,
     )
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
     
     class Meta:
         model = PurchaseItem
-        fields = ['product_stock', 'products_stock', 'quantity', 'unit_price', 'total_price']
+        fields = ['product_stock', 'products_stock', 'quantity', 'unit_price',
+                  'total_price', 'status', 'status_display', 'entered_stock']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 

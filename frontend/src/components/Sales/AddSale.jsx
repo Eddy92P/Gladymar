@@ -272,6 +272,9 @@ export const AddSale = () => {
 		if (action.type === 'ADD_PRODUCT') {
 			return [...state, action.product];
 		}
+		if (action.type === 'RESET_PRODUCTS') {
+			return [];
+		}
 
 		return state;
 	};
@@ -513,6 +516,8 @@ export const AddSale = () => {
 
 	const sellingChannelInputChangeHandler = (event, option) => {
 		setSellingChannel(option);
+		// Resetear la lista de productos cuando cambie el almacén
+		dispatchProductList({ type: 'RESET_PRODUCTS' });
 	};
 
 	const handlerCancel = () => {

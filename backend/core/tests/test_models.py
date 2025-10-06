@@ -286,15 +286,6 @@ class ModelTest(TestCase):
             city='LP',
         )
         entry = Entry.objects.create(
-            warehouse=Warehouse.objects.create(
-                agency=Agency.objects.create(
-                    name='Test Agency 8',
-                    location='Test Location',
-                    city='LP',
-                ),
-                name='Test Warehouse 3',
-                location='Test Location 2',
-            ),
             warehouse_keeper=get_user_model().objects.create_user(
                 email='testuser@example.com',
                 password='testpass123',
@@ -328,15 +319,6 @@ class ModelTest(TestCase):
         )
         entry_item = EntryItem.objects.create(
             entry=Entry.objects.create(
-                warehouse=Warehouse.objects.create(
-                    agency=Agency.objects.create(
-                        name='Test Agency 7',
-                        location='Test Location',
-                        city='LP',
-                    ),
-                    name='Test Warehouse 2',
-                    location='Test Location 2',
-                ),
                 warehouse_keeper=get_user_model().objects.create_user(
                     email='testuser@example.com',
                     password='testpass123',
@@ -400,15 +382,6 @@ class ModelTest(TestCase):
             city='LP',
         )
         output = Output.objects.create(
-            warehouse=Warehouse.objects.create(
-                agency=Agency.objects.create(
-                    name='Test Agency 5',
-                    location='Test Location',
-                    city='LP',
-                ),
-                name='Test Warehouse',
-                location='Test Location 2',
-            ),
             warehouse_keeper=get_user_model().objects.create_user(
                 'test@example.com',
                 'testpass123',
@@ -439,15 +412,6 @@ class ModelTest(TestCase):
         )
         output_item = OutputItem.objects.create(
             output=Output.objects.create(
-                warehouse=Warehouse.objects.create(
-                    agency=Agency.objects.create(
-                        name='Test Agency 6',
-                        location='Test Location',
-                        city='LP',
-                    ),
-                    name='Test Warehouse 1',
-                    location='Test Location 2',
-                ),
                 warehouse_keeper=get_user_model().objects.create_user(
                     'test@example.com',
                     'testpass123',

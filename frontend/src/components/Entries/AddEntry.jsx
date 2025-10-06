@@ -27,11 +27,6 @@ import {
 	Tooltip,
 	Alert,
 	Autocomplete,
-	InputLabel,
-	MenuItem,
-	Select,
-	InputAdornment,
-	FilledInput,
 } from '@mui/material';
 import CancelIcon from '@mui/icons-material/Cancel';
 import SearchIcon from '@mui/icons-material/Search';
@@ -48,8 +43,8 @@ import { api, config } from '../../Constants';
 
 // Components
 import AddProductDetailedList from '../Products/AddProductDetailedList';
-import AddSalePreview from './AddSalePreview';
-import AddSaleModal from './AddSaleModal';
+import AddEntryPreview from './AddEntryPreview';
+import AddEntryModal from './AddEntryModal';
 import ListHeader from '../UI/List/ListHeader';
 
 // Context
@@ -117,6 +112,7 @@ export const AddEntry = () => {
 				feedbackText: 'Ingrese un número válido.',
 			};
 		}
+		return state;
 	};
 
 	const productListReducer = (state, action) => {
@@ -131,35 +127,6 @@ export const AddEntry = () => {
 								feedbackText: validatePositiveNumber(action.val)
 									? ''
 									: 'Ingrese un número válido',
-							},
-						}
-					: product
-			);
-		}
-		if (action.type === 'UNIT_PRICE_CHANGE') {
-			return state.map(product =>
-				product.id === action.id
-					? {
-							...product,
-							price: {
-								value: action.val,
-								isValid: validatePositiveNumber(action.val),
-								feedbackText: validatePositiveNumber(action.val)
-									? ''
-									: 'Ingrese un número válido',
-							},
-						}
-					: product
-			);
-		}
-		if (action.type === 'TOTAL_PRICE_CHANGE') {
-			return state.map(product =>
-				product.id === action.id
-					? {
-							...product,
-							totalPrice: {
-								value: action.val,
-								isValid: validatePositiveNumber(action.val),
 							},
 						}
 					: product
@@ -186,11 +153,14 @@ export const AddEntry = () => {
 		if (action.type === 'ADD_PRODUCT') {
 			return [...state, action.product];
 		}
+		if (action.type === 'RESET_PRODUCTS') {
+			return [];
+		}
 
 		return state;
 	};
 
-	const [saleDateState, dispatchEntryDate] = useReducer(entryDateReducer, {
+	const [entryDateState, dispatchEntryDate] = useReducer(entryDateReducer, {
 		value: null,
 		isValid: true,
 		feedbackText: '',
@@ -199,46 +169,26 @@ export const AddEntry = () => {
 	const [invoiceNumberState, dispatchInvoiceNumber] = useReducer(
 		invoiceNumberReducer,
 		{
-			value: '',
+			value: purchaseData.invoiceNumber ? purchaseData.invoiceNumber : '',
 			isValid: true,
 			feedbackText: '',
 		}
 	);
 
-	const purchaseProducts = purchaseData.purchaseItems?.map(purchaseItem => {
-		return {
-			purchaseItemId: purchaseItem.id,
-			id: purchaseItem.products.id,
-			name: purchaseItem.products.name,
-			code: purchaseItem.products.code,
-			stock: purchaseItem.products.available_stock,
-			price: {
-				value: purchaseItem.unit_price || '',
-				isValid: true,
-				feedbackText: '',
-			},
-			quantity: {
-				value: purchaseItem.quantity || '',
-				isValid: true,
-				feedbackText: '',
-			},
-		};
-	});
-
 	const [productListState, dispatchProductList] = useReducer(
 		productListReducer,
-		purchaseProducts ? purchaseProducts : []
+		[]
 	);
 
-	const { isValid: saleDateIsValid } = saleDateState;
+	const { isValid: entryDateIsValid } = entryDateState;
 	const { isValid: invoiceNumberIsValid } = invoiceNumberState;
 
 	const entryDateInputChangeHandler = newValue => {
 		dispatchEntryDate({ type: 'INPUT_CHANGE', val: newValue });
 	};
 
-	const invoiceNumberInputChangeHandler = newValue => {
-		dispatchInvoiceNumber({ type: 'INPUT_CHANGE', val: newValue });
+	const invoiceNumberInputChangeHandler = e => {
+		dispatchInvoiceNumber({ type: 'INPUT_CHANGE', val: e.target.value });
 	};
 
 	const supplierInputChangeHandler = (event, option) => {
@@ -277,6 +227,14 @@ export const AddEntry = () => {
 					const data = await response.json();
 					const choices = data || [];
 					setSupplierChoices(choices);
+					if (purchaseData.supplier && choices.length > 0) {
+						const matchingChoice = choices.find(
+							choice => choice.name === purchaseData.supplier
+						);
+						if (matchingChoice) {
+							setSupplier(matchingChoice);
+						}
+					}
 				}
 			} catch (error) {
 				console.error(
@@ -287,33 +245,25 @@ export const AddEntry = () => {
 		};
 
 		fetchSuppliers();
-	}, [authContext.token, urlSupplierChoices]);
-
+	}, [authContext.token, urlSupplierChoices, purchaseData.supplier]);
 	const handleSubmit = async () => {
 		try {
 			// Preparar los datos básicos de la entrada
-			const saleInfo = {
+			const entryInfo = {
 				agency: storeContext.agency,
-				client: client.id,
-				selling_channel: sellingChannel.id,
-				sale_date: saleDateState.value.format('YYYY-MM-DD'),
-				sale_type: 'proforma',
-				status: 'proforma',
-				total: saleTotalAmount,
-				balance_due: 0,
-				sale_items: productListState.map(product => ({
-					product: product.id,
+				supplier: supplier.id,
+				entry_date: entryDateState.value.format('YYYY-MM-DD'),
+				invoice_number: invoiceNumberState.value,
+				entry_items: productListState.map(product => ({
+					purchase_item: product.purchaseItem,
+					product_stock: product.id,
 					quantity: product.quantity.value,
-					unit_price: product.price.value,
-					sub_total_price: product.subTotalPrice.value,
-					discount: product.discount.value,
-					total_price: product.totalPrice.value,
 				})),
 			};
 
 			const response = await fetch(url, {
 				method: 'POST',
-				body: JSON.stringify(saleInfo),
+				body: JSON.stringify(entryInfo),
 				headers: {
 					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
@@ -324,16 +274,22 @@ export const AddEntry = () => {
 			if (!response.ok) {
 				setErrorMessage('Ocurrió un problema.');
 				setIsForm(true);
-				if (data.sale_items) {
-					data.sale_items.forEach((sale_item, index) => {
+				if (data.invoice_number) {
+					dispatchInvoiceNumber({
+						type: 'INPUT_ERROR',
+						errorMessage: data.invoice_number[0],
+					});
+				}
+				if (data.entry_items) {
+					data.entry_items.forEach((entry_item, index) => {
 						const productId = productListState[index]?.id;
 
-						if (sale_item.quantity) {
+						if (entry_item.quantity) {
 							const errorMessage = Array.isArray(
-								sale_item.quantity
+								entry_item.quantity
 							)
-								? sale_item.quantity[0]
-								: sale_item.quantity;
+								? entry_item.quantity[0]
+								: entry_item.quantity;
 
 							dispatchProductList({
 								type: 'SET_ERROR',
@@ -342,241 +298,7 @@ export const AddEntry = () => {
 								field: 'quantity',
 							});
 						}
-
-						if (sale_item.unit_price) {
-							const errorMessage = Array.isArray(
-								sale_item.unit_price
-							)
-								? sale_item.unit_price[0]
-								: sale_item.unit_price;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'unitPrice',
-							});
-						}
-
-						if (sale_item.sub_total_price) {
-							const errorMessage = Array.isArray(
-								sale_item.sub_total_price
-							)
-								? sale_item.sub_total_price[0]
-								: sale_item.sub_total_price;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'subTotalPrice',
-							});
-						}
-
-						if (sale_item.discount) {
-							const errorMessage = Array.isArray(
-								sale_item.discount
-							)
-								? sale_item.discount[0]
-								: sale_item.discount;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'discount',
-							});
-						}
-
-						if (sale_item.total_price) {
-							const errorMessage = Array.isArray(
-								sale_item.total_price
-							)
-								? sale_item.total_price[0]
-								: sale_item.total_price;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'totalPrice',
-							});
-						}
 					});
-				}
-
-				if (data.payments) {
-					if (data.payments.payment_date) {
-						dispatchPaymentDate({
-							type: 'INPUT_ERROR',
-							errorMessage: data.payments.payment_date[0],
-						});
-					}
-					if (data.payments.amount) {
-						dispatchPaymentAmount({
-							type: 'INPUT_ERROR',
-							errorMessage: data.payments.amount,
-						});
-					}
-				}
-			} else {
-				setIsLoading(true);
-				setShowModal(true);
-			}
-		} catch (e) {
-			setIsLoading(false);
-			setMessage(e.message);
-		}
-	};
-
-	const handleEdit = async () => {
-		try {
-			// Preparar los datos básicos de la venta
-			const saleInfo = {
-				agency: storeContext.agency,
-				client: client.id,
-				selling_channel: sellingChannel.id,
-				sale_date: saleDateState.value.format('YYYY-MM-DD'),
-				sale_perform_date: isSale
-					? salePerformDateState.value.format('YYYY-MM-DD')
-					: null,
-				sale_type: isSale ? saleType : 'proforma',
-				status: isSale ? 'realizado' : 'proforma',
-				total: saleTotalAmount,
-				balance_due: isSale ? saleTotalAmount : 0,
-				sale_items: productListState.map(product => ({
-					id: product.saleItemId,
-					product: product.id,
-					quantity: product.quantity.value,
-					unit_price: product.price.value,
-					sub_total_price: product.subTotalPrice.value,
-					discount: product.discount.value,
-					total_price: product.totalPrice.value,
-				})),
-			};
-
-			// Solo agregar payments si se proporciona información de pago
-			if (
-				paymentMethod &&
-				paymentAmountState.value &&
-				paymentDateState.value
-			) {
-				saleInfo.payments = {
-					payment_method: paymentMethod,
-					transaction_type: 'venta',
-					amount: paymentAmountState.value,
-					payment_date: paymentDateState.value
-						? paymentDateState.value.format('YYYY-MM-DD')
-						: null,
-				};
-			}
-
-			const response = await fetch(`${url}${saleData.id}/`, {
-				method: 'PUT',
-				body: JSON.stringify(saleInfo),
-				headers: {
-					Authorization: `Token ${authContext.token}`,
-					'Content-Type': 'application/json',
-				},
-			});
-			const data = await response.json();
-
-			if (!response.ok) {
-				setErrorMessage('Ocurrió un problema.');
-				setIsForm(true);
-				if (data.sale_items) {
-					data.sale_items.forEach((sale_item, index) => {
-						const productId = productListState[index]?.id;
-
-						if (sale_item.quantity) {
-							const errorMessage = Array.isArray(
-								sale_item.quantity
-							)
-								? sale_item.quantity[0]
-								: sale_item.quantity;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'quantity',
-							});
-						}
-
-						if (sale_item.unit_price) {
-							const errorMessage = Array.isArray(
-								sale_item.unit_price
-							)
-								? sale_item.unit_price[0]
-								: sale_item.unit_price;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'unitPrice',
-							});
-						}
-
-						if (sale_item.sub_total_price) {
-							const errorMessage = Array.isArray(
-								sale_item.sub_total_price
-							)
-								? sale_item.sub_total_price[0]
-								: sale_item.sub_total_price;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'subTotalPrice',
-							});
-						}
-
-						if (sale_item.discount) {
-							const errorMessage = Array.isArray(
-								sale_item.discount
-							)
-								? sale_item.discount[0]
-								: sale_item.discount;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'discount',
-							});
-						}
-
-						if (sale_item.total_price) {
-							const errorMessage = Array.isArray(
-								sale_item.total_price
-							)
-								? sale_item.total_price[0]
-								: sale_item.total_price;
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'totalPrice',
-							});
-						}
-					});
-				}
-
-				if (data.payments) {
-					if (data.payments.payment_date) {
-						dispatchPaymentDate({
-							type: 'INPUT_ERROR',
-							errorMessage: data.payments.payment_date[0],
-						});
-					}
-					if (data.payments.amount) {
-						dispatchPaymentAmount({
-							type: 'INPUT_ERROR',
-							errorMessage: data.payments.amount,
-						});
-					}
 				}
 			} else {
 				setIsLoading(true);
@@ -593,55 +315,20 @@ export const AddEntry = () => {
 	};
 
 	useEffect(() => {
-		const saleTypeValid = isSale ? saleType : true;
-		const salePerformDateValue = isSale ? salePerformDateState.value : true;
 		if (
-			saleDateState.value &&
-			salePerformDateValue &&
-			client &&
-			sellingChannel &&
+			entryDateState.value &&
+			supplier &&
+			invoiceNumberState.value &&
 			productListState.length > 0
 		) {
 			// Validar Productos
 			const allProductsFieldsValid = productListState.every(
-				product =>
-					product.price.value &&
-					product.quantity.value &&
-					product.subTotalPrice.value &&
-					product.discount.value !== '' &&
-					product.discount.value !== null &&
-					product.discount.value !== undefined &&
-					product.totalPrice.value &&
-					product.price.isValid &&
-					product.quantity.isValid &&
-					product.subTotalPrice.isValid &&
-					product.discount.isValid &&
-					product.totalPrice.isValid
+				product => product.quantity.value && product.quantity.isValid
 			);
-
-			let paymentIsValid = true;
-			if (isSale) {
-				paymentIsValid = false;
-			}
-			if (
-				paymentMethod ||
-				paymentAmountState.value ||
-				paymentDateState.value
-			) {
-				paymentIsValid =
-					paymentMethod &&
-					paymentAmountState.value &&
-					paymentDateState.value &&
-					paymentAmountIsValid &&
-					paymentDateIsValid;
-			}
 			const isValid =
-				saleDateIsValid &&
-				salePerformDateIsValid &&
-				paymentIsValid &&
-				client &&
-				sellingChannel &&
-				saleTypeValid &&
+				entryDateIsValid &&
+				supplier &&
+				invoiceNumberIsValid &&
 				allProductsFieldsValid;
 			setFormIsValid(isValid);
 			setDisabled(!isValid);
@@ -649,48 +336,35 @@ export const AddEntry = () => {
 			setDisabled(true);
 		}
 	}, [
-		client,
-		saleDateState.value,
-		salePerformDateState.value,
-		sellingChannel,
-		paymentAmountState.value,
-		paymentDateState.value,
-		paymentMethod,
-		saleData.length,
-		saleDateIsValid,
-		salePerformDateIsValid,
-		paymentAmountIsValid,
-		paymentDateIsValid,
+		supplier,
+		entryDateState.value,
+		invoiceNumberState.value,
+		purchaseData.length,
+		entryDateIsValid,
+		invoiceNumberIsValid,
 		productListState,
-		isSale,
-		saleType,
 	]);
 
 	useEffect(() => {
-		if (isSale) {
-			setTitle('Realizar Venta');
-		} else if (!isSale && saleData.length > 0) {
-			setTitle('Editar Venta');
-		} else {
-			setTitle('Generar Proforma');
-		}
-
+		setTitle('Generar Entrada');
 		setButtonText(!isForm ? 'Finalizar' : 'Siguiente');
-	}, [isForm, isSale, saleData]);
+	}, [isForm]);
 
 	return (
 		<>
 			<Fragment>
 				<ListHeader title={title} text={title} visible={false} />
 				{isForm ? (
-					<div className={classes.listContainer}>
-						{errorMessage && (
-							<Alert severity="error">{errorMessage}</Alert>
-						)}
-						<FormControl fullWidth onSubmit={handleSubmit}>
-							<Box sx={{ mt: 2, flexGrow: 1 }}>
+					<>
+						{purchaseData?.purchaseItems && (
+							<Paper
+								elevation={3}
+								sx={{
+									p: 4,
+								}}
+							>
 								<Typography
-									variant="h6"
+									variant="h5"
 									component="h2"
 									sx={{
 										fontWeight: 'bold',
@@ -698,511 +372,193 @@ export const AddEntry = () => {
 										pb: 1,
 									}}
 								>
-									Datos de Venta
+									Detalle de Productos Comprados
 								</Typography>
-								<Grid container spacing={2} mt={1} mb={2}>
-									<Grid size={{ xs: 12, sm: 4 }}>
-										<Autocomplete
-											disablePortal
-											value={client}
-											options={clientChoices}
-											getOptionLabel={option =>
-												option ? option.name || '' : ''
-											}
-											renderOption={(props, option) => (
-												<li {...props} key={option.id}>
-													{option.name}
-												</li>
-											)}
-											renderInput={params => (
-												<TextField
-													{...params}
-													label="Cliente"
-													required
-												/>
-											)}
-											onChange={clientInputChangeHandler}
-										/>
-									</Grid>
-									<Grid size={{ xs: 12, sm: 4 }}>
-										<Autocomplete
-											disablePortal
-											value={sellingChannel}
-											options={sellingChannelChoices}
-											getOptionLabel={option =>
-												option ? option.name || '' : ''
-											}
-											renderOption={(props, option) => (
-												<li {...props} key={option.id}>
-													{option.name}
-												</li>
-											)}
-											renderInput={params => (
-												<TextField
-													{...params}
-													label="Canal de Ventas"
-													required
-												/>
-											)}
-											onChange={
-												sellingChannelInputChangeHandler
-											}
-										/>
-									</Grid>
-									{isSale && (
-										<Grid size={{ xs: 12, sm: 2 }}>
-											<FormControl fullWidth required>
-												<InputLabel id="sale-type-select-label">
-													Tipo de Venta
-												</InputLabel>
-												<Select
-													labelId="sale-type-select-label"
-													id="sale-type-select"
-													value={saleType}
-													label="Tipo de Venta"
-													onChange={
-														saleTypeChangeHandler
-													}
-												>
-													{saleTypeChoices.map(
-														choice => (
-															<MenuItem
-																key={choice.id}
-																value={
-																	choice.value
-																}
-															>
-																{choice.label}
-															</MenuItem>
-														)
-													)}
-												</Select>
-											</FormControl>
-										</Grid>
-									)}
-									{!isSale && (
-										<Grid size={{ xs: 12, sm: 2 }}>
-											<LocalizationProvider
-												dateAdapter={AdapterDayjs}
-											>
-												<DatePicker
-													label="Fecha de Proforma"
-													onChange={
-														saleDateInputChangeHandler
-													}
-													value={saleDateState.value}
-													slotProps={{
-														textField: {
-															error: !saleDateIsValid,
-															helperText:
-																!saleDateIsValid
-																	? saleDateState.feedbackText
-																	: '',
-														},
-													}}
-													fullWidth
-												/>
-											</LocalizationProvider>
-										</Grid>
-									)}
-									{isSale && (
-										<Grid size={{ xs: 12, sm: 2 }}>
-											<LocalizationProvider
-												dateAdapter={AdapterDayjs}
-											>
-												<DatePicker
-													label="Fecha de Venta"
-													onChange={
-														salePerformDateInputChangeHandler
-													}
-													value={
-														salePerformDateState.value
-													}
-													slotProps={{
-														textField: {
-															error: !salePerformDateIsValid,
-															helperText:
-																!salePerformDateIsValid
-																	? salePerformDateState.feedbackText
-																	: '',
-														},
-													}}
-													fullWidth
-												/>
-											</LocalizationProvider>
-										</Grid>
-									)}
-								</Grid>
-							</Box>
-							{productListState.length > 0 && (
-								<>
-									<Box sx={{ mt: 2, flexGrow: 1 }}>
-										<Typography
-											variant="h6"
-											component="h2"
-											sx={{
-												fontWeight: 'bold',
-												mb: 2,
-												pb: 1,
-											}}
-										>
-											Productos
-										</Typography>
-										<TableContainer component={Paper}>
-											<Table
-												sx={{ minWidth: 650 }}
-												aria-label="simple table"
-											>
-												<TableHead>
-													<TableRow>
-														<StyledTableCell>
-															Nombre
-														</StyledTableCell>
-														<StyledTableCell>
-															Código
-														</StyledTableCell>
-														<StyledTableCell>
-															Stock
-														</StyledTableCell>
-														<StyledTableCell>
-															Precio Mínimo de
-															Venta Bs.
-														</StyledTableCell>
-														<StyledTableCell>
-															Precio Máximo de
-															Venta Bs.
-														</StyledTableCell>
-														<StyledTableCell>
-															Cantidad
-														</StyledTableCell>
-														<StyledTableCell>
-															Precio Unitario Bs.
-														</StyledTableCell>
-														<StyledTableCell>
-															Sub Total Bs.
-														</StyledTableCell>
-														<StyledTableCell>
-															Descuento %
-														</StyledTableCell>
-														<StyledTableCell>
-															Costo Total Bs.
-														</StyledTableCell>
-														<StyledTableCell>
-															Acciones
-														</StyledTableCell>
-													</TableRow>
-												</TableHead>
-												<TableBody>
-													{productListState.map(
-														product => (
-															<TableRow
-																key={`row-${product.id}`}
-															>
-																<TableCell>
-																	{
-																		product.name
-																	}
-																</TableCell>
-																<TableCell>
-																	{
-																		product.code
-																	}
-																</TableCell>
-																<TableCell>
-																	{
-																		product.stock
-																	}
-																</TableCell>
-																<TableCell>
-																	{
-																		product.minimumSalePrice
-																	}
-																</TableCell>
-																<TableCell>
-																	{
-																		product.maximumSalePrice
-																	}
-																</TableCell>
-																<TableCell>
-																	<TextField
-																		variant="outlined"
-																		onChange={e =>
-																			quantityInputChangeHandler(
-																				product.id,
-																				e
-																					.target
-																					.value
-																			)
-																		}
-																		value={
-																			product
-																				.quantity
-																				.value
-																		}
-																		error={
-																			(product
-																				.quantity
-																				.value &&
-																				!product
-																					.quantity
-																					.isValid) ||
-																			(!product
-																				.quantity
-																				.isValid &&
-																				product
-																					.quantity
-																					.feedbackText)
-																		}
-																		helperText={
-																			(product
-																				.quantity
-																				.value &&
-																				!product
-																					.quantity
-																					.isValid) ||
-																			(!product
-																				.quantity
-																				.isValid &&
-																				product
-																					.quantity
-																					.feedbackText)
-																				? product
-																						.quantity
-																						.feedbackText
-																				: ''
-																		}
-																		required
-																		fullWidth
-																	/>
-																</TableCell>
-																<TableCell>
-																	<TextField
-																		variant="outlined"
-																		onChange={e =>
-																			priceInputChangeHandler(
-																				product.id,
-																				e
-																					.target
-																					.value
-																			)
-																		}
-																		value={
-																			product
-																				.price
-																				.value
-																		}
-																		error={
-																			(product
-																				.price
-																				.value &&
-																				!product
-																					.price
-																					.isValid) ||
-																			(!product
-																				.price
-																				.isValid &&
-																				product
-																					.price
-																					.feedbackText)
-																		}
-																		helperText={
-																			(product
-																				.price
-																				.value &&
-																				!product
-																					.price
-																					.isValid) ||
-																			(!product
-																				.price
-																				.isValid &&
-																				product
-																					.price
-																					.feedbackText)
-																				? product
-																						.price
-																						.feedbackText
-																				: ''
-																		}
-																		required
-																		fullWidth
-																	/>
-																</TableCell>
-																<TableCell>
-																	<TextField
-																		variant="outlined"
-																		onChange={e =>
-																			dispatchProductList(
-																				{
-																					type: 'SUB_TOTAL_PRICE_CHANGE',
-																					id: product.id,
-																					val: e
-																						.target
-																						.value,
-																				}
-																			)
-																		}
-																		value={
-																			product
-																				.subTotalPrice
-																				.value
-																		}
-																		disabled
-																		fullWidth
-																		slotProps={{
-																			inputLabel:
-																				{
-																					shrink: true,
-																				},
-																		}}
-																	/>
-																</TableCell>
-																<TableCell>
-																	<TextField
-																		variant="outlined"
-																		onChange={e =>
-																			discountInputChangeHandler(
-																				product.id,
-																				e
-																					.target
-																					.value
-																			)
-																		}
-																		value={
-																			product
-																				.discount
-																				.value
-																		}
-																		error={
-																			(product
-																				.discount
-																				.value &&
-																				!product
-																					.discount
-																					.isValid) ||
-																			(!product
-																				.discount
-																				.isValid &&
-																				product
-																					.discount
-																					.feedbackText)
-																		}
-																		helperText={
-																			(product
-																				.discount
-																				.value &&
-																				!product
-																					.discount
-																					.isValid) ||
-																			(!product
-																				.discount
-																				.isValid &&
-																				product
-																					.discount
-																					.feedbackText)
-																				? product
-																						.discount
-																						.feedbackText
-																				: ''
-																		}
-																		required
-																		fullWidth
-																	/>
-																</TableCell>
 
-																<TableCell>
-																	<TextField
-																		variant="outlined"
-																		onChange={e =>
-																			dispatchProductList(
-																				{
-																					type: 'TOTAL_PRICE_CHANGE',
-																					id: product.id,
-																					val: e
-																						.target
-																						.value,
-																				}
-																			)
-																		}
-																		value={
-																			product
-																				.totalPrice
-																				.value
-																		}
-																		error={
-																			(product
-																				.totalPrice
-																				.value &&
-																				!product
-																					.totalPrice
-																					.isValid) ||
-																			(!product
-																				.totalPrice
-																				.isValid &&
-																				product
-																					.totalPrice
-																					.feedbackText)
-																		}
-																		helperText={
-																			(product
-																				.totalPrice
-																				.value &&
-																				!product
-																					.totalPrice
-																					.isValid) ||
-																			(!product
-																				.totalPrice
-																				.isValid &&
-																				product
-																					.totalPrice
-																					.feedbackText)
-																				? product
-																						.totalPrice
-																						.feedbackText
-																				: ''
-																		}
-																		disabled
-																		fullWidth
-																		slotProps={{
-																			inputLabel:
-																				{
-																					shrink: true,
-																				},
-																		}}
-																	/>
-																</TableCell>
-																<TableCell align="center">
-																	<Tooltip
-																		title={
-																			'Quitar'
-																		}
-																		placement="top"
-																	>
-																		<IconButton
-																			aria-label="add"
-																			onClick={e =>
-																				handleRemoveProduct(
-																					e,
-																					product.id
-																				)
-																			}
-																		>
-																			<CancelIcon
-																				sx={{
-																					color: red[500],
-																				}}
-																			/>
-																		</IconButton>
-																	</Tooltip>
-																</TableCell>
-															</TableRow>
-														)
-													)}
-												</TableBody>
-											</Table>
-										</TableContainer>
-									</Box>
-									{isSale && saleType && (
-										<Box sx={{ mt: 4, flexGrow: 1 }}>
+								<Box sx={{ width: '100%' }}>
+									<TableContainer>
+										<Table
+											sx={{ minWidth: 650 }}
+											aria-label="products table"
+										>
+											<TableHead>
+												<TableRow>
+													<TableCell>
+														<strong>Código</strong>
+													</TableCell>
+													<TableCell>
+														<strong>
+															Producto
+														</strong>
+													</TableCell>
+													<TableCell>
+														<strong>Almacén</strong>
+													</TableCell>
+													<TableCell>
+														<strong>Estado</strong>
+													</TableCell>
+													<TableCell align="right">
+														<strong>
+															Cantidad Comprada
+														</strong>
+													</TableCell>
+													<TableCell align="right">
+														<strong>
+															Cantidad Ingresada
+														</strong>
+													</TableCell>
+												</TableRow>
+											</TableHead>
+											<TableBody>
+												{purchaseData.purchaseItems.map(
+													(purchaseItem, index) => (
+														<TableRow key={index}>
+															<TableCell>
+																{
+																	purchaseItem
+																		.products_stock
+																		.products
+																		.code
+																}
+															</TableCell>
+															<TableCell>
+																{
+																	purchaseItem
+																		.products_stock
+																		.products
+																		.name
+																}
+															</TableCell>
+															<TableCell>
+																{
+																	purchaseItem
+																		.products_stock
+																		.warehouses
+																		.name
+																}
+															</TableCell>
+															<TableCell>
+																{
+																	purchaseItem.status_display
+																}
+															</TableCell>
+															<TableCell align="right">
+																{
+																	purchaseItem.quantity
+																}
+															</TableCell>
+															<TableCell align="right">
+																{
+																	purchaseItem.entered_stock
+																}
+															</TableCell>
+														</TableRow>
+													)
+												)}
+											</TableBody>
+										</Table>
+									</TableContainer>
+								</Box>
+							</Paper>
+						)}
+						<div className={classes.listContainer}>
+							{errorMessage && (
+								<Alert severity="error">{errorMessage}</Alert>
+							)}
+							<FormControl fullWidth onSubmit={handleSubmit}>
+								<Box sx={{ mt: 2, flexGrow: 1 }}>
+									<Typography
+										variant="h6"
+										component="h2"
+										sx={{
+											fontWeight: 'bold',
+											mb: 2,
+											pb: 1,
+										}}
+									>
+										Datos de la Entrada
+									</Typography>
+									<Grid container spacing={2} mt={1} mb={2}>
+										<Grid size={{ xs: 12, sm: 4 }}>
+											<Autocomplete
+												disablePortal
+												value={supplier}
+												options={supplierChoices}
+												getOptionLabel={option =>
+													option
+														? option.name || ''
+														: ''
+												}
+												renderOption={(
+													props,
+													option
+												) => (
+													<li
+														{...props}
+														key={option.id}
+													>
+														{option.name}
+													</li>
+												)}
+												renderInput={params => (
+													<TextField
+														{...params}
+														label="Proveedor"
+														required
+													/>
+												)}
+												onChange={
+													supplierInputChangeHandler
+												}
+											/>
+										</Grid>
+										<Grid size={{ xs: 12, sm: 2 }}>
+											<TextField
+												label="Nº Factura"
+												variant="outlined"
+												onChange={
+													invoiceNumberInputChangeHandler
+												}
+												value={invoiceNumberState.value}
+												error={!invoiceNumberIsValid}
+												helperText={
+													!invoiceNumberIsValid
+														? invoiceNumberState.feedbackText
+														: ''
+												}
+												required
+												fullWidth
+											/>
+										</Grid>
+										<Grid size={{ xs: 12, sm: 2 }}>
+											<LocalizationProvider
+												dateAdapter={AdapterDayjs}
+											>
+												<DatePicker
+													label="Fecha de Entrada"
+													onChange={
+														entryDateInputChangeHandler
+													}
+													value={entryDateState.value}
+													slotProps={{
+														textField: {
+															error: !entryDateIsValid,
+															helperText:
+																!entryDateIsValid
+																	? entryDateState.feedbackText
+																	: '',
+														},
+													}}
+													required
+													fullWidth
+												/>
+											</LocalizationProvider>
+										</Grid>
+									</Grid>
+								</Box>
+								{productListState.length > 0 && (
+									<>
+										<Box sx={{ mt: 2, flexGrow: 1 }}>
 											<Typography
 												variant="h6"
 												component="h2"
@@ -1212,218 +568,213 @@ export const AddEntry = () => {
 													pb: 1,
 												}}
 											>
-												Datos de Pago
+												Productos
 											</Typography>
-											<Grid
-												container
-												spacing={2}
-												mt={1}
-												mb={2}
-											>
-												<Grid size={{ xs: 12, sm: 2 }}>
-													<FormControl
-														fullWidth
-														required
-													>
-														<InputLabel id="purchase-type-select-label">
-															Método de Pago
-														</InputLabel>
-														<Select
-															labelId="purchase-type-select-label"
-															id="purchase-type-select"
-															value={
-																paymentMethod
-															}
-															label="Método de Pago"
-															onChange={
-																paymentMethodChangeHandler
-															}
-														>
-															{paymentMethodChoices.map(
-																choice => (
-																	<MenuItem
-																		key={
-																			choice.id
-																		}
-																		value={
-																			choice.value
-																		}
-																	>
+											<TableContainer component={Paper}>
+												<Table
+													sx={{ minWidth: 650 }}
+													aria-label="simple table"
+												>
+													<TableHead>
+														<TableRow>
+															<StyledTableCell>
+																Nombre
+															</StyledTableCell>
+															<StyledTableCell>
+																Código
+															</StyledTableCell>
+															<StyledTableCell>
+																Stock
+															</StyledTableCell>
+															<StyledTableCell>
+																Cantidad
+															</StyledTableCell>
+															<StyledTableCell>
+																Acciones
+															</StyledTableCell>
+														</TableRow>
+													</TableHead>
+													<TableBody>
+														{productListState.map(
+															product => (
+																<TableRow
+																	key={`row-${product.id}`}
+																>
+																	<TableCell>
 																		{
-																			choice.label
+																			product.name
 																		}
-																	</MenuItem>
-																)
-															)}
-														</Select>
-													</FormControl>
-												</Grid>
-												<Grid size={{ xs: 12, sm: 2 }}>
-													<TextField
-														label="Monto Cancelado"
-														variant="outlined"
-														onChange={
-															paymentAmountInputChangeHandler
-														}
-														value={
-															paymentAmountState.value
-														}
-														error={
-															!paymentAmountIsValid
-														}
-														helperText={
-															!paymentAmountIsValid
-																? paymentAmountState.feedbackText
-																: ''
-														}
-														required
-														fullWidth
-													/>
-												</Grid>
-												<Grid size={{ xs: 12, sm: 2 }}>
-													<LocalizationProvider
-														dateAdapter={
-															AdapterDayjs
-														}
-													>
-														<DatePicker
-															label="Fecha de Pago"
-															onChange={
-																paymentDateInputChangeHandler
-															}
-															value={
-																paymentDateState.value
-															}
-															slotProps={{
-																textField: {
-																	error: !paymentDateIsValid,
-																	helperText:
-																		!paymentDateIsValid
-																			? paymentDateState.feedbackText
-																			: '',
-																},
-															}}
-															required
-															fullWidth
-														/>
-													</LocalizationProvider>
-												</Grid>
-											</Grid>
+																	</TableCell>
+																	<TableCell>
+																		{
+																			product.code
+																		}
+																	</TableCell>
+																	<TableCell>
+																		{
+																			product
+																				.stock
+																				.value
+																		}
+																	</TableCell>
+																	<TableCell>
+																		<TextField
+																			variant="outlined"
+																			onChange={e =>
+																				dispatchProductList(
+																					{
+																						type: 'QUANTITY_CHANGE',
+																						id: product.id,
+																						val: e
+																							.target
+																							.value,
+																					}
+																				)
+																			}
+																			value={
+																				product
+																					.quantity
+																					.value
+																			}
+																			error={
+																				(product
+																					.quantity
+																					.value &&
+																					!product
+																						.quantity
+																						.isValid) ||
+																				(!product
+																					.quantity
+																					.isValid &&
+																					product
+																						.quantity
+																						.feedbackText)
+																			}
+																			helperText={
+																				(product
+																					.quantity
+																					.value &&
+																					!product
+																						.quantity
+																						.isValid) ||
+																				(!product
+																					.quantity
+																					.isValid &&
+																					product
+																						.quantity
+																						.feedbackText)
+																					? product
+																							.quantity
+																							.feedbackText
+																					: ''
+																			}
+																			required
+																			fullWidth
+																		/>
+																	</TableCell>
+																	<TableCell align="center">
+																		<Tooltip
+																			title={
+																				'Quitar'
+																			}
+																			placement="top"
+																		>
+																			<IconButton
+																				aria-label="add"
+																				onClick={e =>
+																					handleRemoveProduct(
+																						e,
+																						product.id
+																					)
+																				}
+																			>
+																				<CancelIcon
+																					sx={{
+																						color: red[500],
+																					}}
+																				/>
+																			</IconButton>
+																		</Tooltip>
+																	</TableCell>
+																</TableRow>
+															)
+														)}
+													</TableBody>
+												</Table>
+											</TableContainer>
 										</Box>
-									)}
-								</>
-							)}
-						</FormControl>
-						<Box
-							sx={{
-								mt: 2,
-								flexGrow: 1,
-								display: 'flex',
-								justifyContent: 'center',
-							}}
-						>
-							{saleTotalAmount > 0 && (
-								<FormControl
-									sx={{ m: 1, width: '20%' }}
-									variant="filled"
-								>
-									<InputLabel htmlFor="standard-adornment-amount">
-										Total
-									</InputLabel>
-									<FilledInput
-										id="standard-adornment-amount"
-										startAdornment={
-											<InputAdornment position="start">
-												Bs.
-											</InputAdornment>
-										}
-										value={saleTotalAmount}
-										disabled
-									/>
-								</FormControl>
-							)}
-						</Box>
-						<Box
-							mt={2}
-							style={{
-								display: 'flex',
-								flexDirection: 'row',
-								alignItems: 'center',
-								gap: 10,
-							}}
-						>
-							<Button
-								id="cancelar_button"
-								variant="outlined"
-								onClick={handlerCancel}
+									</>
+								)}
+							</FormControl>
+							<Box
+								mt={2}
 								style={{
-									textTransform: 'none',
-									width: '150px',
+									display: 'flex',
+									flexDirection: 'row',
+									alignItems: 'center',
+									gap: 10,
 								}}
-								disabled={isLoading}
 							>
-								{!isForm ? 'Atrás' : 'Cancelar'}
-							</Button>
-							<Button
-								variant="contained"
-								style={{
-									textTransform: 'none',
-									width: '150px',
-								}}
-								disabled={disabled || isLoading}
-								onClick={handleNext}
-							>
-								{buttonText}
-							</Button>
-							<Button
-								variant="contained"
-								style={{
-									textTransform: 'none',
-									width: '200px',
-								}}
-								onClick={() => setShowProductsModal(true)}
-								color="success"
-								startIcon={<SearchIcon />}
-								disabled={!sellingChannel}
-							>
-								Buscar Productos
-							</Button>
-							{isForm && (
-								<Typography
-									ml={3}
+								<Button
+									id="cancelar_button"
+									variant="outlined"
+									onClick={handlerCancel}
 									style={{
-										color: '#6C757D',
-										fontStyle: 'italic',
-										fontSize: '14px',
+										textTransform: 'none',
+										width: '150px',
 									}}
+									disabled={isLoading}
 								>
-									Los campos con (*) son requeridos para
-									avanzar en el formulario.{' '}
-								</Typography>
-							)}
-						</Box>
-					</div>
+									{!isForm ? 'Atrás' : 'Cancelar'}
+								</Button>
+								<Button
+									variant="contained"
+									style={{
+										textTransform: 'none',
+										width: '150px',
+									}}
+									disabled={disabled || isLoading}
+									onClick={handleNext}
+								>
+									{buttonText}
+								</Button>
+								<Button
+									variant="contained"
+									style={{
+										textTransform: 'none',
+										width: '200px',
+									}}
+									onClick={() => setShowProductsModal(true)}
+									color="success"
+									startIcon={<SearchIcon />}
+								>
+									Buscar Productos
+								</Button>
+								{isForm && (
+									<Typography
+										ml={3}
+										style={{
+											color: '#6C757D',
+											fontStyle: 'italic',
+											fontSize: '14px',
+										}}
+									>
+										Los campos con (*) son requeridos para
+										avanzar en el formulario.{' '}
+									</Typography>
+								)}
+							</Box>
+						</div>
+					</>
 				) : (
 					<div className={classes.listContainer}>
-						<AddSalePreview
-							client={client}
-							sellingChannel={sellingChannel}
-							saleDate={
-								saleDateState.value?.format('DD-MM-YYYY') || ''
+						<AddEntryPreview
+							supplier={supplier}
+							invoiceNumber={invoiceNumberState.value}
+							entryDate={
+								entryDateState.value?.format('DD-MM-YYYY') || ''
 							}
-							salePerformDate={
-								salePerformDateState.value?.format(
-									'DD-MM-YYYY'
-								) || ''
-							}
-							saleType={saleType}
 							products={productListState}
-							paymentMethod={paymentMethod}
-							paymentAmount={paymentAmountState.value}
-							paymentDate={
-								paymentDateState.value?.format('DD-MM-YYYY') ||
-								''
-							}
 							message={message}
 						/>
 						<Box
@@ -1486,11 +837,12 @@ export const AddEntry = () => {
 						}}
 						onClose={() => setShowProductsModal(false)}
 						addedProducts={productListState}
-						sellingChannel={sellingChannel}
+						purchase={purchaseData}
+						agency={storeContext.agency}
 					/>
 				)}
 
-				{showModal && <AddSaleModal saleData={saleData} />}
+				{showModal && <AddEntryModal purchaseData={purchaseData} />}
 			</Fragment>
 		</>
 	);

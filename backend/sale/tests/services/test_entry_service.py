@@ -105,7 +105,6 @@ class TestIncreaseProductStockService(TestCase):
     def test_increase_stock(self):
         """Test service for increase product stock."""
         entry = Entry.objects.create(
-            warehouse=create_warehouse(),
             warehouse_keeper=create_user(),
             supplier=Supplier.objects.create(
                 name='Test Supplier',

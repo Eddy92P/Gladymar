@@ -9,13 +9,16 @@ import { api, config } from '../../Constants';
 
 // Context
 import AuthContext from '../../store/auth-context';
+import { StoreContext } from '../../store/store-context';
 
 const AddProductDetailedList = ({
 	onClose,
 	onProductList,
 	addedProducts = [],
 	sellingChannel,
-	warehouse,
+	purchase,
+	sale,
+	isPurchase,
 }) => {
 	const [list, setList] = useState([]);
 	const [error, setError] = useState('');
@@ -23,10 +26,11 @@ const AddProductDetailedList = ({
 	const [showModal, setShowModal] = useState(true);
 
 	const authContext = useContext(AuthContext);
+	const storeContext = useContext(StoreContext);
 
 	useEffect(() => {
 		let url = '';
-		if (sellingChannel || warehouse) {
+		if (sellingChannel || purchase?.id || sale?.id || isPurchase) {
 			url = config.url.HOST + api.API_URL_CATALOG;
 		} else {
 			url = config.url.HOST + api.API_URL_PRODUCTS;
@@ -37,11 +41,14 @@ const AddProductDetailedList = ({
 
 		if (sellingChannel) {
 			url += `?selling_channel_id=${sellingChannel.id}`;
+		} else if (purchase?.id) {
+			url += `?purchase_id=${purchase.id}&agency_id=${storeContext.agency}`;
+		} else if (sale?.id) {
+			url += `?sale_id=${sale.id}&agency_id=${storeContext.agency}`;
+		} else if (isPurchase) {
+			url += `?agency_id=${storeContext.agency}`;
 		}
-		if (warehouse) {
-			url += `?warehouse_id=${warehouse.id}`;
-		}
-		if (filterText && (sellingChannel || warehouse)) {
+		if (filterText && (sellingChannel || purchase?.id || sale?.id)) {
 			url += `&search=${filterText}`;
 		} else if (filterText) {
 			url += `?search=${filterText}`;
@@ -50,7 +57,7 @@ const AddProductDetailedList = ({
 		const fetchProducts = async () => {
 			try {
 				let products = [];
-				if (sellingChannel || warehouse) {
+				if (sellingChannel) {
 					let allProducts = [];
 					const response = await fetch(url, {
 						method: 'GET',
@@ -82,6 +89,56 @@ const AddProductDetailedList = ({
 							item.maximumSalePrice > 0 &&
 							item.stock > 0
 					);
+				} else if (sale?.id || purchase?.id) {
+					const response = await fetch(url, {
+						method: 'GET',
+						headers: {
+							Authorization: `Token ${authContext.token}`,
+							'Content-Type': 'application/json',
+						},
+						signal: controller.signal,
+					});
+
+					if (!response.ok) {
+						throw new Error(
+							'Falló al obtener productos para el almacén'
+						);
+					}
+					const productStockData = await response.json();
+					products = productStockData.map(item => ({
+						purchaseItem: item.purchase_item_id,
+						warehouse: item.warehouse,
+						id: item.id,
+						name: item.name,
+						code: item.code,
+						price: item.price,
+						stock: item.stock,
+					}));
+				} else if (isPurchase) {
+					const response = await fetch(url, {
+						method: 'GET',
+						headers: {
+							Authorization: `Token ${authContext.token}`,
+							'Content-Type': 'application/json',
+						},
+						signal: controller.signal,
+					});
+
+					if (!response.ok) {
+						throw new Error(
+							'Falló al obtener productos para el almacén'
+						);
+					}
+					const productStockData = await response.json();
+					products = productStockData.map(item => ({
+						agency: item.agency,
+						warehouse: item.warehouse,
+						id: item.id,
+						name: item.name,
+						code: item.code,
+						price: item.price,
+						stock: item.stock,
+					}));
 				} else {
 					const response = await fetch(url, {
 						method: 'GET',
@@ -125,7 +182,14 @@ const AddProductDetailedList = ({
 			isMounted = false;
 			controller.abort();
 		};
-	}, [authContext.token, filterText, sellingChannel, warehouse]);
+	}, [
+		authContext.token,
+		filterText,
+		sellingChannel,
+		sale,
+		purchase,
+		storeContext.agency,
+	]);
 
 	const handleCloseModal = () => {
 		setShowModal(false);

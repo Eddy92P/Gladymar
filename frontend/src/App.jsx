@@ -31,6 +31,9 @@ import SelectAgency from './components/Agencies/SelectAgency';
 import SalePage from './pages/SalePage';
 import AddSalePage from './pages/AddSalePage';
 import SaleDetailPage from './pages/SaleDetailPage';
+import EntryPage from './pages/EntryPage';
+import AddEntryPage from './pages/AddEntryPage';
+import EntryDetailPage from './pages/EntryDetailPage';
 
 function App() {
 	const authCtx = useContext(AuthContext);
@@ -154,6 +157,19 @@ function App() {
 						<Route
 							path="ventas/info_venta/:id"
 							element={<SaleDetailPage />}
+						/>
+						<Route path="entradas" element={<EntryPage />} />
+						<Route
+							path="entradas/agregar_entrada"
+							element={<AddEntryPage />}
+						/>
+						<Route
+							path="entradas/info_entrada/:id"
+							element={<EntryDetailPage />}
+						/>
+						<Route
+							path="compras/agregar_entrada/:id"
+							element={<AddEntryPage />}
 						/>
 					</Route>
 					<Route

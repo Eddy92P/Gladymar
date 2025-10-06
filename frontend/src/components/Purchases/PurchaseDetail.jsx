@@ -157,6 +157,9 @@ const PurchaseDetail = () => {
 											<TableCell>
 												<strong>Producto</strong>
 											</TableCell>
+											<TableCell>
+												<strong>Estado</strong>
+											</TableCell>
 											<TableCell align="right">
 												<strong>Precio Unitario</strong>
 											</TableCell>
@@ -184,6 +187,11 @@ const PurchaseDetail = () => {
 															purchaseItem
 																.products_stock
 																.products.name
+														}
+													</TableCell>
+													<TableCell>
+														{
+															purchaseItem.status_display
 														}
 													</TableCell>
 													<TableCell align="right">

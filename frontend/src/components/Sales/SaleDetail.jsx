@@ -54,8 +54,6 @@ const SaleDetail = () => {
 			setActiveStep(3);
 		}
 	}, [saleData.status]);
-
-	console.log(saleData);
 	return (
 		<Box p={2}>
 			<Grid container spacing={2} mt={1} mb={2}>
@@ -168,6 +166,9 @@ const SaleDetail = () => {
 											<TableCell>
 												<strong>Producto</strong>
 											</TableCell>
+											<TableCell>
+												<strong>Estado</strong>
+											</TableCell>
 											<TableCell align="right">
 												<strong>Cantidad</strong>
 											</TableCell>
@@ -201,6 +202,11 @@ const SaleDetail = () => {
 															saleItem
 																.products_stock
 																.products.name
+														}
+													</TableCell>
+													<TableCell align="right">
+														{
+															saleItem.status_display
 														}
 													</TableCell>
 													<TableCell align="right">

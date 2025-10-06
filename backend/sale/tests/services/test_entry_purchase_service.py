@@ -120,7 +120,6 @@ def create_product_stock(**params):
 def create_entry(**params):
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
-        'warehouse': create_warehouse(),
         'warehouse_keeper': create_user(),
         'supplier': create_supplier(),
         'entry_date': '2025-10-02',

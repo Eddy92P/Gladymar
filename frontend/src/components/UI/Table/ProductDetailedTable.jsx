@@ -185,6 +185,15 @@ const ProductDetailedTable = ({
 					<Table sx={{ minWidth: 650 }} aria-label="simple table">
 						<TableHead>
 							<TableRow>
+								{data[0].purchaseItem != null && (
+									<StyledTableCell>ID Compra</StyledTableCell>
+								)}
+								{data[0].agency != null && (
+									<StyledTableCell>Agencia</StyledTableCell>
+								)}
+								{data[0].warehouse != null && (
+									<StyledTableCell>Almacén</StyledTableCell>
+								)}
 								<StyledTableCell>Nombre</StyledTableCell>
 								<StyledTableCell>Código</StyledTableCell>
 								{data[0].price != null && (

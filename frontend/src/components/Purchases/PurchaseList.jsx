@@ -7,8 +7,7 @@ import { Fragment, useEffect, useState, useContext } from 'react';
 
 import AuthContext from '../../store/auth-context';
 
-import { Icon } from '@mdi/react';
-import { mdiInformation } from '@mdi/js';
+import { Info, Login } from '@mui/icons-material';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -63,12 +62,24 @@ const PurchaseList = () => {
 			name: 'Acciones',
 			button: 'true',
 			cell: row => (
-				<Icon
-					path={mdiInformation}
-					size={1}
-					onClick={e => handleButtonClick(e, row.id)}
-					style={{ cursor: 'pointer', color: '#127FE6' }}
-				/>
+				<div
+					style={{
+						display: 'flex',
+						gap: '8px',
+						alignItems: 'center',
+					}}
+				>
+					<Info
+						onClick={e => handleButtonClick(e, row.id)}
+						style={{ cursor: 'pointer', color: '#127FE6' }}
+					/>
+					{row.status != 'terminado' && (
+						<Login
+							onClick={e => handleEntryButton(e, row.id)}
+							style={{ cursor: 'pointer', color: '#127FE6' }}
+						/>
+					)}
+				</div>
 			),
 		},
 	];
@@ -152,6 +163,14 @@ const PurchaseList = () => {
 		e.preventDefault();
 		const purchase = list.find(x => x.id === id);
 		navigate(`editar_compra/${id}`, {
+			state: { purchaseData: purchase },
+		});
+	};
+
+	const handleEntryButton = (e, id) => {
+		e.preventDefault();
+		const purchase = list.find(x => x.id === id);
+		navigate(`agregar_entrada/${id}`, {
 			state: { purchaseData: purchase },
 		});
 	};

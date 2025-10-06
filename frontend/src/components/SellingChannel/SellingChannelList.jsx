@@ -20,7 +20,7 @@ const useStyles = makeStyles({
 	},
 });
 
-const SuppliersList = () => {
+const SellingChannelList = () => {
 	const classes = useStyles();
 	const authContext = useContext(AuthContext);
 
@@ -65,7 +65,7 @@ const SuppliersList = () => {
 			url += `&search=${filterText}`;
 		}
 
-		const fetchSuppliers = async () => {
+		const fetchSellingChannels = async () => {
 			try {
 				const response = await fetch(url, {
 					method: 'GET',
@@ -107,7 +107,7 @@ const SuppliersList = () => {
 			}
 		};
 
-		fetchSuppliers();
+		fetchSellingChannels();
 
 		return () => {
 			isMounted = false;
@@ -161,4 +161,4 @@ const SuppliersList = () => {
 	);
 };
 
-export default SuppliersList;
+export default SellingChannelList;

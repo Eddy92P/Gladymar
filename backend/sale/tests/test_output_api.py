@@ -122,7 +122,6 @@ def detail_url(output_id):
 def create_output(**params):
     """Create and return a sample output."""
     defaults = {
-        'warehouse': create_warehouse(),
         'warehouse_keeper': create_user(),
         'client': create_client(),
         'output_date': timezone.now().date(),
@@ -178,7 +177,6 @@ class PrivateOutputApiTests(TestCase):
     def test_create_output(self):
         """Test for create an output."""
         payload = {
-            'warehouse': create_warehouse().id,
             'warehouse_keeper': create_user().id,
             'client': create_client().id,
             'output_date': timezone.now().date(),

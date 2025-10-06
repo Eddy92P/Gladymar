@@ -1,7 +1,6 @@
 """
 Database models for the application.
 """
-from email.policy import default
 import os
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
@@ -10,6 +9,7 @@ from django.core.exceptions import ValidationError
 from PIL import Image
 from io import BytesIO
 from django.core.files.base import ContentFile
+from datetime import date
 
 class UserManager(BaseUserManager):
     """Manager for users."""
@@ -500,10 +500,25 @@ class PurchaseItem(models.Model):
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     entered_stock = models.PositiveIntegerField(default=0)
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.update_purchase_status()
+
+    def update_purchase_status(self):
+        purchase = self.purchase
+
+        # Verifica si TODOS los items están completados
+        all_complete = not purchase.purchase_items.exclude(status='completado').exists()
+
+        if all_complete:
+            purchase.status = 'terminado'
+            purchase.purchase_end_date = date.today()
+
+        purchase.save(update_fields=['status', 'purchase_end_date'])
 
 
 class Entry(models.Model):
-    warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
     warehouse_keeper = models.ForeignKey(User, on_delete=models.PROTECT)
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
     entry_date = models.DateField(null=False, blank=False)
@@ -542,7 +557,6 @@ class EntryItem(models.Model):
     
     
 class Output(models.Model):
-    warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
     warehouse_keeper = models.ForeignKey(User, on_delete=models.PROTECT)
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
     output_date = models.DateField()
@@ -616,6 +630,21 @@ class SaleItem(models.Model):
 
     def __str__(self):
         return f"Sale item {self.product.name} - {self.quantity}"
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.update_sale_status()
+
+    def update_sale_status(self):
+        sale = self.sale
+
+        # Verifica si TODOS los items están completados
+        all_complete = not sale.sale_items.exclude(status='completado').exists()
+
+        if all_complete:
+            sale.status = 'terminado'
+
+        sale.save(update_fields=['status'])
     
 class Payment(models.Model):
     PAYMENT_METHOD_CHOICES = (

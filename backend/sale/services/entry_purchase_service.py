@@ -1,7 +1,7 @@
 """
 Service to handle update of purchase items when an entry is done
 """
-from django.core.exceptions import ValidationError
+from rest_framework.serializers import ValidationError
 
 
 class UpdatePurchaseItem:
@@ -17,6 +17,10 @@ class UpdatePurchaseItem:
             if purchase_item.entered_stock + self.entry_item.quantity > purchase_item.quantity:
                 raise ValidationError("La cantidad ingresada excede la cantidad comprada.")
             purchase_item.entered_stock += self.entry_item.quantity
+            if purchase_item.entered_stock < purchase_item.quantity:
+                purchase_item.status = 'parcial'
+            if purchase_item.entered_stock == purchase_item.quantity:
+                purchase_item.status = 'completado'
             purchase_item.save()
         except Exception as e:
             raise e
