@@ -391,11 +391,31 @@ class OutputItemSerializer(serializers.ModelSerializer):
         model = OutputItem
         fields = ['id', 'sale_item', 'product_stock', 'products_stock', 'quantity']
         read_only_fields = ['id']
-        
+
+    def validate(self, data):
+        """Validate the entire output item"""
+        quantity = data.get('quantity')
+        sale_item = data.get('sale_item')
+        product_stock = data.get('product_stock')
+
+        # Validate quantity against purchase item if it exists
+        if sale_item and quantity:
+            if sale_item.dispatched_stock + quantity > sale_item.quantity:
+                raise serializers.ValidationError({
+                    'quantity': "La cantidad despachada excede la cantidad vendida."
+                })
+        if product_stock:
+            if product_stock.available_stock - quantity < 0:
+                raise serializers.ValidationError({
+                    'quantity': "La cantidad excede el stock disponible."
+                })
+
+        return data
+
     def create(self, validated_data):
         output_item = super().create(validated_data)
-        product_stock = validated_data['products_stock']
-        if validated_data['sale_item'] is not None:
+        product_stock = validated_data['product_stock']
+        if validated_data.get('sale_item') is not None:
             UpdateSaleItem(output_item, product_stock).update_sale_item()
         DecreaseProductStockService(output_item, product_stock).decrease_product_stock()
 
@@ -404,7 +424,7 @@ class OutputItemSerializer(serializers.ModelSerializer):
     
 class OutputSerializer(serializers.ModelSerializer):
     """Serializer for Output model"""
-    warehouse_keeper = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    warehouse_keeper = UserSerializer(read_only=True)
     clients = ClientSerializer(read_only=True, source='client')
     client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all(), write_only=True)
     output_items = OutputItemSerializer(many=True)
@@ -422,7 +442,8 @@ class OutputSerializer(serializers.ModelSerializer):
             items_data = validated_data.pop('output_items')
             output = Output.objects.create(**validated_data)
             for item_data in items_data:
-                OutputItem.objects.create(output=output, **item_data)
+                item_data['output'] = output
+                OutputItemSerializer().create(item_data)
         except Exception as e:
             raise e
 
@@ -740,6 +761,7 @@ class SaleItemSerializer(serializers.ModelSerializer):
         write_only=True,
     )
     id = serializers.IntegerField(required=False, allow_null=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     def validate(self, data):
         if data.get('product') is not None and data.get('quantity') is not None and data.get('total_price') is not None:
@@ -755,7 +777,9 @@ class SaleItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SaleItem
-        fields = ['id', 'product_stock', 'products_stock', 'quantity', 'unit_price', 'sub_total_price', 'discount', 'total_price']
+        fields = ['id', 'product_stock', 'products_stock', 'quantity',
+                  'unit_price', 'sub_total_price', 'discount', 'total_price', 
+                  'status_display', 'dispatched_stock']
 
 
 class SaleSerializer(serializers.ModelSerializer):

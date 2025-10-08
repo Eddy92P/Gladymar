@@ -1,7 +1,7 @@
 """
 Service to handle update of purchase items when an entry is done
 """
-from rest_framework.serializers import ValidationError
+from django.core.exceptions import ValidationError
 
 
 class UpdatePurchaseItem:

@@ -16,6 +16,10 @@ class UpdateSaleItem:
                 raise ValidationError("La cantidad despachada excede la cantidad vendida.")
             self.product_stock.reserved_stock -= self.output_item.quantity
             sale_item.dispatched_stock += self.output_item.quantity
+            if sale_item.dispatched_stock < sale_item.quantity:
+                sale_item.status = 'parcial'
+            if sale_item.dispatched_stock == sale_item.quantity:
+                sale_item.status = 'completado'
             sale_item.save()
         except Exception as e:
             raise e

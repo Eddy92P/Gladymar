@@ -1,6 +1,7 @@
 """
 Database models for the application.
 """
+from email.policy import default
 import os
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
@@ -375,6 +376,7 @@ class ProductStock(models.Model):
     stock = models.PositiveIntegerField(default=0)
     reserved_stock = models.PositiveIntegerField(default=0)
     available_stock = models.PositiveIntegerField(default=0)
+    damaged_stock = models.PositiveIntegerField(default=0)
     minimum_stock = models.PositiveIntegerField(default=0)
     maximum_stock = models.PositiveIntegerField(default=0)
     
@@ -643,8 +645,9 @@ class SaleItem(models.Model):
 
         if all_complete:
             sale.status = 'terminado'
+            sale.sale_done_date = date.today()
 
-        sale.save(update_fields=['status'])
+        sale.save(update_fields=['status', 'sale_done_date'])
     
 class Payment(models.Model):
     PAYMENT_METHOD_CHOICES = (

@@ -1,7 +1,6 @@
 """
 Views for warehouse API.
 """
-import os
 from rest_framework import viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.authentication import TokenAuthentication
@@ -34,7 +33,7 @@ class CatalogView(APIView):
         agency_id = request.query_params.get("agency_id")
         sale_id = request.query_params.get("sale_id")
         purchase_id = request.query_params.get("purchase_id")
-        warehouse_id = request.query_params.get("warehouse_id")
+        search = request.query_params.get("search", "").strip()
 
         if selling_channel_id:
             prices = ProductChannelPrice.objects.filter(selling_channel=selling_channel_id)
@@ -51,6 +50,10 @@ class CatalogView(APIView):
                 if ps is None:
                     continue
 
+                # Apply search filter
+                if search and not (search.lower() in product.name.lower() or search.lower() in product.code.lower()):
+                    continue
+
                 data.append({
                     "id": ps.id,
                     "agency": ps.warehouse.agency.name,
@@ -65,46 +68,63 @@ class CatalogView(APIView):
                     "maximum_sale_price": product.maximum_sale_price,
                 })
         elif agency_id and sale_id:
-            sale = Sale.objects.get(id=sale_id, agency=agency_id)
+            sale_items = SaleItem.objects.filter(sale=sale_id, sale__agency=agency_id).exclude(status='completado').prefetch_related('product_stock')
 
-            for sale_item in sale.sale_items.all().prefetch_related('product_stock'):
+            for sale_item in sale_items:
+                product = sale_item.product_stock.product
+                
+                # Apply search filter
+                if search and not (search.lower() in product.name.lower() or search.lower() in product.code.lower()):
+                    continue
+
                 data.append({
                     "sale_item_id": sale_item.id,
                     "id": sale_item.product_stock.id,
                     "agency": sale_item.product_stock.warehouse.agency.name,
                     "warehouse": sale_item.product_stock.warehouse.name,
-                    "name": sale_item.product_stock.product.name,
-                    "code": sale_item.product_stock.product.code,
+                    "name": product.name,
+                    "code": product.code,
                     "price": 0,
                     "stock": sale_item.product_stock.available_stock,
                     "minimum_stock": sale_item.product_stock.minimum_stock,
                     "maximum_stock": sale_item.product_stock.maximum_stock,
-                    "minimum_sale_price": sale_item.product_stock.product.minimum_sale_price,
-                    "maximum_sale_price": sale_item.product_stock.product.maximum_sale_price,
+                    "minimum_sale_price": product.minimum_sale_price,
+                    "maximum_sale_price": product.maximum_sale_price,
+                    "status": sale_item.status,
                 })
         elif agency_id and purchase_id:
-            purchase = Purchase.objects.get(id=purchase_id, agency=agency_id)
+            purchase_items = PurchaseItem.objects.get(purchase=purchase_id, purchase__agency=agency_id).exclude(status='completado').prefetch_related('product_stock')
 
-            for purchase_item in purchase.purchase_items.all().prefetch_related('product_stock'):
+            for purchase_item in purchase_items:
+                product = purchase_item.product_stock.product
+                
+                # Apply search filter
+                if search and not (search.lower() in product.name.lower() or search.lower() in product.code.lower()):
+                    continue
+
                 data.append({
                     "purchase_item_id": purchase_item.id,
                     "id": purchase_item.product_stock.id,
                     "agency": purchase_item.product_stock.warehouse.agency.name,
                     "warehouse": purchase_item.product_stock.warehouse.name,
-                    "name": purchase_item.product_stock.product.name,
-                    "code": purchase_item.product_stock.product.code,
+                    "name": product.name,
+                    "code": product.code,
                     "price": 0,
                     "stock": purchase_item.product_stock.available_stock,
                     "minimum_stock": purchase_item.product_stock.minimum_stock,
                     "maximum_stock": purchase_item.product_stock.maximum_stock,
-                    "minimum_sale_price": purchase_item.product_stock.product.minimum_sale_price,
-                    "maximum_sale_price": purchase_item.product_stock.product.maximum_sale_price,
+                    "minimum_sale_price": product.minimum_sale_price,
+                    "maximum_sale_price": product.maximum_sale_price,
                     "status": purchase_item.status,
                 })
         elif agency_id:
             products = ProductStock.objects.filter(warehouse__agency=agency_id).select_related('product')
 
             for product in products:
+                # Apply search filter
+                if search and not (search.lower() in product.product.name.lower() or search.lower() in product.product.code.lower()):
+                    continue
+
                 data.append({
                     "id": product.id,
                     "agency": product.warehouse.agency.name,
@@ -122,6 +142,10 @@ class CatalogView(APIView):
             products = ProductStock.objects.all().select_related('product')
 
             for product in products:
+                # Apply search filter
+                if search and not (search.lower() in product.product.name.lower() or search.lower() in product.product.code.lower()):
+                    continue
+
                 data.append({
                     "id": product.id,
                     "agency": product.warehouse.agency.name,
@@ -343,6 +367,9 @@ class OutputViewSet(viewsets.ModelViewSet):
     search_fields = ['id',
                      'warehouse_keeper__first_name', 'warehouse_keeper__last_name', 'client__name']
     pagination_class = PersonalizedPagination
+    
+    def perform_create(self, serializer):
+        serializer.save(warehouse_keeper=self.request.user)
 
     def get_queryset(self):
         """Retrieve outputs ordered by id."""
