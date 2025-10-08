@@ -284,6 +284,40 @@ class ProductViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
 
+class ProductStockViewSet(viewsets.ModelViewSet):
+    """View for managing product stock APIs."""
+    serializer_class = ProductStockSerializer
+    queryset = ProductStock.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'patch', 'put']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id', 'product__name', 'product__code', 'warehouse__name']
+    pagination_class = PersonalizedPagination
+
+    def get_queryset(self):
+        """Retrieve product stocks ordered by id."""
+        return self.queryset.order_by('-id')
+    
+    @action(detail=True, methods=['post'], url_path='increment-damaged-stock')
+    def increment_damaged_stock(self, request, pk=None):
+        """Increment damaged stock by a given quantity."""
+        product_stock = self.get_object()
+        serializer = IncrementDamagedStockSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            quantity = serializer.validated_data['quantity']
+            product_stock.damaged_stock += quantity
+            product_stock.save(update_fields=['damaged_stock'])
+            
+            return Response({
+                'message': f'Stock dañado incrementado en {quantity} unidades.',
+                'damaged_stock': product_stock.damaged_stock
+            })
+        
+        return Response(serializer.errors, status=400)
+
+
 class ClientViewSet(viewsets.ModelViewSet):
     """View for managing client APIs."""
     serializer_class = ClientSerializer

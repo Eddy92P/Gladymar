@@ -216,8 +216,8 @@ class ProductStockSerializer(serializers.ModelSerializer):
         model = ProductStock
         fields = [
             'id', 'product', 'products', 'warehouse', 'warehouses', 
-            'stock', 'reserved_stock', 'available_stock', 'minimum_stock',
-            'maximum_stock'
+            'stock', 'reserved_stock', 'available_stock', 'damaged_stock',
+            'minimum_stock', 'maximum_stock'
         ]
         read_only_fields = ['id']
 
@@ -238,6 +238,17 @@ class ProductStockSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['available_stock'] = validated_data['stock']
         return super().create(validated_data)
+
+
+class IncrementDamagedStockSerializer(serializers.Serializer):
+    """Serializer for incrementing damaged stock."""
+    quantity = serializers.IntegerField(min_value=1)
+    
+    def validate_quantity(self, value):
+        """Validate that quantity is positive."""
+        if value <= 0:
+            raise serializers.ValidationError("La cantidad debe ser mayor a 0.")
+        return value
 
 
 class ProductMinimumSerializer(serializers.ModelSerializer):

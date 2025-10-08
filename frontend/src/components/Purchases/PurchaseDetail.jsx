@@ -214,6 +214,7 @@ const PurchaseDetail = () => {
 											<TableCell />
 											<TableCell />
 											<TableCell />
+											<TableCell />
 											<TableCell colSpan={1}>
 												<strong>Total Compra</strong>
 											</TableCell>

@@ -19,6 +19,7 @@ const AddProductDetailedList = ({
 	purchase,
 	sale,
 	isPurchase,
+	isOutput,
 }) => {
 	const [list, setList] = useState([]);
 	const [error, setError] = useState('');
@@ -30,7 +31,13 @@ const AddProductDetailedList = ({
 
 	useEffect(() => {
 		let url = '';
-		if (sellingChannel || purchase?.id || sale?.id || isPurchase) {
+		if (
+			sellingChannel ||
+			purchase?.id ||
+			sale?.id ||
+			isPurchase ||
+			isOutput
+		) {
 			url = config.url.HOST + api.API_URL_CATALOG;
 		} else {
 			url = config.url.HOST + api.API_URL_PRODUCTS;
@@ -45,10 +52,13 @@ const AddProductDetailedList = ({
 			url += `?purchase_id=${purchase.id}&agency_id=${storeContext.agency}`;
 		} else if (sale?.id) {
 			url += `?sale_id=${sale.id}&agency_id=${storeContext.agency}`;
-		} else if (isPurchase) {
+		} else if (isPurchase || isOutput) {
 			url += `?agency_id=${storeContext.agency}`;
 		}
-		if (filterText && (sellingChannel || purchase?.id || sale?.id)) {
+		if (
+			filterText &&
+			(sellingChannel || purchase?.id || sale?.id || isPurchase)
+		) {
 			url += `&search=${filterText}`;
 		} else if (filterText) {
 			url += `?search=${filterText}`;
@@ -75,6 +85,8 @@ const AddProductDetailedList = ({
 					}
 					const productStockData = await response.json();
 					allProducts = productStockData.map(item => ({
+						agency: item.agency,
+						warehouse: item.warehouse,
 						id: item.id,
 						name: item.name,
 						code: item.code,
@@ -89,7 +101,32 @@ const AddProductDetailedList = ({
 							item.maximumSalePrice > 0 &&
 							item.stock > 0
 					);
-				} else if (sale?.id || purchase?.id) {
+				} else if (sale?.id) {
+					const response = await fetch(url, {
+						method: 'GET',
+						headers: {
+							Authorization: `Token ${authContext.token}`,
+							'Content-Type': 'application/json',
+						},
+						signal: controller.signal,
+					});
+
+					if (!response.ok) {
+						throw new Error(
+							'Falló al obtener productos para el almacén'
+						);
+					}
+					const productStockData = await response.json();
+					products = productStockData.map(item => ({
+						saleItem: item.sale_item_id,
+						warehouse: item.warehouse,
+						id: item.id,
+						name: item.name,
+						code: item.code,
+						price: item.price,
+						stock: item.stock,
+					}));
+				} else if (purchase?.id) {
 					const response = await fetch(url, {
 						method: 'GET',
 						headers: {
@@ -114,7 +151,7 @@ const AddProductDetailedList = ({
 						price: item.price,
 						stock: item.stock,
 					}));
-				} else if (isPurchase) {
+				} else if (isPurchase || isOutput) {
 					const response = await fetch(url, {
 						method: 'GET',
 						headers: {
@@ -189,6 +226,8 @@ const AddProductDetailedList = ({
 		sale,
 		purchase,
 		storeContext.agency,
+		isPurchase,
+		isOutput,
 	]);
 
 	const handleCloseModal = () => {

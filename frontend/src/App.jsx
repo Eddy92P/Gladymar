@@ -34,6 +34,9 @@ import SaleDetailPage from './pages/SaleDetailPage';
 import EntryPage from './pages/EntryPage';
 import AddEntryPage from './pages/AddEntryPage';
 import EntryDetailPage from './pages/EntryDetailPage';
+import AddOutputPage from './pages/AddOutputPage';
+import OutputDetailPage from './pages/OutputDetailPage';
+import OutputPage from './pages/OutputPage';
 
 function App() {
 	const authCtx = useContext(AuthContext);
@@ -145,6 +148,10 @@ function App() {
 							path="compras/editar_compra/:id"
 							element={<PurchaseDetailPage />}
 						/>
+						<Route
+							path="compras/agregar_entrada/:id"
+							element={<AddEntryPage />}
+						/>
 						<Route path="ventas" element={<SalePage />} />
 						<Route
 							path="ventas/agregar_venta"
@@ -158,6 +165,10 @@ function App() {
 							path="ventas/info_venta/:id"
 							element={<SaleDetailPage />}
 						/>
+						<Route
+							path="ventas/agregar_salida/:id"
+							element={<AddOutputPage />}
+						/>
 						<Route path="entradas" element={<EntryPage />} />
 						<Route
 							path="entradas/agregar_entrada"
@@ -167,9 +178,14 @@ function App() {
 							path="entradas/info_entrada/:id"
 							element={<EntryDetailPage />}
 						/>
+						<Route path="salidas" element={<OutputPage />} />
 						<Route
-							path="compras/agregar_entrada/:id"
-							element={<AddEntryPage />}
+							path="salidas/agregar_salida"
+							element={<AddOutputPage />}
+						/>
+						<Route
+							path="salidas/info_salida/:id"
+							element={<OutputDetailPage />}
 						/>
 					</Route>
 					<Route

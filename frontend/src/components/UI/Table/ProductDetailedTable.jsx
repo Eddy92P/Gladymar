@@ -188,6 +188,9 @@ const ProductDetailedTable = ({
 								{data[0].purchaseItem != null && (
 									<StyledTableCell>ID Compra</StyledTableCell>
 								)}
+								{data[0].saleItem != null && (
+									<StyledTableCell>ID Venta</StyledTableCell>
+								)}
 								{data[0].agency != null && (
 									<StyledTableCell>Agencia</StyledTableCell>
 								)}

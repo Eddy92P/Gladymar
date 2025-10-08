@@ -7,7 +7,7 @@ import { Fragment, useEffect, useState, useContext } from 'react';
 
 import AuthContext from '../../store/auth-context';
 
-import { Info, Edit, MonetizationOn } from '@mui/icons-material';
+import { Info, Edit, MonetizationOn, Logout } from '@mui/icons-material';
 import { makeStyles } from '@mui/styles';
 
 import { useNavigate } from 'react-router-dom';
@@ -78,13 +78,13 @@ const SaleList = () => {
 						alignItems: 'center',
 					}}
 				>
-					{row.status != 'realizado' && (
+					{row.status == 'proforma' && (
 						<MonetizationOn
 							onClick={e => handleEditButton(e, row.id, true)}
 							style={{ cursor: 'pointer', color: '#127FE6' }}
 						/>
 					)}
-					{row.status != 'realizado' && (
+					{row.status == 'proforma' && (
 						<Edit
 							onClick={e => handleEditButton(e, row.id, false)}
 							className={classes.editIcon}
@@ -94,6 +94,12 @@ const SaleList = () => {
 						onClick={e => handleInfoButton(e, row.id)}
 						style={{ cursor: 'pointer', color: '#127FE6' }}
 					/>
+					{row.status == 'realizado' && (
+						<Logout
+							onClick={e => handleOutputButton(e, row.id, false)}
+							className={classes.editIcon}
+						/>
+					)}
 				</div>
 			),
 		},
@@ -187,6 +193,12 @@ const SaleList = () => {
 		e.preventDefault();
 		const sale = list.find(x => x.id === id);
 		navigate(`info_venta/${id}`, { state: { saleData: sale } });
+	};
+
+	const handleOutputButton = (e, id) => {
+		e.preventDefault();
+		const sale = list.find(x => x.id === id);
+		navigate(`agregar_salida/${id}`, { state: { saleData: sale } });
 	};
 
 	const handlePageChange = newPage => {
