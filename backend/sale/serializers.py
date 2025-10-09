@@ -249,6 +249,19 @@ class IncrementDamagedStockSerializer(serializers.Serializer):
         if value <= 0:
             raise serializers.ValidationError("La cantidad debe ser mayor a 0.")
         return value
+    
+    def validate(self, data):
+        """Validate that quantity doesn't exceed available stock."""
+        product_stock = self.context.get('product_stock')
+        quantity = data.get('quantity')
+        
+        if product_stock and quantity:
+            if quantity > product_stock.available_stock:
+                raise serializers.ValidationError({
+                    'quantity': f"La cantidad ({quantity}) no puede ser mayor al stock disponible ({product_stock.available_stock})."
+                })
+        
+        return data
 
 
 class ProductMinimumSerializer(serializers.ModelSerializer):

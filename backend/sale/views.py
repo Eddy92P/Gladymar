@@ -303,12 +303,16 @@ class ProductStockViewSet(viewsets.ModelViewSet):
     def increment_damaged_stock(self, request, pk=None):
         """Increment damaged stock by a given quantity."""
         product_stock = self.get_object()
-        serializer = IncrementDamagedStockSerializer(data=request.data)
+        serializer = IncrementDamagedStockSerializer(
+            data=request.data,
+            context={'product_stock': product_stock}
+        )
         
         if serializer.is_valid():
             quantity = serializer.validated_data['quantity']
             product_stock.damaged_stock += quantity
-            product_stock.save(update_fields=['damaged_stock'])
+            product_stock.available_stock -= quantity
+            product_stock.save(update_fields=['damaged_stock', 'available_stock'])
             
             return Response({
                 'message': f'Stock dañado incrementado en {quantity} unidades.',

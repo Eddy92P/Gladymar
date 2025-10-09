@@ -37,6 +37,8 @@ import EntryDetailPage from './pages/EntryDetailPage';
 import AddOutputPage from './pages/AddOutputPage';
 import OutputDetailPage from './pages/OutputDetailPage';
 import OutputPage from './pages/OutputPage';
+import ProductStockPage from './pages/ProductStockPage';
+import AddDamagedProductStock from './components/ProductStocks/AddDamagedProduct';
 
 function App() {
 	const authCtx = useContext(AuthContext);
@@ -186,6 +188,14 @@ function App() {
 						<Route
 							path="salidas/info_salida/:id"
 							element={<OutputDetailPage />}
+						/>
+						<Route
+							path="product_stocks"
+							element={<ProductStockPage />}
+						/>
+						<Route
+							path="product_stocks/increment-damaged-stock/:id"
+							element={<AddDamagedProductStock />}
 						/>
 					</Route>
 					<Route

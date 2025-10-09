@@ -63,6 +63,19 @@ export const options = [
 		),
 	},
 	{
+		key: 'product_stocks',
+		label: 'Stock de Productos',
+		path: 'product_stocks',
+		permission: 'core.view_product',
+		icon: () => (
+			<img
+				src={ProductIcon}
+				alt="Stock de Productos"
+				style={{ width: '24px', height: '24px' }}
+			/>
+		),
+	},
+	{
 		key: 'suppliers',
 		label: 'Proveedores',
 		path: 'proveedores',
