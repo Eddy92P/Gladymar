@@ -93,7 +93,7 @@ class CatalogView(APIView):
                     "status": sale_item.status,
                 })
         elif agency_id and purchase_id:
-            purchase_items = PurchaseItem.objects.get(purchase=purchase_id, purchase__agency=agency_id).exclude(status='completado').prefetch_related('product_stock')
+            purchase_items = PurchaseItem.objects.filter(purchase=purchase_id, purchase__agency=agency_id).exclude(status='completado').prefetch_related('product_stock')
 
             for purchase_item in purchase_items:
                 product = purchase_item.product_stock.product

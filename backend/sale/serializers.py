@@ -788,12 +788,13 @@ class SaleItemSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     def validate(self, data):
-        if data.get('product') is not None and data.get('quantity') is not None and data.get('total_price') is not None:
-            if data['product'].available_stock - data['quantity'] < 0:
+        if data.get('product_stock') is not None and data.get('quantity') is not None:
+            if data['product_stock'].available_stock - data['quantity'] < 0:
                 raise serializers.ValidationError({
                     'quantity': "No se puede vender una cantidad mayor al stock actual."
                 })
-            if data['total_price'] < data['product'].minimum_sale_price or data['total_price'] > data['product'].maximum_sale_price:
+        if data.get('product_stock') is not None and data.get('total_price') is not None:
+            if data['total_price'] < data['product_stock'].product.minimum_sale_price or data['total_price'] > data['product_stock'].product.maximum_sale_price:
                 raise serializers.ValidationError({
                     'total_price': "El total de la venta no puede estar fuera de los rangos de venta."
                 })

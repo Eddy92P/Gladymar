@@ -115,7 +115,6 @@ const ProductStockList = () => {
 				}
 
 				const data = await response.json();
-				console.log(data);
 				setRowCount(data.total);
 
 				if (isMounted) {

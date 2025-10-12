@@ -256,7 +256,6 @@ export const AddOutput = () => {
 			if (!response.ok) {
 				setErrorMessage('Ocurrió un problema.');
 				setIsForm(true);
-				console.log(data);
 				if (data.output_items) {
 					data.output_items.forEach((output_item, index) => {
 						const productId = productListState[index]?.id;

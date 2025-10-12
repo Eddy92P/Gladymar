@@ -11,13 +11,7 @@ import Alert from '@mui/material/Alert';
 
 import AuthContext from '../../store/auth-context';
 import { api, config } from '../../Constants';
-import {
-	validateNameLength,
-	validatePhoneNumber,
-	validateAddressLength,
-	validateCiNumber,
-	validateEmail,
-} from '../../Validations';
+import { validateNameLength, validateAddressLength } from '../../Validations';
 
 import {
 	Grid,
@@ -30,24 +24,43 @@ import {
 } from '@mui/material';
 import classes from '../UI/List/List.module.css';
 
-import AddClientPreview from './AddClientPreview';
-import AddClientModal from './AddClientModal';
+import AddAgencyPreview from './AddAgencyPreview';
+import AddAgencyModal from './AddAgencyModal';
 import ListHeader from '../UI/List/ListHeader';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 
-function AddClient() {
-	const url = config.url.HOST + api.API_URL_CLIENTS;
-	const urlClientChoices = config.url.HOST + api.API_URL_CLIENT_CHOICES;
+function AddAgency() {
+	const url = config.url.HOST + api.API_URL_AGENCIES;
+	const urlCityChoices = config.url.HOST + api.API_URL_CITY_CHOICES;
+
+	const paymentChoices = [
+		{
+			id: 1,
+			value: 'efectivo',
+			label: 'Efectivo',
+		},
+		{
+			id: 2,
+			value: 'tarjeta',
+			label: 'Tarjeta',
+		},
+		{
+			id: 3,
+			value: 'qr',
+			label: 'QR',
+		},
+	];
+
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
 
-	const clientData = useMemo(
-		() => location.state?.clientData || [],
-		[location.state?.clientData]
+	const transactionData = useMemo(
+		() => location.state?.transactionData || [],
+		[location.state?.transactionData]
 	);
 
 	const [formIsValid, setFormIsValid] = useState(false);
@@ -56,8 +69,6 @@ function AddClient() {
 	const [title, setTitle] = useState('');
 	const [buttonText, setButtonText] = useState('');
 	const [disabled, setDisabled] = useState(true);
-	const [clientTypeChoices, setClientTypeChoices] = useState([]);
-	const [clientType, setClientType] = useState(null);
 	const [errorMessage, setErrorMessage] = useState('');
 
 	const nameReducer = (state, action) => {
@@ -84,79 +95,7 @@ function AddClient() {
 		}
 		return { value: '', isValid: false };
 	};
-	const phoneNumberReducer = (state, action) => {
-		if (action.type === 'INPUT_FOCUS') {
-			return {
-				value: state.value,
-				isValid: validatePhoneNumber(state.value),
-				feedbackText: 'Ingrese numero valido',
-			};
-		}
-		if (action.type === 'INPUT_CHANGE') {
-			return {
-				value: action.val,
-				isValid: validatePhoneNumber(action.val),
-				feedbackText: 'Ingrese numero valido',
-			};
-		}
-		if (action.type === 'INPUT_ERROR') {
-			return {
-				value: state.value,
-				isValid: false,
-				feedbackText: action.errorMessage,
-			};
-		}
-		return { value: '', isValid: false };
-	};
-	const nitReducer = (state, action) => {
-		if (action.type === 'INPUT_FOCUS') {
-			return {
-				value: state.value,
-				isValid: validateCiNumber(state.value),
-				feedbackText: 'Ingrese ci/nit valido',
-			};
-		}
-		if (action.type === 'INPUT_CHANGE') {
-			return {
-				value: action.val,
-				isValid: validateCiNumber(action.val),
-				feedbackText: 'Ingrese ci/nit valido',
-			};
-		}
-		if (action.type === 'INPUT_ERROR') {
-			return {
-				value: state.value,
-				isValid: false,
-				feedbackText: action.errorMessage,
-			};
-		}
-		return { value: '', isValid: false };
-	};
-	const emailReducer = (state, action) => {
-		if (action.type === 'INPUT_FOCUS') {
-			return {
-				value: state.value,
-				isValid: validateEmail(state.value),
-				feedbackText: 'Ingrese correo valido',
-			};
-		}
-		if (action.type === 'INPUT_CHANGE') {
-			return {
-				value: action.val,
-				isValid: validateEmail(action.val),
-				feedbackText: 'Ingrese correo valido',
-			};
-		}
-		if (action.type === 'INPUT_ERROR') {
-			return {
-				value: state.value,
-				isValid: false,
-				feedbackText: action.errorMessage,
-			};
-		}
-		return { value: '', isValid: false };
-	};
-	const addressReducer = (state, action) => {
+	const locationReducer = (state, action) => {
 		if (action.type === 'INPUT_FOCUS') {
 			return {
 				value: state.value,
@@ -175,68 +114,56 @@ function AddClient() {
 	};
 
 	const [nameState, dispatchName] = useReducer(nameReducer, {
-		value: clientData.name ? clientData.name : '',
+		value: agencyData.name ? agencyData.name : '',
 		isValid: true,
 		feedbackText: '',
 	});
-	const [phoneNumberState, dispatchPhoneNumber] = useReducer(
-		phoneNumberReducer,
-		{
-			value: clientData.phone ? clientData.phone : '',
-			isValid: true,
-			feedbackText: '',
-		}
-	);
-	const [nitState, dispatchNit] = useReducer(nitReducer, {
-		value: clientData.nit ? clientData.nit : '',
-		isValid: true,
-		feedbackText: '',
-	});
-	const [emailState, dispatchEmail] = useReducer(emailReducer, {
-		value: clientData.email ? clientData.email : '',
-		isValid: true,
-		feedbackText: '',
-	});
-	const [addressState, dispatchAddress] = useReducer(addressReducer, {
-		value: clientData.address ? clientData.address : '',
+	const [locationState, dispatchLocation] = useReducer(locationReducer, {
+		value: agencyData.location ? agencyData.location : '',
 		isValid: true,
 		feedbackText: '',
 	});
 
 	const { isValid: nameIsValid } = nameState;
-	const { isValid: phoneNumberIsValid } = phoneNumberState;
-	const { isValid: nitIsValid } = nitState;
-	const { isValid: emailIsValid } = emailState;
-	const { isValid: addressIsValid } = addressState;
+	const { isValid: locationIsValid } = locationState;
 
 	const nameInputChangeHandler = e => {
 		dispatchName({ type: 'INPUT_CHANGE', val: e.target.value });
 	};
 
-	const phoneNumberInputChangeHandler = e => {
-		dispatchPhoneNumber({ type: 'INPUT_CHANGE', val: e.target.value });
+	const locationInputChangeHandler = e => {
+		dispatchLocation({ type: 'INPUT_CHANGE', val: e.target.value });
 	};
 
-	const nitInputChangeHandler = e => {
-		dispatchNit({ type: 'INPUT_CHANGE', val: e.target.value });
+	const cityInputChangeHandler = (event, option) => {
+		setCity(option);
 	};
 
-	const emailInputChangeHandler = e => {
-		dispatchEmail({ type: 'INPUT_CHANGE', val: e.target.value });
+	const handlerCancel = () => {
+		if (isForm) {
+			navigate(-1);
+		} else {
+			setIsForm(!isForm);
+		}
 	};
 
-	const addresInputChangeHandler = e => {
-		dispatchAddress({ type: 'INPUT_CHANGE', val: e.target.value });
-	};
-
-	const clientTypeInputChangeHandler = (event, option) => {
-		setClientType(option);
+	const handleNext = async e => {
+		e.preventDefault();
+		if (isForm) {
+			setIsForm(!isForm);
+		}
+		if (formIsValid && !isForm && agencyData.length === 0) {
+			handleSubmit();
+		}
+		if (formIsValid && !isForm && agencyData.length !== 0) {
+			handleEdit();
+		}
 	};
 
 	useEffect(() => {
-		const fetchClientTypeChoices = async () => {
+		const fetchCityChoices = async () => {
 			try {
-				const response = await fetch(urlClientChoices, {
+				const response = await fetch(urlCityChoices, {
 					headers: {
 						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
@@ -244,39 +171,98 @@ function AddClient() {
 				});
 				if (response.ok) {
 					const choices = await response.json();
-					setClientTypeChoices(choices);
-					if (clientData.clientType && choices.length > 0) {
+					setCityChoices(choices);
+					if (agencyData.city && choices.length > 0) {
 						const matchingChoice = choices.find(
-							choice => choice.value === clientData.clientType
+							choice => choice.value === agencyData.city
 						);
 						if (matchingChoice) {
-							setClientType(matchingChoice);
+							setCity(matchingChoice);
 						}
 					}
 				}
 			} catch (error) {
-				console.error('Error fetching client choices:', error);
+				console.error('Error fetching agency choices:', error);
 			}
 		};
 
-		fetchClientTypeChoices();
-	}, [urlClientChoices, authContext.token, clientData.clientType]);
+		fetchCityChoices();
+	}, [urlCityChoices, authContext.token, agencyData.city]);
 
+	const handleSubmit = async () => {
+		try {
+			const response = await fetch(url, {
+				method: 'POST',
+				body: JSON.stringify({
+					name: nameState.value,
+					location: locationState.value,
+					city: city.value,
+				}),
+				headers: {
+					Authorization: `Token ${authContext.token}`,
+					'Content-Type': 'application/json',
+				},
+			});
+			const data = await response.json();
+
+			if (!response.ok) {
+				setErrorMessage('Ocurrió un problema.');
+				setIsForm(true);
+
+				if (data.name) {
+					dispatchName({
+						type: 'INPUT_ERROR',
+						errorMessage: data.name[0],
+					});
+				}
+			} else {
+				setIsLoading(true);
+				setShowModal(true);
+			}
+		} catch (e) {
+			setIsLoading(false);
+			setMessage(e.message);
+		}
+	};
+	const handleEdit = async () => {
+		try {
+			const response = await fetch(`${url}${agencyData.id}/`, {
+				method: 'PUT',
+				body: JSON.stringify({
+					name: nameState.value,
+					location: locationState.value,
+					city: city.value,
+				}),
+
+				headers: {
+					Authorization: `Token ${authContext.token}`,
+					'Content-Type': 'application/json',
+				},
+			});
+			const data = await response.json();
+
+			if (!response.ok) {
+				setErrorMessage('Ocurrió un problema.');
+				setIsForm(true);
+
+				if (data.name) {
+					dispatchName({
+						type: 'INPUT_ERROR',
+						errorMessage: data.name[0],
+					});
+				}
+			} else {
+				setIsLoading(true);
+				setShowModal(true);
+			}
+		} catch (e) {
+			setIsLoading(false);
+			setMessage(e.message);
+		}
+	};
 	useEffect(() => {
-		if (
-			nameState.value &&
-			phoneNumberState.value &&
-			nitState.value &&
-			emailState.value &&
-			addressState.value &&
-			clientType
-		) {
-			const isValid =
-				nameIsValid &&
-				phoneNumberIsValid &&
-				nitIsValid &&
-				emailIsValid &&
-				addressIsValid;
+		if (nameState.value && locationState.value && city) {
+			const isValid = nameIsValid && locationIsValid;
 
 			setFormIsValid(isValid);
 			setDisabled(!isValid);
@@ -284,188 +270,205 @@ function AddClient() {
 			setDisabled(true);
 		}
 	}, [
-		clientData,
 		nameState.value,
-		phoneNumberState.value,
-		nitState.value,
-		emailState.value,
-		addressState.value,
-		clientType,
+		locationState.value,
+		city,
 		nameIsValid,
-		phoneNumberIsValid,
-		nitIsValid,
-		emailIsValid,
-		addressIsValid,
+		locationIsValid,
 	]);
+
+	useEffect(() => {
+		setTitle(
+			agencyData.length !== 0 ? 'Editar Agencia' : 'Agregar Agencia'
+		);
+		if (agencyData.length !== 0) {
+			setButtonText('Guardar Cambios');
+		} else {
+			setButtonText(!isForm ? 'Finalizar' : 'Siguiente');
+		}
+	}, [isForm, agencyData]);
 
 	return (
 		<>
 			<Fragment>
-				<div className={classes.listContainer}>
-					{errorMessage && (
-						<Alert severity="error">{errorMessage}</Alert>
-					)}
-					<Box mt={4}>
-						<h6>1. Datos personales</h6>
-						<Grid container spacing={2} mt={1} mb={2}>
-							<Grid size={{ xs: 12, sm: 4 }}>
-								<TextField
-									label="Nombre"
-									variant="outlined"
-									onChange={nameInputChangeHandler}
-									value={nameState.value}
-									error={!nameIsValid}
-									helperText={
-										!nameIsValid
-											? nameState.feedbackText
-											: ''
-									}
-									required
-									fullWidth
-								/>
-							</Grid>
-							<Grid size={{ xs: 6, sm: 2 }}>
-								<TextField
-									label="NIT/CI"
-									variant="outlined"
-									onChange={nitInputChangeHandler}
-									value={nitState.value}
-									error={!nitIsValid}
-									helperText={
-										!nitIsValid ? nitState.feedbackText : ''
-									}
-									required
-									fullWidth
-								/>
-							</Grid>
-							<Grid size={{ xs: 6, sm: 2 }}>
-								<Autocomplete
-									disablePortal
-									value={clientType}
-									options={clientTypeChoices}
-									getOptionLabel={option => {
-										if (typeof option === 'string')
-											return option;
-										return option?.label ?? '';
-									}}
-									isOptionEqualToValue={(option, value) =>
-										option.value === value.value
-									}
-									renderInput={params => (
-										<TextField
-											{...params}
-											label="Tipo"
-											required
-										/>
-									)}
-									onChange={clientTypeInputChangeHandler}
-								/>
-							</Grid>
-						</Grid>
-					</Box>
-					<div>
-						<h6>2. Datos de contacto </h6>
-						<Grid container spacing={2} mt={1} mb={2}>
-							<Grid size={{ xs: 6, sm: 4 }}>
-								<TextField
-									label="Dirección"
-									variant="outlined"
-									onChange={addresInputChangeHandler}
-									value={addressState.value}
-									error={!addressIsValid}
-									helperText={
-										!addressIsValid
-											? addressState.feedbackText
-											: ''
-									}
-									required
-									fullWidth
-								/>
-							</Grid>
-							<Grid size={{ xs: 6, sm: 2 }}>
-								<TextField
-									label="Teléfono"
-									variant="outlined"
-									onChange={phoneNumberInputChangeHandler}
-									value={phoneNumberState.value}
-									error={!phoneNumberIsValid}
-									helperText={
-										!phoneNumberIsValid
-											? phoneNumberState.feedbackText
-											: ''
-									}
-									required
-									fullWidth
-								/>
-							</Grid>
-							<Grid size={{ xs: 6, sm: 3 }}>
-								<TextField
-									label="Correo Electrónico"
-									variant="outlined"
-									onChange={emailInputChangeHandler}
-									value={emailState.value}
-									error={!emailIsValid}
-									helperText={
-										!emailIsValid
-											? emailState.feedbackText
-											: ''
-									}
-									required
-									fullWidth
-								/>
-							</Grid>
-						</Grid>
-					</div>
-					<Box
-						mt={2}
-						style={{
-							display: 'flex',
-							flexDirection: 'row',
-							alignItems: 'center',
-							gap: 10,
-						}}
-					>
-						<Button
-							id="cancelar_button"
-							variant="outlined"
-							onClick={handlerCancel}
-							style={{
-								textTransform: 'none',
-								width: '150px',
-							}}
-							disabled={isLoading}
-						>
-							{!isForm ? 'Atrás' : 'Cancelar'}
-						</Button>
-						<Button
-							variant="contained"
-							style={{
-								textTransform: 'none',
-								width: '150px',
-							}}
-							disabled={disabled || isLoading}
-							onClick={handleNext}
-						>
-							{buttonText}
-						</Button>
-						{isForm && (
-							<Typography
-								ml={3}
-								style={{
-									color: '#6C757D',
-									fontStyle: 'italic',
-									fontSize: '14px',
-								}}
-							>
-								Los campos con (*) son requeridos para avanzar
-								en el formulario.{' '}
-							</Typography>
+				<ListHeader title={title} text={title} visible={false} />
+				{isForm ? (
+					<div className={classes.listContainer}>
+						{errorMessage && (
+							<Alert severity="error">{errorMessage}</Alert>
 						)}
-					</Box>
-				</div>
+						<FormControl fullWidth onSubmit={handleSubmit}>
+							<Box mt={4}>
+								<h6>1. Datos de Agencia</h6>
+								<Grid container spacing={2} mt={1} mb={2}>
+									<Grid size={{ xs: 12, sm: 4 }}>
+										<TextField
+											label="Nombre"
+											variant="outlined"
+											onChange={nameInputChangeHandler}
+											value={nameState.value}
+											error={!nameIsValid}
+											helperText={
+												!nameIsValid
+													? nameState.feedbackText
+													: ''
+											}
+											required
+											fullWidth
+										/>
+									</Grid>
+									<Grid size={{ xs: 12, sm: 4 }}>
+										<TextField
+											label="Dirección"
+											variant="outlined"
+											onChange={
+												locationInputChangeHandler
+											}
+											value={locationState.value}
+											error={!locationIsValid}
+											helperText={
+												!locationIsValid
+													? locationState.feedbackText
+													: ''
+											}
+											required
+											fullWidth
+										/>
+									</Grid>
+									<Grid size={{ xs: 6, sm: 1 }}>
+										<Autocomplete
+											disablePortal
+											value={city}
+											options={cityChoices}
+											getOptionLabel={option => {
+												if (typeof option === 'string')
+													return option;
+												return option?.label ?? '';
+											}}
+											isOptionEqualToValue={(
+												option,
+												value
+											) => option.value === value.value}
+											renderInput={params => (
+												<TextField
+													{...params}
+													label="Ciudad"
+													required
+												/>
+											)}
+											onChange={cityInputChangeHandler}
+										/>
+									</Grid>
+								</Grid>
+							</Box>
+						</FormControl>
+						<Box
+							mt={2}
+							style={{
+								display: 'flex',
+								flexDirection: 'row',
+								alignItems: 'center',
+								gap: 10,
+							}}
+						>
+							<Button
+								id="cancelar_button"
+								variant="outlined"
+								onClick={handlerCancel}
+								style={{
+									textTransform: 'none',
+									width: '150px',
+								}}
+								disabled={isLoading}
+							>
+								{!isForm ? 'Atrás' : 'Cancelar'}
+							</Button>
+							<Button
+								variant="contained"
+								style={{
+									textTransform: 'none',
+									width: '150px',
+								}}
+								disabled={disabled || isLoading}
+								onClick={handleNext}
+							>
+								{buttonText}
+							</Button>
+							{isForm && (
+								<Typography
+									ml={3}
+									style={{
+										color: '#6C757D',
+										fontStyle: 'italic',
+										fontSize: '14px',
+									}}
+								>
+									Los campos con (*) son requeridos para
+									avanzar en el formulario.{' '}
+								</Typography>
+							)}
+						</Box>
+					</div>
+				) : (
+					<div className={classes.listContainer}>
+						<AddAgencyPreview
+							name={nameState.value}
+							location={locationState.value}
+							city={city}
+							message={message}
+						/>
+						<Box
+							mt={2}
+							style={{
+								display: 'flex',
+								flexDirection: 'row',
+								alignItems: 'center',
+								gap: 10,
+							}}
+						>
+							<Button
+								id="cancelar_button"
+								variant="outlined"
+								onClick={handlerCancel}
+								style={{
+									textTransform: 'none',
+									width: '150px',
+								}}
+								disabled={isLoading}
+							>
+								{!isForm ? 'Atrás' : 'Cancelar'}
+							</Button>
+							<Button
+								variant="contained"
+								style={{
+									textTransform: 'none',
+									width: '150px',
+								}}
+								disabled={disabled || isLoading}
+								onClick={handleNext}
+							>
+								{buttonText}
+							</Button>
+							{isForm && (
+								<Typography
+									ml={3}
+									style={{
+										color: '#6C757D',
+										fontStyle: 'italic',
+										fontSize: '14px',
+									}}
+								>
+									Los campos con (*) son requeridos para
+									avanzar en el formulario.{' '}
+								</Typography>
+							)}
+						</Box>
+					</div>
+				)}
+				{showModal && <AddAgencyModal editAgency={agencyData} />}
 			</Fragment>
 		</>
 	);
 }
 
-export default AddClient;
+export default AddAgency;
