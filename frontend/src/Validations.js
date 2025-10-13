@@ -77,7 +77,8 @@ export const validateCode = code => {
 };
 
 export const validatePositiveNumber = number => {
-	return parseInt(number) >= 0;
+	const numValue = parseFloat(number);
+	return !isNaN(numValue) && numValue >= 0;
 };
 
 export const validateActualDate = date => {

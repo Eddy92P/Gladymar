@@ -7,7 +7,13 @@ import { Fragment, useEffect, useState, useContext } from 'react';
 
 import AuthContext from '../../store/auth-context';
 
-import { Info, Edit, MonetizationOn, Logout } from '@mui/icons-material';
+import {
+	Info,
+	Edit,
+	MonetizationOn,
+	Logout,
+	Payment,
+} from '@mui/icons-material';
 import { makeStyles } from '@mui/styles';
 
 import { useNavigate } from 'react-router-dom';
@@ -97,6 +103,12 @@ const SaleList = () => {
 					{row.status == 'realizado' && (
 						<Logout
 							onClick={e => handleOutputButton(e, row.id, false)}
+							className={classes.editIcon}
+						/>
+					)}
+					{row.balanceDue > 0 && (
+						<Payment
+							onClick={e => handlePaymentButton(e, row.id, true)}
 							className={classes.editIcon}
 						/>
 					)}
@@ -199,6 +211,14 @@ const SaleList = () => {
 		e.preventDefault();
 		const sale = list.find(x => x.id === id);
 		navigate(`agregar_salida/${id}`, { state: { saleData: sale } });
+	};
+
+	const handlePaymentButton = (e, id, isSale) => {
+		e.preventDefault();
+		const sale = list.find(x => x.id === id);
+		navigate(`agregar_pago/${id}`, {
+			state: { transactionData: sale, isSale: isSale },
+		});
 	};
 
 	const handlePageChange = newPage => {

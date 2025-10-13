@@ -22,7 +22,7 @@ router.register('product-channel-prices', views.ProductChannelPriceViewSet)
 router.register('selling-channels', views.SellingChannelViewSet)
 router.register('purchases', views.PurchaseViewSet)
 router.register('sales', views.SaleViewSet)
-router.register('payment', views.PaymentViewSet)
+router.register('payments', views.PaymentViewSet)
 
 app_name = 'sale'
 

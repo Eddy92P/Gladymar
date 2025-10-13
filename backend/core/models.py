@@ -666,14 +666,6 @@ class Payment(models.Model):
     payment_date = models.DateField(null=False, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['transaction_id', 'transaction_type'],
-                name='unique_transaction'
-            )
-        ]
         
     def __str__(self):
         return f"{self.payment_method}"

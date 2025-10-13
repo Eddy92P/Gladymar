@@ -204,7 +204,7 @@ const SaleDetail = () => {
 																.products.name
 														}
 													</TableCell>
-													<TableCell align="right">
+													<TableCell>
 														{
 															saleItem.status_display
 														}
@@ -230,6 +230,7 @@ const SaleDetail = () => {
 											)
 										)}
 										<TableRow>
+											<TableCell />
 											<TableCell />
 											<TableCell />
 											<TableCell />

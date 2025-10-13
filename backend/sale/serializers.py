@@ -649,17 +649,22 @@ class PaymentSerializer(serializers.ModelSerializer):
         transaction_type = data.get('transaction_type')
         transaction_id = data.get('transaction_id')
         payment_date = data.get('payment_date')
+        payment_amount = data.get('amount')
         
         # Only validate if we have all required fields
         if transaction_type and transaction_id and payment_date:
             if transaction_type == 'compra':
-                transaction_date = Purchase.objects.get(id=transaction_id).purchase_date
+                transaction = Purchase.objects.get(id=transaction_id)
             elif transaction_type == 'venta':
-                transaction_date = Sale.objects.get(id=transaction_id).sale_date
+                transaction = Sale.objects.get(id=transaction_id)
             
-            if payment_date < transaction_date:
+            if payment_date < transaction.sale_date:
                 raise serializers.ValidationError({
                         "payment_date": "La fecha de pago no puede ser anterior a la fecha de compra/venta."
+                })
+            if transaction.balance_due - payment_amount < 0:
+                 raise serializers.ValidationError({
+                        "amount": "El pago excede el saldo pendiente."
                 })
 
         return data
