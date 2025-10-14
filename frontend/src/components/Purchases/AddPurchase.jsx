@@ -335,7 +335,7 @@ export const AddPurchase = () => {
 			dispatchProductList({
 				type: 'TOTAL_PRICE_CHANGE',
 				id,
-				val: totalPrice.toString(),
+				val: totalPrice.toFixed(2).toString(),
 			});
 		},
 		[dispatchProductList]

@@ -402,7 +402,7 @@ export const AddSale = () => {
 			dispatchProductList({
 				type: 'SUB_TOTAL_PRICE_CHANGE',
 				id,
-				val: subTotalPrice.toString(),
+				val: subTotalPrice.toFixed(2).toString(),
 			});
 		},
 		[dispatchProductList]
@@ -417,7 +417,7 @@ export const AddSale = () => {
 					2
 				);
 			} else {
-				totalPrice = subTotal;
+				totalPrice = subTotal.toFixed(2);
 			}
 			dispatchProductList({
 				type: 'TOTAL_PRICE_CHANGE',
@@ -674,7 +674,7 @@ export const AddSale = () => {
 								type: 'SET_ERROR',
 								id: productId,
 								errorMessage: errorMessage,
-								field: 'unitPrice',
+								field: 'price',
 							});
 						}
 
@@ -834,7 +834,7 @@ export const AddSale = () => {
 								type: 'SET_ERROR',
 								id: productId,
 								errorMessage: errorMessage,
-								field: 'unitPrice',
+								field: 'price',
 							});
 						}
 
