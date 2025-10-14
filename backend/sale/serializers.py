@@ -196,6 +196,7 @@ class WarehouseSerializer(serializers.ModelSerializer):
                         item.save()
                     else:
                         item_data_copy = item_data.copy()
+                        item_data_copy['available_stock'] = item_data_copy['stock']
                         item_data_copy.pop('warehouse', None)
                         ProductStock.objects.create(warehouse=instance, **item_data_copy)
         except Exception as e:
@@ -895,8 +896,14 @@ class SaleSerializer(serializers.ModelSerializer):
         items_data = validated_data.pop('sale_items', None)
         payments_data = validated_data.pop('payments', None)
         try:
-            if validated_data.get('status') == 'realizado':
-                validated_data['invoice_number'] = instance.invoice_number + 1
+            if validated_data.get('status') == 'realizado' and instance.invoice_number == 0:
+                # Obtener el último invoice_number de todas las ventas
+                last_sale = Sale.objects.filter(invoice_number__gt=0, status='realizado').order_by('-invoice_number').first()
+                if last_sale:
+                    validated_data['invoice_number'] = last_sale.invoice_number + 1
+                else:
+                    # Si no hay ventas previas, empezar desde 1
+                    validated_data['invoice_number'] = 1
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
             instance.save()

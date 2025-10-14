@@ -12,6 +12,7 @@ from django.views import View
 from django.http import HttpResponse, Http404
 from django.template.loader import render_to_string
 from weasyprint import HTML
+from django.db.models import Subquery
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -41,17 +42,17 @@ class CatalogView(APIView):
 
         if selling_channel_id:
             prices = ProductChannelPrice.objects.filter(selling_channel=selling_channel_id)
-            stocks = {
-                ps.product_id: ps
-                for ps in ProductStock.objects.all()
+            products_stock = ProductStock.objects.filter(product__in=Subquery(prices.values('product'))).select_related('product')
+            product_price = {
+                pp.product_id: pp
+                for pp in ProductChannelPrice.objects.filter(selling_channel=selling_channel_id)
             }
 
-            for price in prices.select_related("product"):
-                product = price.product
-                ps = stocks.get(product.id)
+            for product_stock in products_stock:
+                pp = product_price.get(product_stock.product.id)
 
                 # Skip products without stock records
-                if ps is None:
+                if pp is None:
                     continue
 
                 # Apply search filter
@@ -59,17 +60,18 @@ class CatalogView(APIView):
                     continue
 
                 data.append({
-                    "id": ps.id,
-                    "agency": ps.warehouse.agency.name,
-                    "warehouse": ps.warehouse.name,
-                    "name": product.name,
-                    "code": product.code,
-                    "price": price.price,
-                    "stock": ps.available_stock,
-                    "minimum_stock": ps.minimum_stock,
-                    "maximum_stock": ps.maximum_stock,
-                    "minimum_sale_price": product.minimum_sale_price,
-                    "maximum_sale_price": product.maximum_sale_price,
+                    "id": product_stock.id,
+                    "agency": product_stock.warehouse.agency.name,
+                    "warehouse": product_stock.warehouse.name,
+                    "name": product_stock.product.name,
+                    "code": product_stock.product.code,
+                    "price": pp.price,
+                    "stock": product_stock.available_stock,
+                    "minimum_stock": product_stock.minimum_stock,
+                    "maximum_stock": product_stock.maximum_stock,
+                    "name": product_stock.product.name,
+                    "minimum_sale_price": product_stock.product.minimum_sale_price,
+                    "maximum_sale_price": product_stock.product.maximum_sale_price,
                 })
         elif agency_id and sale_id:
             sale_items = SaleItem.objects.filter(sale=sale_id, sale__agency=agency_id).exclude(status='completado').prefetch_related('product_stock')
