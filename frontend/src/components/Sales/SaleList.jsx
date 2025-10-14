@@ -13,6 +13,7 @@ import {
 	MonetizationOn,
 	Logout,
 	Payment,
+	PictureAsPdf,
 } from '@mui/icons-material';
 import { makeStyles } from '@mui/styles';
 
@@ -28,6 +29,7 @@ const useStyles = makeStyles({
 const SaleList = () => {
 	const classes = useStyles();
 	const authContext = useContext(AuthContext);
+	const pdfUrl = config.url.HOST + api.PROFORMA_PDF_URL;
 
 	const [list, setList] = useState([]);
 	const [error, setError] = useState(null);
@@ -110,6 +112,13 @@ const SaleList = () => {
 						<Payment
 							onClick={e => handlePaymentButton(e, row.id, true)}
 							className={classes.editIcon}
+						/>
+					)}
+					{(row.status == 'proforma' ||
+						row.status == 'realizado') && (
+						<PictureAsPdf
+							onClick={e => handlePdfClick(e, row.id)}
+							style={{ cursor: 'pointer', color: '#127FE6' }}
 						/>
 					)}
 				</div>
@@ -219,6 +228,12 @@ const SaleList = () => {
 		navigate(`agregar_pago/${id}`, {
 			state: { transactionData: sale, isSale: isSale },
 		});
+	};
+
+	const handlePdfClick = (e, id) => {
+		e.preventDefault();
+		const fullPdfUrl = `${pdfUrl}${id}/`;
+		window.open(fullPdfUrl, '_blank');
 	};
 
 	const handlePageChange = newPage => {

@@ -395,7 +395,7 @@ function AddWarehouse() {
 								errorMessage: Array.isArray(product_stock.stock)
 									? product_stock.stock[0]
 									: product_stock.stock,
-								field: 'endDate',
+								field: 'stock',
 							});
 						}
 						if (product_stock.minimum_stock) {

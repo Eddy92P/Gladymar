@@ -116,7 +116,7 @@ def create_purchase(**params):
         'purchase_date': date(2024, 1, 1),
         'invoice_number': f'123456{unique_suffix}',
         'total': 100.00,
-        'balance_due': 0.00,
+        'balance_due': 100.00,
     }
     defaults.update(params)
     return Purchase.objects.create(**defaults)
@@ -221,7 +221,7 @@ class PrivatePaymentApiTests(TestCase):
             'transaction_id': purchase.id,
             'payment_method': 'efectivo',
             'transaction_type': 'compra',
-            'amount': 500.00,
+            'amount': 50.00,
             'payment_date': date(2024, 1, 2),  # One day after purchase_date
         }
 

@@ -29,27 +29,6 @@ export const options = [
 		icon: Store,
 	},
 	{
-		key: 'warehouses',
-		label: 'Almacenes',
-		path: 'almacenes',
-		permission: 'core.view_warehouse',
-		icon: Inventory,
-	},
-	{
-		key: 'categories',
-		label: 'Categorias',
-		path: 'categorias',
-		permission: 'core.view_category',
-		icon: Category,
-	},
-	{
-		key: 'batches',
-		label: 'Lotes',
-		path: 'lotes',
-		permission: 'core.view_batch',
-		icon: Workspaces,
-	},
-	{
 		key: 'products',
 		label: 'Productos',
 		path: 'productos',
@@ -74,6 +53,27 @@ export const options = [
 				style={{ width: '24px', height: '24px' }}
 			/>
 		),
+	},
+	{
+		key: 'warehouses',
+		label: 'Almacenes',
+		path: 'almacenes',
+		permission: 'core.view_warehouse',
+		icon: Inventory,
+	},
+	{
+		key: 'categories',
+		label: 'Categorias',
+		path: 'categorias',
+		permission: 'core.view_category',
+		icon: Category,
+	},
+	{
+		key: 'batches',
+		label: 'Lotes',
+		path: 'lotes',
+		permission: 'core.view_batch',
+		icon: Workspaces,
 	},
 	{
 		key: 'suppliers',
@@ -123,19 +123,6 @@ export const options = [
 			<img
 				src={SaleIcon}
 				alt="Ventas"
-				style={{ width: '24px', height: '24px' }}
-			/>
-		),
-	},
-	{
-		key: 'payments',
-		label: 'Pagos',
-		path: 'pagos',
-		permission: 'core.view_payment',
-		icon: () => (
-			<img
-				src={PaymentIcon}
-				alt="Pagos"
 				style={{ width: '24px', height: '24px' }}
 			/>
 		),

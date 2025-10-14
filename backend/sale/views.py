@@ -8,6 +8,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.views import View
+from django.http import HttpResponse, Http404
+from django.template.loader import render_to_string
+from weasyprint import HTML
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -518,3 +522,32 @@ class PaymentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve payments ordered by id."""
         return self.queryset.order_by('-id')
+
+    
+class ProformaPdfView(View):
+    """Generate Proforma PDF."""
+    def get(self, request, *args, **kwargs):
+        sale_id = self.kwargs.get('id')
+        try:
+            sale = Sale.objects.get(id=sale_id)
+        except Sale.DoesNotExist:
+            raise Http404("Venta no encontrada.")
+        
+        isSale = True if sale.status == 'realizado' else False
+        title = 'Proforma' if sale.status == 'proforma' else 'Recibo'
+        
+        context = {
+            'title': title,
+            'sale': sale,
+            'isSale': isSale,
+        }
+        html_string = render_to_string('proforma.html', context)
+        html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+
+        pdf_file = html.write_pdf()
+        
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="comprobante-{sale_id}.pdf"'
+
+        return response
+        

@@ -655,13 +655,17 @@ class PaymentSerializer(serializers.ModelSerializer):
         if transaction_type and transaction_id and payment_date:
             if transaction_type == 'compra':
                 transaction = Purchase.objects.get(id=transaction_id)
+                if payment_date < transaction.purchase_date:
+                    raise serializers.ValidationError({
+                            "payment_date": "La fecha de pago no puede ser anterior a la fecha de compra."
+                    })
             elif transaction_type == 'venta':
                 transaction = Sale.objects.get(id=transaction_id)
-            
-            if payment_date < transaction.sale_date:
-                raise serializers.ValidationError({
-                        "payment_date": "La fecha de pago no puede ser anterior a la fecha de compra/venta."
-                })
+                if payment_date < transaction.sale_date:
+                    raise serializers.ValidationError({
+                            "payment_date": "La fecha de pago no puede ser anterior a la fecha de venta."
+                    })
+
             if transaction.balance_due - payment_amount < 0:
                  raise serializers.ValidationError({
                         "amount": "El pago excede el saldo pendiente."
@@ -837,6 +841,7 @@ class SaleSerializer(serializers.ModelSerializer):
             'payments',
             'selling_channel',
             'selling_channels',
+            'invoice_number',
             'sale_items',
             'total',
             'balance_due',
@@ -890,6 +895,8 @@ class SaleSerializer(serializers.ModelSerializer):
         items_data = validated_data.pop('sale_items', None)
         payments_data = validated_data.pop('payments', None)
         try:
+            if validated_data.get('status') == 'realizado':
+                validated_data['invoice_number'] = instance.invoice_number + 1
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
             instance.save()
@@ -911,7 +918,7 @@ class SaleSerializer(serializers.ModelSerializer):
                         SaleItem.objects.create(sale=instance, **item_data)
                     
                     # Actualizar stock para productos existentes y nuevos cuando el status es 'realizado'
-                    if validated_data['status'] == 'realizado':
+                    if validated_data.get('status') == 'realizado':
                         item_data['product_stock'].reserved_stock += item_data['quantity']
                         item_data['product_stock'].available_stock -= item_data['quantity']
                         item_data['product_stock'].save()

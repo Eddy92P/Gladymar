@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{ title }}</title>
+        <link rel="stylesheet" href="{% static 'css/proforma.css' %}">
+    </head>
+    <body>
+        <div class="header-container">
+            <div class="header-title">
+                <h2>GLADYMAR</h1>
+                <h2>POTOSI - BOLIVIA</h2>
+            </div>
+            <div class="header-second-title">
+                {% if isSale %}
+                    <h2>RECIBO DE VENTA</h1>
+                    <h3>N° {{ sale.invoice_number }}</h2>
+                {% else %}
+                    <h2>PROFORMA DE VENTA</h2>
+                {% endif %}
+            </div>
+        </div>
+        <div class="header-concept">
+            <div>
+                <p>CLIENTE: {{ sale.client.name }}</p>
+                <p>DETALLE DE PRODUCTOS:</p>
+            </div>
+        </div>
+        <div>
+            <table>
+                <tr>
+                    <th>LOTE</th>
+                    <th>CODIGO</th>
+                    <th>ALMACEN</th>
+                    <th>AGENCIA</th>
+                    <th>PRODUCTO</th>
+                    <th>UNID</th>
+                    <th>CANTIDAD</th>
+                    <th>PRECIO UNIT.</th>
+                    <th>SUB TOTAL</th>
+                    <th>DESCUENTO %</th>
+                    <th>TOTAL</th>
+                </tr>
+                {% for sale_item in sale.sale_items.all %}
+                    <tr>
+                        <td>{{ sale_item.product_stock.product.batch.name }}</td>
+                        <td>{{ sale_item.product_stock.product.code }}</td>
+                        <td>{{ sale_item.product_stock.warehouse.name }}</td>
+                        <td>{{ sale_item.sale.agency.name }}</td>
+                        <td>{{ sale_item.product_stock.product.name }}</td>
+                        <td>{{ sale_item.product_stock.product.unit_of_measurement }}</td>
+                        <td>{{ sale_item.quantity }}</td>
+                        <td>{{ sale_item.unit_price }}</td>
+                        <td>{{ sale_item.sub_total_price }}</td>
+                        <td>{{ sale_item.discount }}</td>
+                        <td>{{ sale_item.total_price }}</td>
+                    </tr>
+                {% endfor %}
+                <tr class="total-row">
+                    <td colspan="10" class="total-label">Importe Total Bs.</td>
+                    <td class="total-value">{{ sale.total }}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="footer">
+            {% if isSale %}
+                <div class="footer-container">
+                    <div class="signature">
+                        <p>_______________________________</p>
+                        <p>ENTREGUE CONFORME</p>
+                        <p>NOMBRE: {{ sale.seller.first_name }} {{ tariff.seller.last_name }}</p>
+                    </div>
+                    <div class="signature">
+                        <p>_______________________________</p>
+                        <p>RECIBI CONFORME</p>
+                        <p>CLIENTE: {{ sale.client.name }}</p>
+                    </div>
+                </div>
+            {% endif %}
+            <div class="date-container">
+                <p>Potosi, {{ sale.sale_date|date:"j \\d\\e F \\d\\e Y"|lower }}</p>
+            </div>
+        </div>
+    </body>
+</html>

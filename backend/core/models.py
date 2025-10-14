@@ -600,6 +600,7 @@ class Sale(models.Model):
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
     selling_channel = models.ForeignKey(SellingChannel, on_delete=models.PROTECT)
     seller = models.ForeignKey(User, on_delete=models.PROTECT)
+    invoice_number = models.PositiveIntegerField(default=0)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     balance_due = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='proforma')
