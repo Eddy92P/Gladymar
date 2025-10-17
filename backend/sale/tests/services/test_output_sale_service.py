@@ -127,6 +127,7 @@ def create_selling_channel(**params):
     
 def create_output(**params):
     defaults = {
+        'agency': create_agency(),
         'warehouse_keeper': create_user(),
         'client': create_client(),
         'output_date': '2025-10-02',

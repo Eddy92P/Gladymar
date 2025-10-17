@@ -3,7 +3,7 @@
 <html>
     <head>
         <title>{{ title }}</title>
-        <link rel="stylesheet" href="{% static 'css/proforma.css' %}">
+        <link rel="stylesheet" href="{% static 'css/invoice.css' %}">
     </head>
     <body>
         <div class="header-container">
@@ -68,7 +68,7 @@
                     <div class="signature">
                         <p>_______________________________</p>
                         <p>ENTREGUE CONFORME</p>
-                        <p>NOMBRE: {{ sale.seller.first_name }} {{ tariff.seller.last_name }}</p>
+                        <p>NOMBRE: {{ sale.seller.first_name }} {{ sale.seller.last_name }}</p>
                     </div>
                     <div class="signature">
                         <p>_______________________________</p>

@@ -521,8 +521,10 @@ class PurchaseItem(models.Model):
 
 
 class Entry(models.Model):
+    agency = models.ForeignKey(Agency, on_delete=models.PROTECT)
     warehouse_keeper = models.ForeignKey(User, on_delete=models.PROTECT)
     supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
+    purchase = models.ForeignKey('Purchase', on_delete=models.PROTECT, blank=True, null=True)
     entry_date = models.DateField(null=False, blank=False)
     invoice_number = models.CharField(
         max_length=50, 
@@ -559,12 +561,15 @@ class EntryItem(models.Model):
     
     
 class Output(models.Model):
+    agency = models.ForeignKey(Agency, on_delete=models.PROTECT)
     warehouse_keeper = models.ForeignKey(User, on_delete=models.PROTECT)
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
+    sale = models.ForeignKey('Sale', on_delete=models.PROTECT, blank=True, null=True, related_name='outputs')
+    invoice_number = models.PositiveIntegerField(default=1)
     output_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return f"{self.client.name} - {self.output_date}"
     

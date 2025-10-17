@@ -38,6 +38,7 @@ const apiUrl = {
 	API_URL_PAYMENTS: '/api/sale/payments/',
 	API_URL_CATALOG: '/api/sale/catalog',
 	PROFORMA_PDF_URL: '/api/sale/proforma-pdf/',
+	OUTPUT_PDF_URL: '/api/sale/output-pdf/',
 };
 
 export const config = import.meta.env.MODE === 'development' ? dev : prod;

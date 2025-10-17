@@ -176,6 +176,7 @@ const SaleList = () => {
 							status: listData.status,
 							saleItems: listData.sale_items,
 							payments: listData.payments,
+							outputs: listData.outputs,
 						};
 					});
 					setList(parsedList);

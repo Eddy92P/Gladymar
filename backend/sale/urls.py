@@ -29,5 +29,6 @@ app_name = 'sale'
 urlpatterns = [
     path('', include(router.urls)),
     path("catalog/", views.CatalogView.as_view(), name="catalog"),
-    path('proforma-pdf/<int:id>/', views.ProformaPdfView.as_view(), name='proforma-pdf'),
+    path('proforma-pdf/<int:id>/', views.InvoicePdfView.as_view(), name='proforma-pdf'),
+    path('output-pdf/<int:id>/', views.OutputInvoicePdfView.as_view(), name='output-pdf'),
 ]

@@ -310,199 +310,6 @@ class ClientSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
-class EntryItemSerializer(serializers.ModelSerializer):
-    """Serializer for EntryItem model"""
-    products_stock = ProductStockSerializer(read_only=True, source='product_stock')
-    product_stock = serializers.PrimaryKeyRelatedField(
-        write_only=True,
-        queryset=ProductStock.objects.all()
-    )
-    purchase_item = serializers.PrimaryKeyRelatedField(
-        write_only=True,
-        queryset=PurchaseItem.objects.all(),
-        required=False
-    )
-
-    class Meta:
-        model = EntryItem
-        fields = ['id', 'purchase_item', 'product_stock', 'products_stock', 'quantity']
-        read_only_fields = ['id']
-    
-    def validate(self, data):
-        """Validate the entire entry item"""
-        quantity = data.get('quantity')
-        purchase_item = data.get('purchase_item')
-        
-        # Validate quantity against purchase item if it exists
-        if purchase_item and quantity:
-            if purchase_item.entered_stock + quantity > purchase_item.quantity:
-                raise serializers.ValidationError({
-                    'quantity': "La cantidad ingresada excede la cantidad comprada."
-                })
-        
-        return data
-        
-    def create(self, validated_data):
-        entry_item = super().create(validated_data)
-        if validated_data.get('purchase_item') is not None:
-            UpdatePurchaseItem(entry_item).update_purchase_item()
-        IncreaseProductStockService(entry_item).increase_product_stock()
-
-        return entry_item
-
-
-class EntrySerializer(serializers.ModelSerializer):
-    """Serializer for Entry model"""
-    warehouse_keeper = UserSerializer(read_only=True)
-    suppliers = SupplierSerializer(read_only=True, source='supplier')
-    supplier = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Supplier.objects.all())
-    entry_items = EntryItemSerializer(many=True)
-
-    class Meta:
-        model = Entry
-        fields = ['id', 'warehouse_keeper', 'supplier', 'suppliers', 'entry_date',
-                  'invoice_number', 'entry_items', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
- 
-    @transaction.atomic
-    def create(self, validated_data):
-        try:
-            items_data = validated_data.pop('entry_items')
-            entry = Entry.objects.create(**validated_data)
-            for item_data in items_data:
-                item_data['entry'] = entry
-                EntryItemSerializer().create(item_data)
-        except Exception as e:
-            raise e
-        return entry
-
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        items_data = validated_data.pop('entry_items', None)
-        try:
-            for attr, value in validated_data.items():
-                setattr(instance, attr, value)
-            instance.save()
-
-            if items_data is not None:
-                existing_items = instance.entry_items.all()
-                for item in existing_items:
-                    if item.id not in [item_data.get('id') for item_data in items_data if item_data.get('id')]:
-                        item.delete()
-
-                for item_data in items_data:
-                    if item_data.get('id'):
-                        item = existing_items.get(id=item_data['id'])
-                        for attr, value in item_data.items():
-                            if attr != 'id':
-                                setattr(item, attr, value)
-                        item.save()
-                    else:
-                        EntryItem.objects.create(entry=instance, **item_data)
-                UpdateProductStockService(instance, {'entry_items': items_data}).update_entry_product_stock()
-        except Exception as e:
-            raise e
-
-        return instance
-
-
-class OutputItemSerializer(serializers.ModelSerializer):
-    """Serializer for OutputItem model"""
-    product_stock = serializers.PrimaryKeyRelatedField(write_only=True, queryset=ProductStock.objects.all())
-    products_stock = ProductStockSerializer(read_only=True, source='product_stock')
-    sale_item = serializers.PrimaryKeyRelatedField(write_only=True, required=False, queryset=SaleItem.objects.all())
-
-    class Meta:
-        model = OutputItem
-        fields = ['id', 'sale_item', 'product_stock', 'products_stock', 'quantity']
-        read_only_fields = ['id']
-
-    def validate(self, data):
-        """Validate the entire output item"""
-        quantity = data.get('quantity')
-        sale_item = data.get('sale_item')
-        product_stock = data.get('product_stock')
-
-        # Validate quantity against purchase item if it exists
-        if sale_item and quantity:
-            if sale_item.dispatched_stock + quantity > sale_item.quantity:
-                raise serializers.ValidationError({
-                    'quantity': "La cantidad despachada excede la cantidad vendida."
-                })
-        if product_stock:
-            if product_stock.available_stock - quantity < 0:
-                raise serializers.ValidationError({
-                    'quantity': "La cantidad excede el stock disponible."
-                })
-
-        return data
-
-    def create(self, validated_data):
-        output_item = super().create(validated_data)
-        product_stock = validated_data['product_stock']
-        if validated_data.get('sale_item') is not None:
-            UpdateSaleItem(output_item, product_stock).update_sale_item()
-        DecreaseProductStockService(output_item, product_stock).decrease_product_stock()
-
-        return output_item
-        
-    
-class OutputSerializer(serializers.ModelSerializer):
-    """Serializer for Output model"""
-    warehouse_keeper = UserSerializer(read_only=True)
-    clients = ClientSerializer(read_only=True, source='client')
-    client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all(), write_only=True)
-    output_items = OutputItemSerializer(many=True)
-
-    class Meta:
-        model = Output
-        fields = ['id', 'warehouse_keeper',
-                  'client', 'clients', 'output_date', 'output_items',
-                  'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
-
-    @transaction.atomic
-    def create(self, validated_data):
-        try:
-            items_data = validated_data.pop('output_items')
-            output = Output.objects.create(**validated_data)
-            for item_data in items_data:
-                item_data['output'] = output
-                OutputItemSerializer().create(item_data)
-        except Exception as e:
-            raise e
-
-        return output
-    
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        items_data = validated_data.pop('output_items', None)
-        try:
-            for attr, value in validated_data.items():
-                setattr(instance, attr, value)
-            instance.save()
-            
-            if items_data is not None:
-                existing_items = instance.output_items.all()
-                for item in existing_items:
-                    if item.id not in [item_data.get('id') for item_data in items_data if item_data.get('id')]:
-                        item.delete()
-                for item_data in items_data:
-                    if item_data.get('id'):
-                        item = existing_items.get(id=item_data['id'])
-                        for attr, value in item_data.items():
-                            if attr != 'id':
-                                setattr(item, attr, value)
-                        item.save()
-                    else:
-                        OutputItem.objects.create(output=instance, **item_data)
-                UpdateProductStockService(instance, {'output_items': items_data}).update_output_product_stock()
-        except Exception as e:
-            raise e
-
-        return instance
-
-
 class ProductChannelPriceSerializer(serializers.ModelSerializer):
     """Serializer for ProductChannelPrice model"""
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
@@ -683,6 +490,103 @@ class PaymentSerializer(serializers.ModelSerializer):
         UpdateTransactionService(transaction_id, payment_amount, transaction_type).update_transaction_balance_due()
         
         return payment
+    
+
+class EntryItemSerializer(serializers.ModelSerializer):
+    """Serializer for EntryItem model"""
+    products_stock = ProductStockSerializer(read_only=True, source='product_stock')
+    product_stock = serializers.PrimaryKeyRelatedField(
+        write_only=True,
+        queryset=ProductStock.objects.all()
+    )
+    purchase_item = serializers.PrimaryKeyRelatedField(
+        write_only=True,
+        queryset=PurchaseItem.objects.all(),
+        required=False
+    )
+
+    class Meta:
+        model = EntryItem
+        fields = ['id', 'purchase_item', 'product_stock', 'products_stock', 'quantity']
+        read_only_fields = ['id']
+    
+    def validate(self, data):
+        """Validate the entire entry item"""
+        quantity = data.get('quantity')
+        purchase_item = data.get('purchase_item')
+        
+        # Validate quantity against purchase item if it exists
+        if purchase_item and quantity:
+            if purchase_item.entered_stock + quantity > purchase_item.quantity:
+                raise serializers.ValidationError({
+                    'quantity': "La cantidad ingresada excede la cantidad comprada."
+                })
+        
+        return data
+        
+    def create(self, validated_data):
+        entry_item = super().create(validated_data)
+        if validated_data.get('purchase_item') is not None:
+            UpdatePurchaseItem(entry_item).update_purchase_item()
+        IncreaseProductStockService(entry_item).increase_product_stock()
+
+        return entry_item
+
+
+class EntrySerializer(serializers.ModelSerializer):
+    """Serializer for Entry model"""
+    warehouse_keeper = UserSerializer(read_only=True)
+    suppliers = SupplierSerializer(read_only=True, source='supplier')
+    supplier = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Supplier.objects.all())
+    entry_items = EntryItemSerializer(many=True)
+    purchase = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Purchase.objects.all(), required=False)
+
+    class Meta:
+        model = Entry
+        fields = ['id', 'warehouse_keeper', 'supplier', 'suppliers', 'entry_date', 'purchase', 'agency',
+                  'invoice_number', 'entry_items', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+ 
+    @transaction.atomic
+    def create(self, validated_data):
+        try:
+            items_data = validated_data.pop('entry_items')
+            entry = Entry.objects.create(**validated_data)
+            for item_data in items_data:
+                item_data['entry'] = entry
+                EntryItemSerializer().create(item_data)
+        except Exception as e:
+            raise e
+        return entry
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        items_data = validated_data.pop('entry_items', None)
+        try:
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+
+            if items_data is not None:
+                existing_items = instance.entry_items.all()
+                for item in existing_items:
+                    if item.id not in [item_data.get('id') for item_data in items_data if item_data.get('id')]:
+                        item.delete()
+
+                for item_data in items_data:
+                    if item_data.get('id'):
+                        item = existing_items.get(id=item_data['id'])
+                        for attr, value in item_data.items():
+                            if attr != 'id':
+                                setattr(item, attr, value)
+                        item.save()
+                    else:
+                        EntryItem.objects.create(entry=instance, **item_data)
+                UpdateProductStockService(instance, {'entry_items': items_data}).update_entry_product_stock()
+        except Exception as e:
+            raise e
+
+        return instance
 
 
 class PurchaseItemSerializer(serializers.ModelSerializer):
@@ -787,6 +691,108 @@ class PurchaseSerializer(serializers.ModelSerializer):
         return purchase
 
 
+class OutputItemSerializer(serializers.ModelSerializer):
+    """Serializer for OutputItem model"""
+    product_stock = serializers.PrimaryKeyRelatedField(write_only=True, queryset=ProductStock.objects.all())
+    products_stock = ProductStockSerializer(read_only=True, source='product_stock')
+    sale_item = serializers.PrimaryKeyRelatedField(write_only=True, required=False, queryset=SaleItem.objects.all())
+
+    class Meta:
+        model = OutputItem
+        fields = ['id', 'sale_item', 'product_stock', 'products_stock', 'quantity']
+        read_only_fields = ['id']
+
+    def validate(self, data):
+        """Validate the entire output item"""
+        quantity = data.get('quantity')
+        sale_item = data.get('sale_item')
+        product_stock = data.get('product_stock')
+
+        # Validate quantity against purchase item if it exists
+        if sale_item and quantity:
+            if sale_item.dispatched_stock + quantity > sale_item.quantity:
+                raise serializers.ValidationError({
+                    'quantity': "La cantidad despachada excede la cantidad vendida."
+                })
+        if product_stock:
+            if product_stock.available_stock - quantity < 0:
+                raise serializers.ValidationError({
+                    'quantity': "La cantidad excede el stock disponible."
+                })
+
+        return data
+
+    def create(self, validated_data):
+        output_item = super().create(validated_data)
+        product_stock = validated_data['product_stock']
+        if validated_data.get('sale_item') is not None:
+            UpdateSaleItem(output_item, product_stock).update_sale_item()
+        DecreaseProductStockService(output_item, product_stock).decrease_product_stock()
+
+        return output_item
+
+
+class OutputSerializer(serializers.ModelSerializer):
+    """Serializer for Output model"""
+    warehouse_keeper = UserSerializer(read_only=True)
+    clients = ClientSerializer(read_only=True, source='client')
+    client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all(), write_only=True)
+    output_items = OutputItemSerializer(many=True)
+    sale = serializers.PrimaryKeyRelatedField(queryset=Sale.objects.all(), write_only=True, required=False)
+
+    class Meta:
+        model = Output
+        fields = ['id', 'warehouse_keeper', 'sale', 'invoice_number', 'agency',
+                  'client', 'clients', 'output_date', 'output_items',
+                  'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    @transaction.atomic
+    def create(self, validated_data):
+        try:
+            items_data = validated_data.pop('output_items')
+            output = Output.objects.create(**validated_data)
+            for item_data in items_data:
+                item_data['output'] = output
+                OutputItemSerializer().create(item_data)
+            # Obtener el último invoice_number de todas las ventas
+            last_output = Output.objects.filter(invoice_number__gt=0).order_by('-invoice_number').first()
+            validated_data['invoice_number'] = last_output.invoice_number + 1
+
+        except Exception as e:
+            raise e
+
+        return output
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        items_data = validated_data.pop('output_items', None)
+        try:
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
+            instance.save()
+
+            if items_data is not None:
+                existing_items = instance.output_items.all()
+                for item in existing_items:
+                    if item.id not in [item_data.get('id') for item_data in items_data if item_data.get('id')]:
+                        item.delete()
+                for item_data in items_data:
+                    if item_data.get('id'):
+                        item = existing_items.get(id=item_data['id'])
+                        for attr, value in item_data.items():
+                            if attr != 'id':
+                                setattr(item, attr, value)
+                        item.save()
+                    else:
+                        OutputItem.objects.create(output=instance, **item_data)
+                UpdateProductStockService(instance, {'output_items': items_data}).update_output_product_stock()
+        except Exception as e:
+            raise e
+
+        return instance
+
+    
 class SaleItemSerializer(serializers.ModelSerializer):
     """Serializer for Sale Item model."""
     products_stock = ProductStockSerializer(read_only=True, source='product_stock')
@@ -832,6 +838,7 @@ class SaleSerializer(serializers.ModelSerializer):
     )
     payments = NestedPaymentSerializer(required=False)
     seller = UserSerializer(read_only=True)
+    outputs = OutputSerializer(many=True, read_only=True)
 
     class Meta:
         model = Sale
@@ -840,6 +847,7 @@ class SaleSerializer(serializers.ModelSerializer):
             'seller',
             'agency',
             'payments',
+            'outputs',
             'selling_channel',
             'selling_channels',
             'invoice_number',

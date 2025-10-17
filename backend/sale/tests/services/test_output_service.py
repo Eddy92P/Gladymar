@@ -107,6 +107,7 @@ class TestDecreaseProductStockService(TestCase):
         """Test decreasing stock."""
         unique_suffix = str(uuid.uuid4())[:8]
         output = Output.objects.create(
+            agency=create_agency(),
             warehouse_keeper=create_user(),
             client = Client.objects.create(
                 name = 'Test Client 1',
@@ -132,6 +133,7 @@ class TestDecreaseProductStockService(TestCase):
     def test_decrease_stock_raise_error(self):
         """Test service for increase product stock fails."""
         output = Output.objects.create(
+            agency=create_agency(),
             warehouse_keeper=create_user(),
             client = Client.objects.create(
                 name = 'Test Client 1',

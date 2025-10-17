@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{ title }}</title>
+        <link rel="stylesheet" href="{% static 'css/invoice.css' %}">
+    </head>
+    <body>
+        <div class="header-container">
+            <div class="header-title">
+                <h2>GLADYMAR</h1>
+                <h2>POTOSI - BOLIVIA</h2>
+            </div>
+            <div class="header-second-title">
+                {% if isOutputDone %}
+                    <h2>RECIBO DE ENTREGA TOTAL DE SALIDA</h1>
+                {% else %}
+                    <h2>RECIBO DE ENTREGA PARCIAL DE SALIDA</h1>
+                {% endif %}
+                    <h3>N° {{ output.invoice_number }}</h2>
+            </div>
+        </div>
+        <div class="header-concept">
+            <div>
+                <p>CLIENTE: {{ output.client.name }}</p>
+                <p>DETALLE DE PRODUCTOS:</p>
+            </div>
+        </div>
+        <div>
+            <table>
+                <tr>
+                    <th>LOTE</th>
+                    <th>CODIGO</th>
+                    <th>ALMACEN</th>
+                    <th>AGENCIA</th>
+                    <th>PRODUCTO</th>
+                    <th>UNID</th>
+                    <th>CANTIDAD</th>
+                </tr>
+                {% for output_item in output.output_items.all %}
+                    <tr>
+                        <td>{{ output_item.product_stock.product.batch.name }}</td>
+                        <td>{{ output_item.product_stock.product.code }}</td>
+                        <td>{{ output_item.product_stock.warehouse.name }}</td>
+                        <td>{{ output_item.output.agency.name }}</td>
+                        <td>{{ output_item.product_stock.product.name }}</td>
+                        <td>{{ output_item.product_stock.product.unit_of_measurement }}</td>
+                        <td>{{ output_item.quantity }}</td>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="footer">
+                <div class="footer-container">
+                    <div class="signature">
+                        <p>_______________________________</p>
+                        <p>ENTREGUE CONFORME</p>
+                        <p>NOMBRE: {{ output.warehouse_keeper.first_name }} {{ output.warehouse_keeper.last_name }}</p>
+                    </div>
+                    <div class="signature">
+                        <p>_______________________________</p>
+                        <p>RECIBI CONFORME</p>
+                        <p>CLIENTE: {{ output.client.name }}</p>
+                    </div>
+                </div>
+            <div class="date-container">
+                <p>Potosi, {{ output.output_date|date:"j \\d\\e F \\d\\e Y"|lower }}</p>
+            </div>
+        </div>
+    </body>
+</html>

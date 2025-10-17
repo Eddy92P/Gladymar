@@ -16,6 +16,9 @@ import {
 import React, { useMemo, useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import dayjs from 'dayjs';
+import { api, config } from '../../Constants';
+
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 
 const SaleDetail = () => {
 	const location = useLocation();
@@ -32,7 +35,8 @@ const SaleDetail = () => {
 		{
 			label: 'Realizada',
 			date:
-				saleData.status === 'realizado'
+				saleData.status === 'realizado' ||
+				saleData.status === 'terminado'
 					? dayjs(saleData.salePerformDate).format('DD-MM-YYYY')
 					: '',
 		},
@@ -44,6 +48,7 @@ const SaleDetail = () => {
 					: '',
 		},
 	];
+	const pdfUrl = config.url.HOST + api.OUTPUT_PDF_URL;
 
 	useEffect(() => {
 		if (saleData.status === 'proforma') {
@@ -150,7 +155,7 @@ const SaleDetail = () => {
 								pb: 1,
 							}}
 						>
-							Detalle de Productos
+							Detalle de Productos Vendidos
 						</Typography>
 						<Box sx={{ width: '100%' }}>
 							<TableContainer>
@@ -334,6 +339,188 @@ const SaleDetail = () => {
 						</Box>
 					</Paper>
 				</Grid>
+				{saleData.outputs && (
+					<Grid
+						item
+						md={3}
+						sx={{
+							height: '50%',
+							width: '100%',
+						}}
+					>
+						<Paper
+							elevation={3}
+							sx={{
+								p: 4,
+							}}
+						>
+							<Typography
+								variant="h5"
+								component="h2"
+								sx={{
+									fontWeight: 'bold',
+									mb: 2,
+									pb: 1,
+								}}
+							>
+								Detalle de Productos Despachados
+							</Typography>
+							<Box sx={{ width: '100%' }}>
+								{saleData.outputs.map((output, index) => (
+									<Box key={index} sx={{ mb: 3 }}>
+										<TableContainer>
+											<Table
+												sx={{ minWidth: 650 }}
+												aria-label="output products table"
+											>
+												<TableHead>
+													<TableRow>
+														<TableCell>
+															<strong>
+																Almacenero
+															</strong>
+														</TableCell>
+														<TableCell>
+															<strong>
+																Cliente
+															</strong>
+														</TableCell>
+														<TableCell>
+															<strong>
+																Fecha
+															</strong>
+														</TableCell>
+														<TableCell>
+															<strong>
+																Acciones
+															</strong>
+														</TableCell>
+													</TableRow>
+												</TableHead>
+												<TableBody>
+													<TableRow>
+														<TableCell>
+															{
+																output
+																	.warehouse_keeper
+																	.first_name
+															}
+														</TableCell>
+														<TableCell>
+															{
+																output.clients
+																	.name
+															}
+														</TableCell>
+														<TableCell>
+															{output.output_date}
+														</TableCell>
+														<TableCell>
+															<a
+																href={`${pdfUrl}${output.id}/`}
+																target="_blank"
+																rel="noopener noreferrer"
+																style={{
+																	textDecoration:
+																		'none',
+																	cursor: 'pointer',
+																	display:
+																		'flex',
+																	alignItems:
+																		'center',
+																	gap: '8px',
+																	color: 'inherit',
+																}}
+															>
+																<Typography
+																	sx={{
+																		'&:hover':
+																			{
+																				textDecoration:
+																					'underline',
+																			},
+																	}}
+																>
+																	Recibo de
+																	Salida
+																</Typography>
+																<PictureAsPdfIcon />
+															</a>
+														</TableCell>
+													</TableRow>
+												</TableBody>
+											</Table>
+										</TableContainer>
+
+										{output.output_items &&
+											output.output_items.length > 0 && (
+												<TableContainer sx={{ mt: 2 }}>
+													<Table
+														sx={{ minWidth: 650 }}
+														aria-label="output items table"
+													>
+														<TableHead>
+															<TableRow>
+																<TableCell>
+																	<strong>
+																		Código
+																	</strong>
+																</TableCell>
+																<TableCell>
+																	<strong>
+																		Producto
+																	</strong>
+																</TableCell>
+																<TableCell align="right">
+																	<strong>
+																		Cantidad
+																	</strong>
+																</TableCell>
+															</TableRow>
+														</TableHead>
+														<TableBody>
+															{output.output_items.map(
+																(
+																	item,
+																	itemIndex
+																) => (
+																	<TableRow
+																		key={
+																			itemIndex
+																		}
+																	>
+																		<TableCell>
+																			{item
+																				.products_stock
+																				?.products
+																				?.code ||
+																				'N/A'}
+																		</TableCell>
+																		<TableCell>
+																			{item
+																				.products_stock
+																				?.products
+																				?.name ||
+																				'N/A'}
+																		</TableCell>
+																		<TableCell align="right">
+																			{
+																				item.quantity
+																			}
+																		</TableCell>
+																	</TableRow>
+																)
+															)}
+														</TableBody>
+													</Table>
+												</TableContainer>
+											)}
+									</Box>
+								))}
+							</Box>
+						</Paper>
+					</Grid>
+				)}
 			</Grid>
 		</Box>
 	);

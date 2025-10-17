@@ -526,7 +526,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
         return self.queryset.order_by('-id')
 
     
-class ProformaPdfView(View):
+class InvoicePdfView(View):
     """Generate Proforma PDF."""
     def get(self, request, *args, **kwargs):
         sale_id = self.kwargs.get('id')
@@ -534,22 +534,48 @@ class ProformaPdfView(View):
             sale = Sale.objects.get(id=sale_id)
         except Sale.DoesNotExist:
             raise Http404("Venta no encontrada.")
-        
+
         isSale = True if sale.status == 'realizado' else False
         title = 'Proforma' if sale.status == 'proforma' else 'Recibo'
-        
+
         context = {
             'title': title,
             'sale': sale,
             'isSale': isSale,
         }
-        html_string = render_to_string('proforma.html', context)
+        html_string = render_to_string('invoice.html', context)
         html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
 
         pdf_file = html.write_pdf()
-        
+
         response = HttpResponse(pdf_file, content_type='application/pdf')
-        response['Content-Disposition'] = f'inline; filename="comprobante-{sale_id}.pdf"'
+        response['Content-Disposition'] = f'inline; filename="comprobante_de_venta_{sale_id}.pdf"'
+
+        return response
+    
+class OutputInvoicePdfView(View):
+    """Generate Output PDF."""
+    def get(self, request, *args, **kwargs):
+        output_id = self.kwargs.get('id')
+        try:
+            output = Output.objects.get(id=output_id)
+        except Output.DoesNotExist:
+            raise Http404("Venta no encontrada.")
+
+        isOutputDone = True if output.sale.status == 'terminado' else False
+
+        context = {
+            'title': 'Recibo de Salida',
+            'output': output,
+            'isOutputDone': isOutputDone,
+        }
+        html_string = render_to_string('output_invoice.html', context)
+        html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+
+        pdf_file = html.write_pdf()
+
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="comprobante_de_salida_{output_id}.pdf"'
 
         return response
         

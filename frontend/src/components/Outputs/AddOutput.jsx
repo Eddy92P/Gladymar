@@ -195,7 +195,6 @@ export const AddOutput = () => {
 			handleSubmit();
 		}
 	};
-
 	useEffect(() => {
 		const fetchClients = async () => {
 			try {
@@ -234,6 +233,8 @@ export const AddOutput = () => {
 		try {
 			// Preparar los datos básicos de la salida
 			const outputInfo = {
+				agency: storeContext.agency,
+				sale: saleData.id,
 				client: client.id,
 				output_date: outputDateState.value.format('YYYY-MM-DD'),
 				output_items: productListState.map(product => ({

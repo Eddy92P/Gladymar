@@ -250,6 +250,7 @@ export const AddEntry = () => {
 		try {
 			// Preparar los datos básicos de la entrada
 			const entryInfo = {
+				purchase: purchaseData.id,
 				agency: storeContext.agency,
 				supplier: supplier.id,
 				entry_date: entryDateState.value.format('YYYY-MM-DD'),
@@ -839,6 +840,7 @@ export const AddEntry = () => {
 						addedProducts={productListState}
 						purchase={purchaseData}
 						agency={storeContext.agency}
+						isEntry={true}
 					/>
 				)}
 

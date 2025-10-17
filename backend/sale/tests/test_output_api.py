@@ -50,6 +50,18 @@ def create_client(**params):
 
     return Client.objects.create(**defaults)
 
+def create_agency(**params):
+    """Create and return a sample agency."""
+    unique_suffix = str(uuid.uuid4())[:8]
+    defaults = {
+        'name': f'Test Agency 1 {unique_suffix}',
+        'location': 'Test Address location',
+        'city': 'Potosi',
+    }
+    defaults.update(params)
+
+    return Agency.objects.create(**defaults)
+
 def create_warehouse(**params):
     """Create and return a sample warehouse."""
     unique_suffix = str(uuid.uuid4())[:8]
@@ -122,6 +134,7 @@ def detail_url(output_id):
 def create_output(**params):
     """Create and return a sample output."""
     defaults = {
+        'agency': create_agency(),
         'warehouse_keeper': create_user(),
         'client': create_client(),
         'output_date': timezone.now().date(),
@@ -177,6 +190,7 @@ class PrivateOutputApiTests(TestCase):
     def test_create_output(self):
         """Test for create an output."""
         payload = {
+            'agency': create_agency().id,
             'warehouse_keeper': create_user().id,
             'client': create_client().id,
             'output_date': timezone.now().date(),
@@ -210,6 +224,7 @@ class PrivateOutputApiTests(TestCase):
         """Test for full update an output."""
         output = create_output()
         payload = {
+            'agency': create_agency().id,
             'warehouse_keeper': create_user().id,
             'client': create_client().id,
             'output_date': timezone.now().date(),

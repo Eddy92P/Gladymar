@@ -20,6 +20,7 @@ const AddProductDetailedList = ({
 	sale,
 	isPurchase,
 	isOutput,
+	isEntry,
 }) => {
 	const [list, setList] = useState([]);
 	const [error, setError] = useState('');
@@ -36,7 +37,8 @@ const AddProductDetailedList = ({
 			purchase?.id ||
 			sale?.id ||
 			isPurchase ||
-			isOutput
+			isOutput ||
+			isEntry
 		) {
 			url = config.url.HOST + api.API_URL_CATALOG;
 		} else {
@@ -52,12 +54,17 @@ const AddProductDetailedList = ({
 			url += `?purchase_id=${purchase.id}&agency_id=${storeContext.agency}`;
 		} else if (sale?.id) {
 			url += `?sale_id=${sale.id}&agency_id=${storeContext.agency}`;
-		} else if (isPurchase || isOutput) {
+		} else if (isEntry || isOutput || isPurchase) {
 			url += `?agency_id=${storeContext.agency}`;
 		}
 		if (
 			filterText &&
-			(sellingChannel || purchase?.id || sale?.id || isPurchase)
+			(sellingChannel ||
+				purchase?.id ||
+				sale?.id ||
+				isPurchase ||
+				isOutput ||
+				isEntry)
 		) {
 			url += `&search=${filterText}`;
 		} else if (filterText) {
@@ -151,7 +158,7 @@ const AddProductDetailedList = ({
 						price: item.price,
 						stock: item.stock,
 					}));
-				} else if (isPurchase || isOutput) {
+				} else if (isEntry || isOutput || isPurchase) {
 					const response = await fetch(url, {
 						method: 'GET',
 						headers: {
@@ -228,6 +235,7 @@ const AddProductDetailedList = ({
 		storeContext.agency,
 		isPurchase,
 		isOutput,
+		isEntry,
 	]);
 
 	const handleCloseModal = () => {

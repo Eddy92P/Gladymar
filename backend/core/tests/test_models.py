@@ -286,6 +286,7 @@ class ModelTest(TestCase):
             city='LP',
         )
         entry = Entry.objects.create(
+            agency=agency,
             warehouse_keeper=get_user_model().objects.create_user(
                 email='testuser@example.com',
                 password='testpass123',
@@ -319,6 +320,7 @@ class ModelTest(TestCase):
         )
         entry_item = EntryItem.objects.create(
             entry=Entry.objects.create(
+                agency=agency,
                 warehouse_keeper=get_user_model().objects.create_user(
                     email='testuser@example.com',
                     password='testpass123',
@@ -382,6 +384,7 @@ class ModelTest(TestCase):
             city='LP',
         )
         output = Output.objects.create(
+            agency=agency,
             warehouse_keeper=get_user_model().objects.create_user(
                 'test@example.com',
                 'testpass123',
@@ -412,6 +415,7 @@ class ModelTest(TestCase):
         )
         output_item = OutputItem.objects.create(
             output=Output.objects.create(
+                agency=agency,
                 warehouse_keeper=get_user_model().objects.create_user(
                     'test@example.com',
                     'testpass123',
