@@ -133,7 +133,7 @@ const AuthForm = () => {
 					data.name || '',
 					data.last_name || '',
 					data.is_superuser,
-					null
+					data.user_type
 				);
 				navigate('/');
 			} catch (error) {

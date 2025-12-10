@@ -86,34 +86,48 @@ const SaleList = () => {
 						alignItems: 'center',
 					}}
 				>
-					{row.status == 'proforma' && (
-						<MonetizationOn
-							onClick={e => handleEditButton(e, row.id, true)}
-							style={{ cursor: 'pointer', color: '#127FE6' }}
-						/>
-					)}
-					{row.status == 'proforma' && (
-						<Edit
-							onClick={e => handleEditButton(e, row.id, false)}
-							className={classes.editIcon}
-						/>
-					)}
+					{row.status == 'proforma' &&
+						(authContext.userType == 4 ||
+							authContext.userType == 1) && (
+							<MonetizationOn
+								onClick={e => handleEditButton(e, row.id, true)}
+								style={{ cursor: 'pointer', color: '#127FE6' }}
+							/>
+						)}
+					{row.status == 'proforma' &&
+						(authContext.userType == 4 ||
+							authContext.userType == 3) && (
+							<Edit
+								onClick={e =>
+									handleEditButton(e, row.id, false)
+								}
+								className={classes.editIcon}
+							/>
+						)}
 					<Info
 						onClick={e => handleInfoButton(e, row.id)}
 						style={{ cursor: 'pointer', color: '#127FE6' }}
 					/>
-					{row.status == 'realizado' && (
-						<Logout
-							onClick={e => handleOutputButton(e, row.id, false)}
-							className={classes.editIcon}
-						/>
-					)}
-					{row.balanceDue > 0 && (
-						<Payment
-							onClick={e => handlePaymentButton(e, row.id, true)}
-							className={classes.editIcon}
-						/>
-					)}
+					{row.status == 'realizado' &&
+						(authContext.userType == 4 ||
+							authContext.userType == 2) && (
+							<Logout
+								onClick={e =>
+									handleOutputButton(e, row.id, false)
+								}
+								className={classes.editIcon}
+							/>
+						)}
+					{row.balanceDue > 0 &&
+						(authContext.userType == 4 ||
+							authContext.userType == 1) && (
+							<Payment
+								onClick={e =>
+									handlePaymentButton(e, row.id, true)
+								}
+								className={classes.editIcon}
+							/>
+						)}
 					{(row.status == 'proforma' ||
 						row.status == 'realizado') && (
 						<PictureAsPdf
@@ -255,7 +269,7 @@ const SaleList = () => {
 				title="Ventas"
 				text="Agregar"
 				onClick={handleAddSale}
-				visible={true}
+				visible={authContext.userType == 4 || authContext.userType == 3}
 			/>
 			<List
 				onPageSizeChange={handlePageSizeChange}

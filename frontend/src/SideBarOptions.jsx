@@ -11,7 +11,6 @@ import SellingChannelIcon from '/network-connection.png';
 import PurchaseIcon from '/buy-button.png';
 import DoubleEntryIcon from '/double-entry.png';
 import SaleIcon from '/coupon.png';
-import PaymentIcon from '/wallet.png';
 
 export const options = [
 	{

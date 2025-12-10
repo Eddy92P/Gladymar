@@ -40,6 +40,7 @@ class CreateTokenView(ObtainAuthToken):
             'last_name': user.last_name,
             'email': user.email,
             'is_superuser': user.is_superuser,
+            'user_type': user.user_type,
             'permissions': list(user.get_all_permissions())
         })
 

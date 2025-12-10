@@ -734,6 +734,10 @@ function AddWarehouse() {
 																				''
 																			: ''
 																	}
+																	disabled={
+																		warehouseData.length !==
+																		0
+																	}
 																	fullWidth
 																/>
 															</TableCell>

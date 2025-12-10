@@ -7,7 +7,9 @@ COPY ./backend/requirements.txt /tmp/requirements.txt
 COPY ./backend/requirements.dev.txt /tmp/requirements.dev.txt
 COPY ./backend /src
 WORKDIR /src
-EXPOSE 8000
+
+ENV PORT=10000
+EXPOSE 10000
 
 ARG DEV=false
 
@@ -48,4 +50,9 @@ RUN adduser --disabled-password --no-create-home django-user && \
 
 ENV PATH="/py/bin:$PATH"
 
+COPY ./backend/start.sh /src/start.sh
+RUN chmod +x /src/start.sh
+
 USER django-user
+
+CMD ["./start.sh"]

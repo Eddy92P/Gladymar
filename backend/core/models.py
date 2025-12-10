@@ -4,7 +4,7 @@ Database models for the application.
 from email.policy import default
 import os
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Permission
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 from PIL import Image
