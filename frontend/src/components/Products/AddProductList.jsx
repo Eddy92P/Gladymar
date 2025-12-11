@@ -5,7 +5,7 @@ import Filter from '../UI/List/Filter';
 import TableList from '../UI/Table/TableList';
 
 // Configs
-import { api, config } from '../../Constants';
+import { api } from '../../Constants';
 
 // Context
 import AuthContext from '../../store/auth-context';
@@ -19,7 +19,8 @@ const AddProductList = ({ onClose, onProductList, addedProducts = [] }) => {
 	const authContext = useContext(AuthContext);
 
 	useEffect(() => {
-		let url = config.url.HOST + api.API_URL_PRODUCTS;
+		const API = import.meta.env.VITE_API_URL;
+		let url = `${API}${api.API_URL_PRODUCTS}`;
 		let isMounted = true;
 
 		const controller = new AbortController();

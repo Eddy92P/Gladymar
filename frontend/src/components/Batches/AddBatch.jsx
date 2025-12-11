@@ -10,7 +10,7 @@ import React, {
 import Alert from '@mui/material/Alert';
 
 import AuthContext from '../../store/auth-context';
-import { api, config } from '../../Constants';
+import { api } from '../../Constants';
 import { validateNameLength } from '../../Validations';
 
 import {
@@ -31,8 +31,9 @@ import ListHeader from '../UI/List/ListHeader';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function AddBatch() {
-	const url = config.url.HOST + api.API_URL_BATCHES;
-	const urlCategoryChoices = config.url.HOST + api.API_URL_ALL_CATEGORIES;
+	const API = import.meta.env.VITE_API_URL;
+	const url = `${API}${api.API_URL_BATCHES}`;
+	const urlCategoryChoices = `${API}${api.API_URL_ALL_CATEGORIES}`;
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');

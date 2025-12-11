@@ -200,6 +200,11 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = "/vol/web/static/"
 
+# Static files directories for development
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
 # Media files (Uploaded files)
 MEDIA_URL = '/media/'
 

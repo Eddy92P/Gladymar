@@ -1,6 +1,6 @@
 import List from '../UI/List/List';
 
-import { api, config } from '../../Constants';
+import { api } from '../../Constants';
 import ListHeader from '../UI/List/ListHeader';
 import Filter from '../UI/List/Filter';
 import { Fragment, useEffect, useState, useContext } from 'react';
@@ -65,10 +65,10 @@ const WarehouseList = () => {
 	useEffect(() => {
 		let isMounted = true;
 		const controller = new AbortController();
+		const API = import.meta.env.VITE_API_URL;
 
 		let url =
-			config.url.HOST +
-			api.API_URL_WAREHOUSES +
+			`${API}${api.API_URL_WAREHOUSES}` +
 			`?limit=${pageSize}&offset=${(page - 1) * pageSize}`;
 
 		if (filterText) {

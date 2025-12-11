@@ -10,7 +10,7 @@ import React, {
 import Alert from '@mui/material/Alert';
 
 import AuthContext from '../../store/auth-context';
-import { api, config } from '../../Constants';
+import { api } from '../../Constants';
 import {
 	validateNameLength,
 	validateAddressLength,
@@ -63,8 +63,9 @@ import ListHeader from '../UI/List/ListHeader';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function AddWarehouse() {
-	const url = config.url.HOST + api.API_URL_WAREHOUSES;
-	const urlAgencyChoices = config.url.HOST + api.API_URL_AGENCIES;
+	const API = import.meta.env.VITE_API_URL;
+	const url = `${API}${api.API_URL_WAREHOUSES}`;
+	const urlAgencyChoices = `${API}${api.API_URL_AGENCIES}`;
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');

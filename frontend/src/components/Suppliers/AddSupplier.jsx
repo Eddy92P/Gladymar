@@ -41,7 +41,7 @@ import {
 	validateNameLength,
 	validatePhoneNumber,
 } from '../../Validations';
-import { api, config } from '../../Constants';
+import { api } from '../../Constants';
 
 // Components
 import AddProductList from '../Products/AddProductList';
@@ -67,7 +67,8 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 export const AddSupplier = () => {
-	const url = config.url.HOST + api.API_URL_SUPPLIERS;
+	const API = import.meta.env.VITE_API_URL;
+	const url = `${API}${api.API_URL_SUPPLIERS}`;
 
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);

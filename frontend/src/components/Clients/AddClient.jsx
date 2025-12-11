@@ -10,7 +10,7 @@ import React, {
 import Alert from '@mui/material/Alert';
 
 import AuthContext from '../../store/auth-context';
-import { api, config } from '../../Constants';
+import { api } from '../../Constants';
 import {
 	validateNameLength,
 	validatePhoneNumber,
@@ -37,8 +37,9 @@ import ListHeader from '../UI/List/ListHeader';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function AddClient() {
-	const url = config.url.HOST + api.API_URL_CLIENTS;
-	const urlClientChoices = config.url.HOST + api.API_URL_CLIENT_CHOICES;
+	const API = import.meta.env.VITE_API_URL;
+	const url = `${API}${api.API_URL_CLIENTS}`;
+	const urlClientChoices = `${API}${api.API_URL_CLIENT_CHOICES}`;
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');

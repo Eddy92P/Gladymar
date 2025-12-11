@@ -20,7 +20,6 @@ import {
 	FormControl,
 	Box,
 	Typography,
-	Autocomplete,
 } from '@mui/material';
 import classes from '../UI/List/List.module.css';
 
@@ -31,7 +30,8 @@ import ListHeader from '../UI/List/ListHeader';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function AddCategory() {
-	const url = config.url.HOST + api.API_URL_CATEGORIES;
+	const API = import.meta.env.VITE_API_URL;
+	const url = `${API}${api.API_URL_CATEGORIES}`;
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');

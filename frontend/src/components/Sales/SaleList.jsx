@@ -1,6 +1,6 @@
 import List from '../UI/List/List';
 
-import { api, config } from '../../Constants';
+import { api } from '../../Constants';
 import ListHeader from '../UI/List/ListHeader';
 import Filter from '../UI/List/Filter';
 import { Fragment, useEffect, useState, useContext } from 'react';
@@ -29,7 +29,8 @@ const useStyles = makeStyles({
 const SaleList = () => {
 	const classes = useStyles();
 	const authContext = useContext(AuthContext);
-	const pdfUrl = config.url.HOST + api.PROFORMA_PDF_URL;
+	const API = import.meta.env.VITE_API_URL;
+	const pdfUrl = `${API}${api.PROFORMA_PDF_URL}`;
 
 	const [list, setList] = useState([]);
 	const [error, setError] = useState(null);
@@ -145,8 +146,7 @@ const SaleList = () => {
 		const controller = new AbortController();
 
 		let url =
-			config.url.HOST +
-			api.API_URL_SALES +
+			`${API}${api.API_URL_SALES}` +
 			`?limit=${pageSize}&offset=${(page - 1) * pageSize}`;
 
 		if (filterText) {

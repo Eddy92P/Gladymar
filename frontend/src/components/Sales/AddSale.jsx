@@ -46,7 +46,7 @@ import dayjs from 'dayjs';
 
 // Validations and Constants
 import { validatePositiveNumber, validDate } from '../../Validations';
-import { api, config } from '../../Constants';
+import { api } from '../../Constants';
 
 // Components
 import AddProductDetailedList from '../Products/AddProductDetailedList';
@@ -73,10 +73,10 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 export const AddSale = () => {
-	const url = config.url.HOST + api.API_URL_SALES;
-	const urlClientChoices = config.url.HOST + api.API_URL_ALL_CLIENTS;
-	const urlSellingChannelsChoices =
-		config.url.HOST + api.API_URL_ALL_SELLING_CHANNEL;
+	const API = import.meta.env.VITE_API_URL;
+	const url = `${API}${api.API_URL_SALES}`;
+	const urlClientChoices = `${API}${api.API_URL_ALL_CLIENTS}`;
+	const urlSellingChannelsChoices = `${API}${api.API_URL_ALL_SELLING_CHANNEL}`;
 
 	const saleTypeChoices = [
 		{ id: 1, value: 'contado', label: 'Contado' },

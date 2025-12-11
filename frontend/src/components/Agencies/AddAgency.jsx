@@ -10,7 +10,7 @@ import React, {
 import Alert from '@mui/material/Alert';
 
 import AuthContext from '../../store/auth-context';
-import { api, config } from '../../Constants';
+import { api } from '../../Constants';
 import { validateNameLength, validateAddressLength } from '../../Validations';
 
 import {
@@ -31,8 +31,9 @@ import ListHeader from '../UI/List/ListHeader';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function AddAgency() {
-	const url = config.url.HOST + api.API_URL_AGENCIES;
-	const urlCityChoices = config.url.HOST + api.API_URL_CITY_CHOICES;
+	const API = import.meta.env.VITE_API_URL;
+	const url = `${API}${api.API_URL_AGENCIES}`;
+	const urlCityChoices = `${API}${api.API_URL_CITY_CHOICES}`;
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');

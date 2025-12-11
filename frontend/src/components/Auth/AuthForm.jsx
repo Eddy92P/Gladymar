@@ -101,7 +101,10 @@ const AuthForm = () => {
 	const submitHandler = async event => {
 		event.preventDefault();
 
-		const url = config.url.HOST + api.API_URL_LOGIN;
+		// Connecting to Vercel API
+		const API = import.meta.env.VITE_API_URL;
+		const url = `${API}${api.API_URL_LOGIN}`;
+
 		if (formIsValid) {
 			setIsLoading(true);
 			try {

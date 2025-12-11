@@ -11,7 +11,7 @@ import React, {
 import Alert from '@mui/material/Alert';
 
 import AuthContext from '../../store/auth-context';
-import { api, config } from '../../Constants';
+import { api } from '../../Constants';
 import {
 	validateNameLength,
 	validateCode,
@@ -36,8 +36,9 @@ import ListHeader from '../UI/List/ListHeader';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function AddProduct() {
-	const url = config.url.HOST + api.API_URL_PRODUCTS;
-	const urlBatchChoices = config.url.HOST + api.API_URL_ALL_BATCHES;
+	const API = import.meta.env.VITE_API_URL;
+	const url = `${API}${api.API_URL_PRODUCTS}`;
+	const urlBatchChoices = `${API}${api.API_URL_ALL_BATCHES}`;
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');

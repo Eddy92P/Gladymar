@@ -44,7 +44,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
 // Validations and Constants
 import { validatePositiveNumber, validDate } from '../../Validations';
-import { api, config } from '../../Constants';
+import { api } from '../../Constants';
 
 // Components
 import AddProductDetailedList from '../Products/AddProductDetailedList';
@@ -71,8 +71,9 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 export const AddPurchase = () => {
-	const url = config.url.HOST + api.API_URL_PURCHASES;
-	const urlSupplierChoices = config.url.HOST + api.API_URL_ALL_SUPPLIERS;
+	const API = import.meta.env.VITE_API_URL;
+	const url = `${API}${api.API_URL_PURCHASES}`;
+	const urlSupplierChoices = `${API}${api.API_URL_ALL_SUPPLIERS}`;
 
 	const purchaseTypeChoices = [
 		{ id: 1, value: 'contado', label: 'Contado' },

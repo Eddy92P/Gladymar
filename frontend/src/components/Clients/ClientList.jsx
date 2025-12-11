@@ -1,6 +1,6 @@
 import List from '../UI/List/List';
 
-import { api, config } from '../../Constants';
+import { api } from '../../Constants';
 import ListHeader from '../UI/List/ListHeader';
 import ClientFilter from '../UI/List/ClientFilter';
 import { Fragment, useEffect, useState, useContext } from 'react';
@@ -21,7 +21,8 @@ const useStyles = makeStyles({
 });
 
 const ClientList = () => {
-	const urlClientChoices = config.url.HOST + api.API_URL_CLIENT_CHOICES;
+	const API = import.meta.env.VITE_API_URL;
+	const urlClientChoices = `${API}${api.API_URL_CLIENT_CHOICES}`;
 	const classes = useStyles();
 	const authContext = useContext(AuthContext);
 
@@ -106,8 +107,7 @@ const ClientList = () => {
 		const controller = new AbortController();
 
 		let url =
-			config.url.HOST +
-			api.API_URL_CLIENTS +
+			`${API}${api.API_URL_CLIENTS}` +
 			`?limit=${pageSize}&offset=${(page - 1) * pageSize}`;
 		if (filterText) {
 			url += `&search=${filterText}`;
@@ -165,7 +165,7 @@ const ClientList = () => {
 			isMounted = false;
 			controller.abort();
 		};
-	}, [filterText, authContext.token, page, pageSize, filterTab]);
+	}, [filterText, authContext.token, page, pageSize, filterTab, API]);
 
 	const handleAddClient = () => {
 		navigate('agregar_cliente');

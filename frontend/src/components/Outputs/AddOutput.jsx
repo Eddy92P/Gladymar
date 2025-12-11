@@ -39,7 +39,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
 // Validations and Constants
 import { validatePositiveNumber, validDate } from '../../Validations';
-import { api, config } from '../../Constants';
+import { api } from '../../Constants';
 
 // Components
 import AddProductDetailedList from '../Products/AddProductDetailedList';
@@ -66,8 +66,9 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 export const AddOutput = () => {
-	const url = config.url.HOST + api.API_URL_OUTPUTS;
-	const urlClientChoices = config.url.HOST + api.API_URL_ALL_CLIENTS;
+	const API = import.meta.env.VITE_API_URL;
+	const url = `${API}${api.API_URL_OUTPUTS}`;
+	const urlClientChoices = `${API}${api.API_URL_ALL_CLIENTS}`;
 
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);

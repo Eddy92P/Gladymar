@@ -39,7 +39,7 @@ import {
 	validateActualDate,
 	validatePositiveNumber,
 } from '../../Validations';
-import { api, config } from '../../Constants';
+import { api } from '../../Constants';
 
 // Components
 import AddProductDetailedList from '../Products/AddProductDetailedList';
@@ -65,7 +65,8 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 export const AddSellingChannel = () => {
-	const url = config.url.HOST + api.API_URL_SELLING_CHANNEL;
+	const API = import.meta.env.VITE_API_URL;
+	const url = `${API}${api.API_URL_SELLING_CHANNEL}`;
 
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);
