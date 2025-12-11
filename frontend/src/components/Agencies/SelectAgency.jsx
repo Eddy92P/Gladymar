@@ -20,7 +20,7 @@ import { styled, useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
 // Configs
-import { api, config } from '../../Constants';
+import { api } from '../../Constants';
 
 // Context
 import AuthContext from '../../store/auth-context';
@@ -72,7 +72,8 @@ const SelectAgency = () => {
 	}, [agency]);
 
 	useEffect(() => {
-		const url = config.url.HOST + api.API_URL_ALL_AGENCIES;
+		const API = import.meta.env.VITE_API_URL;
+		const url = `${API}${api.API_URL_ALL_AGENCIES}`;
 		let isMounted = true;
 		const controller = new AbortController();
 
