@@ -21,7 +21,7 @@ import MenuItem from '@mui/material/MenuItem';
 import Avatar from '@mui/material/Avatar';
 import Logout from '@mui/icons-material/Logout';
 
-import { options } from '../../SideBarOptions.jsx';
+import { options } from '../../SideBarOptions';
 
 import AuthContext from '../../store/auth-context';
 

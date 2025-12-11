@@ -1,4 +1,4 @@
-import { api, config } from '../../constants';
+import { api } from '../../Constants';
 import { validateEmailLength, validatePasswordLength } from '../../Validations';
 
 import { Link, useNavigate } from 'react-router-dom';
