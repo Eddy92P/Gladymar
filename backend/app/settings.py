@@ -114,6 +114,8 @@ CORS_PREFLIGHT_MAX_AGE = 86400
 CORS_EXPOSE_HEADERS = []
 CORS_URLS_REGEX = r'^/api/.*$'
 
+CSRF_TRUSTED_ORIGINS = os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",")
+
 WSGI_APPLICATION = 'app.wsgi.application'
 
 
