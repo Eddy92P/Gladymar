@@ -16,7 +16,7 @@ import {
 import React, { useMemo, useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import dayjs from 'dayjs';
-import { api, config } from '../../Constants';
+import { api } from '../../Constants';
 
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 
@@ -48,7 +48,8 @@ const SaleDetail = () => {
 					: '',
 		},
 	];
-	const pdfUrl = config.url.HOST + api.OUTPUT_PDF_URL;
+	const API = import.meta.env.VITE_API_URL;
+	const pdfUrl = `${API}${api.OUTPUT_PDF_URL}`;
 
 	useEffect(() => {
 		if (saleData.status === 'proforma') {

@@ -5,7 +5,7 @@ import Filter from '../UI/List/Filter';
 import ProductDetailedTable from '../UI/Table/ProductDetailedTable';
 
 // Configs
-import { api, config } from '../../Constants';
+import { api } from '../../Constants';
 
 // Context
 import AuthContext from '../../store/auth-context';
@@ -31,6 +31,7 @@ const AddProductDetailedList = ({
 	const storeContext = useContext(StoreContext);
 
 	useEffect(() => {
+		const API = import.meta.env.VITE_API_URL;
 		let url = '';
 		if (
 			sellingChannel ||
@@ -40,9 +41,9 @@ const AddProductDetailedList = ({
 			isOutput ||
 			isEntry
 		) {
-			url = config.url.HOST + api.API_URL_CATALOG;
+			url = `${API}${api.API_URL_CATALOG}`;
 		} else {
-			url = config.url.HOST + api.API_URL_PRODUCTS;
+			url = `${API}${api.API_URL_PRODUCTS}`;
 		}
 		let isMounted = true;
 
