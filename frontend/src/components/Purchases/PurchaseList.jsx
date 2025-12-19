@@ -83,12 +83,14 @@ const PurchaseList = () => {
 						onClick={e => handleButtonClick(e, row.id)}
 						style={{ cursor: 'pointer', color: '#127FE6' }}
 					/>
-					{row.status != 'terminado' && (
-						<Login
-							onClick={e => handleEntryButton(e, row.id)}
-							style={{ cursor: 'pointer', color: '#127FE6' }}
-						/>
-					)}
+					{row.status != 'terminado' &&
+						(authContext.userType == 4 ||
+							authContext.userType == 2) && (
+							<Login
+								onClick={e => handleEntryButton(e, row.id)}
+								style={{ cursor: 'pointer', color: '#127FE6' }}
+							/>
+						)}
 					{row.balanceDue > 0 &&
 						(authContext.userType == 4 ||
 							authContext.userType == 1) && (
