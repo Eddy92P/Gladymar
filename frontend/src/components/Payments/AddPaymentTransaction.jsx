@@ -286,9 +286,7 @@ function AddPayment() {
 															?.name
 															? transactionData
 																	.client.name
-															: transactionData
-																	.supplier
-																	?.name}
+															: transactionData.supplier}
 													</TableCell>
 													<TableCell>
 														{transactionData.total}

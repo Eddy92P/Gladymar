@@ -7,11 +7,21 @@ import { Fragment, useEffect, useState, useContext } from 'react';
 
 import AuthContext from '../../store/auth-context';
 
-import { Info, Login } from '@mui/icons-material';
+import { Info, Login, Payment } from '@mui/icons-material';
 
 import { useNavigate } from 'react-router-dom';
 
+import { makeStyles } from '@mui/styles';
+
+const useStyles = makeStyles({
+	editIcon: {
+		color: '#127FE6',
+		cursor: 'pointer',
+	},
+});
+
 const PurchaseList = () => {
+	const classes = useStyles();
 	const authContext = useContext(AuthContext);
 
 	const [list, setList] = useState([]);
@@ -79,6 +89,16 @@ const PurchaseList = () => {
 							style={{ cursor: 'pointer', color: '#127FE6' }}
 						/>
 					)}
+					{row.balanceDue > 0 &&
+						(authContext.userType == 4 ||
+							authContext.userType == 1) && (
+							<Payment
+								onClick={e =>
+									handlePaymentButton(e, row.id, false)
+								}
+								className={classes.editIcon}
+							/>
+						)}
 				</div>
 			),
 		},
@@ -172,6 +192,14 @@ const PurchaseList = () => {
 		const purchase = list.find(x => x.id === id);
 		navigate(`agregar_entrada/${id}`, {
 			state: { purchaseData: purchase },
+		});
+	};
+
+	const handlePaymentButton = (e, id, isSale) => {
+		e.preventDefault();
+		const sale = list.find(x => x.id === id);
+		navigate(`agregar_pago/${id}`, {
+			state: { transactionData: sale, isSale: isSale },
 		});
 	};
 

@@ -1,0 +1,124 @@
+@page {
+  size: A4 landscape;
+  margin: 2cm;
+  margin-bottom: 2.5cm;
+  @bottom-right {
+    content: "Página " counter(page) " de " counter(pages);
+    font-size: 9px;
+    color: #666;
+  }
+}
+
+body {
+  font-family: DejaVu Sans, sans-serif;
+  font-size: 10px;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 30%;
+  left: 10%;
+  width: 80%;
+  height: 50%;
+  background: url("/static/image/gladymar logo.png") no-repeat center center;
+  background-size: contain;
+  opacity: 0.1;
+  z-index: -1;
+}
+
+.header-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.header-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.header-second-title {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  margin-top: 15px;
+  margin-bottom: 30px;
+  page-break-inside: auto;
+  orphans: 3;
+  widows: 3;
+}
+
+td {
+  border: 1px solid black;
+  padding: 4px;
+  text-align: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  font-size: 9px;
+  page-break-inside: avoid;
+}
+
+th {
+  border: 1px solid black;
+  padding: 4px;
+  text-align: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  font-size: 9px;
+  font-weight: bold;
+  background-color: #b8b8b8;
+  page-break-inside: avoid;
+}
+
+.table-secondary-header {
+  background-color: #e2e2e2;
+  font-weight: bold;
+  font-size: 10px;
+}
+
+.total-row {
+  font-weight: bold;
+  font-size: 12px;
+}
+
+.total-label {
+  text-align: right;
+  padding-right: 15px;
+}
+
+.total-value {
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+
+.footer {
+  width: 100%;
+  margin-top: 40px;
+  page-break-inside: avoid;
+}
+
+.date-container {
+  text-align: center;
+}
+
+/* Evitar que los encabezados queden solos al final de la página */
+thead {
+  display: table-header-group;
+}
+
+tfoot {
+  display: table-footer-group;
+}
+
+/* Mantener juntas las filas relacionadas */
+tbody {
+  page-break-inside: auto;
+}

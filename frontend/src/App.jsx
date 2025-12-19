@@ -40,6 +40,7 @@ import OutputPage from './pages/OutputPage';
 import ProductStockPage from './pages/ProductStockPage';
 import AddDamagedProductStock from './components/ProductStocks/AddDamagedProduct';
 import AddPaymentPage from './pages/AddPaymentTransaction';
+import ReportPage from './pages/ReportPage';
 
 function App() {
 	const authCtx = useContext(AuthContext);
@@ -155,6 +156,10 @@ function App() {
 							path="compras/agregar_entrada/:id"
 							element={<AddEntryPage />}
 						/>
+						<Route
+							path="compras/agregar_pago/:id"
+							element={<AddPaymentPage />}
+						/>
 						<Route path="ventas" element={<SalePage />} />
 						<Route
 							path="ventas/agregar_venta"
@@ -202,6 +207,7 @@ function App() {
 							path="product_stocks/increment-damaged-stock/:id"
 							element={<AddDamagedProductStock />}
 						/>
+						<Route path="reportes" element={<ReportPage />} />
 					</Route>
 					<Route
 						path="*"

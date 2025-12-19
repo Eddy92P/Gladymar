@@ -1,0 +1,86 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{ title }}</title>
+        <link rel="stylesheet" href="{% static 'css/report.css' %}">
+    </head>
+    {% if sales %}
+    <body>
+        <div class="header-container">
+            <div class="header-title">
+                <h2>GLADYMAR</h1>
+                <h2>POTOSI - BOLIVIA</h2>
+            </div>
+            <div class="header-second-title">
+                <h2>REPORTE DE VENTAS</h2>
+            </div>
+        </div>
+        <div>
+            <table>
+                {% for sale in sales %}
+                    <tr>
+                        <th>AGENCIA</th>
+                        <th>VENDEDOR</th>
+                        <th>CLIENTE</th>
+                        <th>CANAL DE VENTA</th>
+                        <th>TIPO DE VENTA</th>
+                        <th>ESTADO DE LA VENTA</th>
+                        <th>FECHA DE VENTA</th>
+                        <th>FECHA DE REALIZACIÓN</th>
+                        <th>FECHA DE ENTREGA</th>
+                        <th>N° DE FACTURA</th>
+                        <th>TOTAL</th>
+                        <th>SALDO PENDIENTE</th>
+                    </tr>
+                    <tr>
+                        <td>{{ sale.agency.name }}</td>
+                        <td>{{ sale.seller.first_name }} {{ sale.seller.last_name }}</td>
+                        <td>{{ sale.client.name }}</td>
+                        <td>{{ sale.selling_channel.name }}</td>
+                        <td>{{ sale.sale_type }}</td>
+                        <td>{{ sale.status }}</td>
+                        <td>{{ sale.sale_date|date:"d/m/Y" }}</td>
+                        <td>{{ sale.sale_perform_date|date:"d/m/Y" }}</td>
+                        <td>{{ sale.sale_done_date|date:"d/m/Y" }}</td>
+                        <td>{{ sale.invoice_number }}</td>
+                        <td>{{ sale.total }}</td>
+                        <td>{{ sale.balance_due }}</td>
+                    </tr>
+                    {% for sale_item in sale.sale_items.all %}
+                        {% if forloop.first %}
+                            <tr>
+                                <th class="table-secondary-header">PRODUCTO</th>
+                                <th class="table-secondary-header">ESTADO</th>
+                                <th class="table-secondary-header">CANTIDAD</th>
+                                <th class="table-secondary-header">PRECIO UNITARIO</th>
+                                <th class="table-secondary-header">SUB TOTAL</th>
+                                <th class="table-secondary-header">DESCUENTO %</th>
+                                <th class="table-secondary-header">TOTAL</th>
+                            </tr>
+                        {% endif %}
+                        <tr>
+                            <td>{{ sale_item.product_stock.product.name }}</td>
+                            <td>{{ sale_item.status }}</td>
+                            <td>{{ sale_item.quantity }}</td>
+                            <td>{{ sale_item.unit_price }}</td>
+                            <td>{{ sale_item.sub_total_price }}</td>
+                            <td>{{ sale_item.discount }}</td>
+                            <td>{{ sale_item.total_price }}</td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+            </table>
+        </div>
+        <div class="footer">
+            <div class="date-container">
+                <p>Potosi, {{ today|date:"j \\d\\e F \\d\\e Y"|lower }}</p>
+            </div>
+        </div>
+    </body>
+    {% else %}
+        <div class="no-sales">
+            <h2>No hay ventas en el rango de fechas seleccionado.</h2>
+        </div>
+    {% endif %}
+</html>

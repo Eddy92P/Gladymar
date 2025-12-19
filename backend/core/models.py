@@ -162,6 +162,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.first_name + ' ' + self.last_name
 
+    class Meta:
+        permissions = [
+            ("can_view_reports", "Puede ver reportes"),
+        ]
+
 
 class Seller(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

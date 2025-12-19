@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{ title }}</title>
+        <link rel="stylesheet" href="{% static 'css/report.css' %}">
+    </head>
+    {% if purchases %}
+    <body>
+        <div class="header-container">
+            <div class="header-title">
+                <h2>GLADYMAR</h1>
+                <h2>POTOSI - BOLIVIA</h2>
+            </div>
+            <div class="header-second-title">
+                <h2>REPORTE DE COMPRAS</h2>
+            </div>
+        </div>
+        <div>
+            <table>
+                {% for purchase in purchases %}
+                <tr>
+                    <th>AGENCIA</th>
+                    <th>COMPRADOR</th>
+                    <th>PROVEEDOR</th>
+                    <th>TIPO DE COMPRA</th>
+                    <th>ESTADO DE LA COMPRA</th>
+                    <th>FECHA DE COMPRA</th>
+                    <th>FECHA DE ENTRADA AL ALMACEN</th>
+                    <th>N° DE FACTURA</th>
+                    <th>TOTAL</th>
+                    <th>SALDO PENDIENTE</th>
+                </tr>
+                    <tr>
+                        <td>{{ purchase.agency.name }}</td>
+                        <td>{{ purchase.buyer.first_name }} {{ purchase.buyer.last_name }}</td>
+                        <td>{{ purchase.supplier.name }}</td>
+                        <td>{{ purchase.purchase_type }}</td>
+                        <td>{{ purchase.status }}</td>
+                        <td>{{ purchase.purchase_date|date:"d/m/Y" }}</td>
+                        <td>{{ purchase.purchase_end_date|date:"d/m/Y" }}</td>
+                        <td>{{ purchase.invoice_number }}</td>
+                        <td>{{ purchase.total }}</td>
+                        <td>{{ purchase.balance_due }}</td>
+                    </tr>
+                    {% for item in purchase.purchase_items.all %}
+                        {% if forloop.first %}
+                        <tr>
+                            <th class="table-secondary-header">PRODUCTO</th>
+                            <th class="table-secondary-header">CANTIDAD</th>
+                            <th class="table-secondary-header">ESTADO</th>
+                            <th class="table-secondary-header">PRECIO UNITARIO</th>
+                            <th class="table-secondary-header">SUB TOTAL</th>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <td>{{ item.product_stock.product.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.status }}</td>
+                            <td>{{ item.unit_price }}</td>
+                            <td>{{ item.total_price }}</td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+            </table>
+        </div>
+        <div class="footer">
+            <div class="date-container">
+                <p>Potosi, {{ today|date:"j \\d\\e F \\d\\e Y"|lower }}</p>
+            </div>
+        </div>
+    </body>
+    {% else %}
+        <div class="no-purchases">
+            <h2>No hay compras en el rango de fechas seleccionado.</h2>
+        </div>
+    {% endif %}
+</html>

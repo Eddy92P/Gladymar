@@ -31,4 +31,8 @@ urlpatterns = [
     path("catalog/", views.CatalogView.as_view(), name="catalog"),
     path('proforma-pdf/<int:id>/', views.InvoicePdfView.as_view(), name='proforma-pdf'),
     path('output-pdf/<int:id>/', views.OutputInvoicePdfView.as_view(), name='output-pdf'),
+    path('buy-report-pdf/', views.BuyReportPdfView.as_view(), name='buy-report-pdf'),
+    path('sell-report-pdf/', views.SellReportPdfView.as_view(), name='sell-report-pdf'),
+    path('entry-report-pdf/', views.EntryReportPdfView.as_view(), name='entry-report-pdf'),
+    path('output-report-pdf/', views.OutputReportPdfView.as_view(), name='output-report-pdf'),
 ]

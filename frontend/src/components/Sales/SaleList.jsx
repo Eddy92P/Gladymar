@@ -211,7 +211,7 @@ const SaleList = () => {
 			isMounted = false;
 			controller.abort();
 		};
-	}, [filterText, authContext.token, page, pageSize]);
+	}, [filterText, authContext.token, page, pageSize, API]);
 
 	const handleAddSale = () => {
 		navigate('agregar_venta');

@@ -11,6 +11,7 @@ import SellingChannelIcon from '/network-connection.png';
 import PurchaseIcon from '/buy-button.png';
 import DoubleEntryIcon from '/double-entry.png';
 import SaleIcon from '/coupon.png';
+import ReportIcon from '/report.png';
 
 export const options = [
 	{
@@ -148,6 +149,19 @@ export const options = [
 			<img
 				src={DoubleEntryIcon}
 				alt="Salidas"
+				style={{ width: '24px', height: '24px' }}
+			/>
+		),
+	},
+	{
+		key: 'reports',
+		label: 'Reportes',
+		path: 'reportes',
+		permission: 'core.can_view_reports',
+		icon: () => (
+			<img
+				src={ReportIcon}
+				alt="Reportes"
 				style={{ width: '24px', height: '24px' }}
 			/>
 		),

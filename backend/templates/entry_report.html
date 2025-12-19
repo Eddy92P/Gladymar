@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{ title }}</title>
+        <link rel="stylesheet" href="{% static 'css/report.css' %}">
+    </head>
+    {% if entries %}
+    <body>
+        <div class="header-container">
+            <div class="header-title">
+                <h2>GLADYMAR</h1>
+                <h2>POTOSI - BOLIVIA</h2>
+            </div>
+            <div class="header-second-title">
+                <h2>REPORTE DE ENTRADAS</h2>
+            </div>
+        </div>
+        <div>
+            <table>
+                {% for entry in entries %}
+                    <tr>
+                        <th>AGENCIA</th>
+                        <th>ALMACENERO</th>
+                        <th>PROVEEDOR</th>
+                        <th>FECHA DE ENTRADA</th>
+                        <th>N° DE RECIBO</th>
+                    </tr>
+                    <tr>
+                        <td>{{ entry.agency.name }}</td>
+                        <td>{{ entry.warehouse_keeper.first_name }} {{ entry.warehouse_keeper.last_name }}</td>
+                        <td>{{ entry.supplier.name }}</td>
+                        <td>{{ entry.entry_date|date:"d/m/Y" }}</td>
+                        <td>{{ entry.invoice_number }}</td>
+                    </tr>
+                    {% for entry_item in entry.entry_items.all %}
+                        {% if forloop.first %}
+                            <tr>
+                                <th class="table-secondary-header">PRODUCTO</th>
+                                <th class="table-secondary-header">CANTIDAD</th>
+                            </tr>
+                        {% endif %}
+                        <tr>
+                            <td>{{ entry_item.product_stock.product.name }}</td>
+                            <td>{{ entry_item.quantity }}</td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+            </table>
+        </div>
+        <div class="footer">
+            <div class="date-container">
+                <p>Potosi, {{ today|date:"j \\d\\e F \\d\\e Y"|lower }}</p>
+            </div>
+        </div>
+    </body>
+    {% else %}
+        <div class="no-entries">
+            <h2>No hay entradas en el rango de fechas seleccionado.</h2>
+        </div>
+    {% endif %}
+</html>

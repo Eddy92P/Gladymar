@@ -13,7 +13,7 @@ from django.http import HttpResponse, Http404
 from django.template.loader import render_to_string
 from weasyprint import HTML
 from django.db.models import Subquery
-
+from datetime import datetime
 from django_filters.rest_framework import DjangoFilterBackend
 
 from .serializers import *
@@ -578,4 +578,119 @@ class OutputInvoicePdfView(View):
         response['Content-Disposition'] = f'inline; filename="comprobante_de_salida_{output_id}.pdf"'
 
         return response
-        
+
+
+class BuyReportPdfView(View):
+    """Generate Buy Report PDF."""
+    def get(self, request, *args, **kwargs):
+        start_date = request.GET.get("start_date")
+        end_date = request.GET.get("end_date")
+        today = datetime.now().date()
+        try:
+            purchases = Purchase.objects.filter(purchase_date__range=(start_date, end_date))
+        except Purchase.DoesNotExist:
+            raise Http404("Compras no encontradas.")
+
+        context = {
+            'title': 'Reporte de Compras',
+            'purchases': purchases,
+            'start_date': start_date,
+            'end_date': end_date,
+            'today': today,
+        }
+        html_string = render_to_string('buy_report.html', context)
+        html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+
+        pdf_file = html.write_pdf()
+
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="reporte_de_compras_{start_date}_a_{end_date}.pdf"'
+
+        return response
+
+    
+class SellReportPdfView(View):
+    """Generate Sell Report PDF."""
+    def get(self, request, *args, **kwargs):
+        start_date = request.GET.get("start_date")
+        end_date = request.GET.get("end_date")
+        today = datetime.now().date()
+        try:
+            sales = Sale.objects.filter(sale_date__range=(start_date, end_date))
+        except Sale.DoesNotExist:
+            raise Http404("Ventas no encontradas.")
+
+        context = {
+            'title': 'Reporte de Ventas',
+            'sales': sales,
+            'start_date': start_date,
+            'end_date': end_date,
+            'today': today,
+        }
+        html_string = render_to_string('sell_report.html', context)
+        html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+
+        pdf_file = html.write_pdf()
+
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="reporte_de_ventas_{start_date}_a_{end_date}.pdf"'
+
+        return response
+
+
+class EntryReportPdfView(View):
+    """Generate Entry Report PDF."""
+    def get(self, request, *args, **kwargs):
+        start_date = request.GET.get("start_date")
+        end_date = request.GET.get("end_date")
+        today = datetime.now().date()
+        try:
+            entries = Entry.objects.filter(entry_date__range=(start_date, end_date))
+        except Entry.DoesNotExist:
+            raise Http404("Entradas no encontradas.")
+
+        context = {
+            'title': 'Reporte de Entradas',
+            'entries': entries,
+            'start_date': start_date,
+            'end_date': end_date,
+            'today': today,
+        }
+        html_string = render_to_string('entry_report.html', context)
+        html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+
+        pdf_file = html.write_pdf()
+
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="reporte_de_entradas_{start_date}_a_{end_date}.pdf"'
+
+        return response
+
+
+class OutputReportPdfView(View):
+    """Generate Output Report PDF."""
+    def get(self, request, *args, **kwargs):
+        start_date = request.GET.get("start_date")
+        end_date = request.GET.get("end_date")
+        today = datetime.now().date()
+        try:
+            outputs = Output.objects.filter(output_date__range=(start_date, end_date))
+        except Output.DoesNotExist:
+            raise Http404("Salidas no encontradas.")
+
+        context = {
+            'title': 'Reporte de Salidas',
+            'outputs': outputs,
+            'start_date': start_date,
+            'end_date': end_date,
+            'today': today,
+        }
+        html_string = render_to_string('output_report.html', context)
+        html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+
+        pdf_file = html.write_pdf()
+
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="reporte_de_salidas_{start_date}_a_{end_date}.pdf"'
+
+        return response
