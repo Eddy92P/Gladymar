@@ -23,28 +23,28 @@ const ReportList = () => {
 	const [outputEndDate, setOutputEndDate] = useState(null);
 
 	const formattedBuyStartDate = buyStartDate
-		? buyStartDate.toISOString().split('T')[0]
+		? buyStartDate.format('YYYY-MM-DD')
 		: null;
 	const formattedBuyEndDate = buyEndDate
-		? buyEndDate.toISOString().split('T')[0]
+		? buyEndDate.format('YYYY-MM-DD')
 		: null;
 	const formattedSellStartDate = sellStartDate
-		? sellStartDate.toISOString().split('T')[0]
+		? sellStartDate.format('YYYY-MM-DD')
 		: null;
 	const formattedSellEndDate = sellEndDate
-		? sellEndDate.toISOString().split('T')[0]
+		? sellEndDate.format('YYYY-MM-DD')
 		: null;
 	const formattedEntryStartDate = entryStartDate
-		? entryStartDate.toISOString().split('T')[0]
+		? entryStartDate.format('YYYY-MM-DD')
 		: null;
 	const formattedEntryEndDate = entryEndDate
-		? entryEndDate.toISOString().split('T')[0]
+		? entryEndDate.format('YYYY-MM-DD')
 		: null;
 	const formattedOutputStartDate = outputStartDate
-		? outputStartDate.toISOString().split('T')[0]
+		? outputStartDate.format('YYYY-MM-DD')
 		: null;
 	const formattedOutputEndDate = outputEndDate
-		? outputEndDate.toISOString().split('T')[0]
+		? outputEndDate.format('YYYY-MM-DD')
 		: null;
 
 	const handleBuyStartDate = value => {
