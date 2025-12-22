@@ -737,7 +737,9 @@ function AddWarehouse() {
 																	}
 																	disabled={
 																		warehouseData.length !==
-																		0
+																			0 &&
+																		product.productStockId !==
+																			undefined
 																	}
 																	fullWidth
 																/>
