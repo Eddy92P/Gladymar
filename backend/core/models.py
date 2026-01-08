@@ -478,7 +478,6 @@ class Purchase(models.Model):
     purchase_end_date=models.DateField(null=True, blank=True)
     invoice_number = models.CharField(
         max_length=50,
-        unique=True,
         null=False,
         blank=False,
         validators=[
@@ -492,6 +491,9 @@ class Purchase(models.Model):
     balance_due = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('supplier', 'invoice_number')
     
     
 class PurchaseItem(models.Model):
