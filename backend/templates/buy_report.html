@@ -5,7 +5,7 @@
         <title>{{ title }}</title>
         <link rel="stylesheet" href="{% static 'css/report.css' %}">
     </head>
-    {% if purchases %}
+    {% if purchase_items %}
     <body>
         <div class="header-container">
             <div class="header-title">
@@ -14,53 +14,44 @@
             </div>
             <div class="header-second-title">
                 <h2>REPORTE DE COMPRAS</h2>
+                <h2>DEL {{ start_date|date:"d/m/Y" }} AL {{ end_date|date:"d/m/Y" }}</h2>
             </div>
         </div>
         <div>
             <table>
-                {% for purchase in purchases %}
-                <tr>
-                    <th>AGENCIA</th>
-                    <th>COMPRADOR</th>
-                    <th>PROVEEDOR</th>
-                    <th>TIPO DE COMPRA</th>
-                    <th>ESTADO DE LA COMPRA</th>
-                    <th>FECHA DE COMPRA</th>
-                    <th>FECHA DE ENTRADA AL ALMACEN</th>
-                    <th>N° DE FACTURA</th>
-                    <th>TOTAL</th>
-                    <th>SALDO PENDIENTE</th>
-                </tr>
+                {% for purchase_item in purchase_items %}
+                    {% ifchanged purchase_item.purchase.id %}
+                        <tr>
+                            <th>AGENCIA</th>
+                            <th>COMPRADOR</th>
+                            <th>PROVEEDOR</th>
+                            <th>TIPO DE COMPRA</th>
+                            <th>FECHA DE COMPRA</th>
+                            <th>N° DE FACTURA</th>
+                            <th>TOTAL</th>
+                            <th>SALDO PENDIENTE</th>
+                            <th>PRODUCTO</th>
+                            <th>CANTIDAD</th>
+                            <th>PRECIO UNITARIO</th>
+                            <th>SUB TOTAL</th>
+                            <th>ESTADO (INGRESO ALMACEN)</th>
+                        </tr>
+                    {% endifchanged %}
                     <tr>
-                        <td>{{ purchase.agency.name }}</td>
-                        <td>{{ purchase.buyer.first_name }} {{ purchase.buyer.last_name }}</td>
-                        <td>{{ purchase.supplier.name }}</td>
-                        <td>{{ purchase.purchase_type }}</td>
-                        <td>{{ purchase.status }}</td>
-                        <td>{{ purchase.purchase_date|date:"d/m/Y" }}</td>
-                        <td>{{ purchase.purchase_end_date|date:"d/m/Y" }}</td>
-                        <td>{{ purchase.invoice_number }}</td>
-                        <td>{{ purchase.total }}</td>
-                        <td>{{ purchase.balance_due }}</td>
+                        <td>{{ purchase_item.purchase.agency.name }}</td>
+                        <td>{{ purchase_item.purchase.buyer.first_name }} {{ purchase_item.purchase.buyer.last_name }}</td>
+                        <td>{{ purchase_item.purchase.supplier.name }}</td>
+                        <td>{{ purchase_item.purchase.purchase_type }}</td>
+                        <td>{{ purchase_item.purchase.purchase_date|date:"d/m/Y" }}</td>
+                        <td>{{ purchase_item.purchase.invoice_number }}</td>
+                        <td>{{ purchase_item.purchase.total }}</td>
+                        <td>{{ purchase_item.purchase.balance_due }}</td>
+                        <td>{{ purchase_item.product_stock.product.name }}</td>
+                        <td>{{ purchase_item.quantity }}</td>
+                        <td>{{ purchase_item.unit_price }}</td>
+                        <td>{{ purchase_item.total_price }}</td>
+                        <td>{{ purchase_item.get_status_display }}</td>
                     </tr>
-                    {% for item in purchase.purchase_items.all %}
-                        {% if forloop.first %}
-                        <tr>
-                            <th class="table-secondary-header">PRODUCTO</th>
-                            <th class="table-secondary-header">CANTIDAD</th>
-                            <th class="table-secondary-header">ESTADO</th>
-                            <th class="table-secondary-header">PRECIO UNITARIO</th>
-                            <th class="table-secondary-header">SUB TOTAL</th>
-                        </tr>
-                        {% endif %}
-                        <tr>
-                            <td>{{ item.product_stock.product.name }}</td>
-                            <td>{{ item.quantity }}</td>
-                            <td>{{ item.status }}</td>
-                            <td>{{ item.unit_price }}</td>
-                            <td>{{ item.total_price }}</td>
-                        </tr>
-                    {% endfor %}
                 {% endfor %}
             </table>
         </div>

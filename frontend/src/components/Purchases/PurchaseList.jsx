@@ -8,6 +8,7 @@ import { Fragment, useEffect, useState, useContext } from 'react';
 import AuthContext from '../../store/auth-context';
 
 import { Info, Login, Payment } from '@mui/icons-material';
+import { Tooltip } from '@mui/material';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -79,27 +80,39 @@ const PurchaseList = () => {
 						alignItems: 'center',
 					}}
 				>
-					<Info
-						onClick={e => handleButtonClick(e, row.id)}
-						style={{ cursor: 'pointer', color: '#127FE6' }}
-					/>
+					<Tooltip title="Ver compra" placement="top">
+						<Info
+							onClick={e => handleButtonClick(e, row.id)}
+							className={classes.editIcon}
+						/>
+					</Tooltip>
 					{row.status != 'terminado' &&
 						(authContext.userType == 4 ||
 							authContext.userType == 2) && (
-							<Login
-								onClick={e => handleEntryButton(e, row.id)}
-								style={{ cursor: 'pointer', color: '#127FE6' }}
-							/>
+							<Tooltip
+								title="Realizar entrada almacén"
+								placement="top"
+							>
+								<Login
+									onClick={e => handleEntryButton(e, row.id)}
+									style={{
+										cursor: 'pointer',
+										color: '#127FE6',
+									}}
+								/>
+							</Tooltip>
 						)}
 					{row.balanceDue > 0 &&
 						(authContext.userType == 4 ||
 							authContext.userType == 1) && (
-							<Payment
-								onClick={e =>
-									handlePaymentButton(e, row.id, false)
-								}
-								className={classes.editIcon}
-							/>
+							<Tooltip title="Agregar pago" placement="top">
+								<Payment
+									onClick={e =>
+										handlePaymentButton(e, row.id, false)
+									}
+									className={classes.editIcon}
+								/>
+							</Tooltip>
 						)}
 				</div>
 			),

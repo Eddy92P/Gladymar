@@ -44,6 +44,10 @@ const apiUrl = {
 	SELL_REPORT_PDF_URL: '/api/sale/sell-report-pdf/',
 	ENTRY_REPORT_PDF_URL: '/api/sale/entry-report-pdf/',
 	OUTPUT_REPORT_PDF_URL: '/api/sale/output-report-pdf/',
+	BUY_REPORT_EXCEL_URL: '/api/sale/buy-report-excel/',
+	SALE_REPORT_EXCEL_URL: '/api/sale/sale-report-excel/',
+	ENTRY_REPORT_EXCEL_URL: '/api/sale/entry-report-excel/',
+	OUTPUT_REPORT_EXCEL_URL: '/api/sale/output-report-excel/',
 };
 
 export const config = import.meta.env.MODE === 'development' ? dev : prod;

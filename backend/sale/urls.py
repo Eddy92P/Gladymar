@@ -35,4 +35,8 @@ urlpatterns = [
     path('sell-report-pdf/', views.SellReportPdfView.as_view(), name='sell-report-pdf'),
     path('entry-report-pdf/', views.EntryReportPdfView.as_view(), name='entry-report-pdf'),
     path('output-report-pdf/', views.OutputReportPdfView.as_view(), name='output-report-pdf'),
+    path('buy-report-excel/', views.BuyReportExcelView.as_view(), name='buy-report-excel'),
+    path('sale-report-excel/', views.SaleReportExcelView.as_view(), name='sale-report-excel'),
+    path('entry-report-excel/', views.EntryReportExcelView.as_view(), name='entry-report-excel'),
+    path('output-report-excel/', views.OutputReportExcelView.as_view(), name='output-report-excel'),
 ]

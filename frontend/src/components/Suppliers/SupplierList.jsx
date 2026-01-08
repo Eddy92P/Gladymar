@@ -13,6 +13,8 @@ import { makeStyles } from '@mui/styles';
 
 import { useNavigate } from 'react-router-dom';
 
+import { Tooltip } from '@mui/material';
+
 const useStyles = makeStyles({
 	editIcon: {
 		color: '#127FE6',
@@ -62,12 +64,14 @@ const SuppliersList = () => {
 			name: 'Acciones',
 			button: 'true',
 			cell: row => (
-				<Icon
-					path={mdiPencilOutline}
-					size={1}
-					onClick={e => handleButtonClick(e, row.id)}
-					className={classes.editIcon}
-				/>
+				<Tooltip title="Editar proveedor" placement="top">
+					<Icon
+						path={mdiPencilOutline}
+						size={1}
+						onClick={e => handleButtonClick(e, row.id)}
+						className={classes.editIcon}
+					/>
+				</Tooltip>
 			),
 		},
 	];

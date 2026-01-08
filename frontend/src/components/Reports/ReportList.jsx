@@ -12,6 +12,10 @@ const ReportList = () => {
 	const sellUrl = `${API}${api.SELL_REPORT_PDF_URL}`;
 	const entryUrl = `${API}${api.ENTRY_REPORT_PDF_URL}`;
 	const outputUrl = `${API}${api.OUTPUT_REPORT_PDF_URL}`;
+	const buyExcelUrl = `${API}${api.BUY_REPORT_EXCEL_URL}`;
+	const sellExcelUrl = `${API}${api.SALE_REPORT_EXCEL_URL}`;
+	const entryExcelUrl = `${API}${api.ENTRY_REPORT_EXCEL_URL}`;
+	const outputExcelUrl = `${API}${api.OUTPUT_REPORT_EXCEL_URL}`;
 
 	const [buyStartDate, setBuyStartDate] = useState(null);
 	const [buyEndDate, setBuyEndDate] = useState(null);
@@ -111,6 +115,38 @@ const ReportList = () => {
 		setOutputEndDate(null);
 	};
 
+	const handleGenerateBuyReportExcel = e => {
+		e.preventDefault();
+		const fullUrl = `${buyExcelUrl}?start_date=${formattedBuyStartDate}&end_date=${formattedBuyEndDate}`;
+		window.open(fullUrl, '_blank');
+		setBuyStartDate(null);
+		setBuyEndDate(null);
+	};
+
+	const handleGenerateSellReportExcel = e => {
+		e.preventDefault();
+		const fullUrl = `${sellExcelUrl}?start_date=${formattedSellStartDate}&end_date=${formattedSellEndDate}`;
+		window.open(fullUrl, '_blank');
+		setSellStartDate(null);
+		setSellEndDate(null);
+	};
+
+	const handleGenerateEntryReportExcel = e => {
+		e.preventDefault();
+		const fullUrl = `${entryExcelUrl}?start_date=${formattedEntryStartDate}&end_date=${formattedEntryEndDate}`;
+		window.open(fullUrl, '_blank');
+		setEntryStartDate(null);
+		setEntryEndDate(null);
+	};
+
+	const handleGenerateOutputReportExcel = e => {
+		e.preventDefault();
+		const fullUrl = `${outputExcelUrl}?start_date=${formattedOutputStartDate}&end_date=${formattedOutputEndDate}`;
+		window.open(fullUrl, '_blank');
+		setOutputStartDate(null);
+		setOutputEndDate(null);
+	};
+
 	const reports = [
 		{
 			title: 'Reporte de Compras',
@@ -119,6 +155,7 @@ const ReportList = () => {
 			onStartDateChange: handleBuyStartDate,
 			onEndDateChange: handleBuyEndDate,
 			onGenerateReport: handleGenerateBuyReport,
+			onGenerateReportExcel: handleGenerateBuyReportExcel,
 		},
 		{
 			title: 'Reporte de Ventas',
@@ -127,6 +164,7 @@ const ReportList = () => {
 			onStartDateChange: handleSellStartDate,
 			onEndDateChange: handleSellEndDate,
 			onGenerateReport: handleGenerateSellReport,
+			onGenerateReportExcel: handleGenerateSellReportExcel,
 		},
 		{
 			title: 'Reporte de Entradas al Almacen',
@@ -135,6 +173,7 @@ const ReportList = () => {
 			onStartDateChange: handleEntryStartDate,
 			onEndDateChange: handleEntryEndDate,
 			onGenerateReport: handleGenerateEntryReport,
+			onGenerateReportExcel: handleGenerateEntryReportExcel,
 		},
 		{
 			title: 'Reporte de Salidas del Almacen',
@@ -143,6 +182,7 @@ const ReportList = () => {
 			onStartDateChange: handleOutputStartDate,
 			onEndDateChange: handleOutputEndDate,
 			onGenerateReport: handleGenerateOutputReport,
+			onGenerateReportExcel: handleGenerateOutputReportExcel,
 		},
 	];
 
@@ -206,7 +246,9 @@ const ReportList = () => {
 										sm={4}
 										sx={{
 											display: 'flex',
+											flexDirection: 'column',
 											justifyContent: 'center',
+											gap: 2,
 										}}
 									>
 										<Button
@@ -222,6 +264,23 @@ const ReportList = () => {
 											}
 										>
 											Generar Reporte
+										</Button>
+										<Button
+											color="success"
+											onClick={
+												report.onGenerateReportExcel
+											}
+											variant="contained"
+											style={{
+												textTransform: 'none',
+												width: '150px',
+											}}
+											disabled={
+												!report.startDate ||
+												!report.endDate
+											}
+										>
+											Generar Reporte en Excel
 										</Button>
 									</Grid>
 								</Grid>

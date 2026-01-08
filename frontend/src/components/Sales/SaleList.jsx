@@ -16,6 +16,7 @@ import {
 	PictureAsPdf,
 } from '@mui/icons-material';
 import { makeStyles } from '@mui/styles';
+import { Tooltip } from '@mui/material';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -90,51 +91,71 @@ const SaleList = () => {
 					{row.status == 'proforma' &&
 						(authContext.userType == 4 ||
 							authContext.userType == 1) && (
-							<MonetizationOn
-								onClick={e => handleEditButton(e, row.id, true)}
-								style={{ cursor: 'pointer', color: '#127FE6' }}
-							/>
+							<Tooltip title="Efectivizar venta" placement="top">
+								<MonetizationOn
+									onClick={e =>
+										handleEditButton(e, row.id, true)
+									}
+									style={{
+										cursor: 'pointer',
+										color: '#127FE6',
+									}}
+								/>
+							</Tooltip>
 						)}
 					{row.status == 'proforma' &&
 						(authContext.userType == 4 ||
 							authContext.userType == 3) && (
-							<Edit
-								onClick={e =>
-									handleEditButton(e, row.id, false)
-								}
-								className={classes.editIcon}
-							/>
+							<Tooltip title="Editar proforma" placement="top">
+								<Edit
+									onClick={e =>
+										handleEditButton(e, row.id, false)
+									}
+									className={classes.editIcon}
+								/>
+							</Tooltip>
 						)}
-					<Info
-						onClick={e => handleInfoButton(e, row.id)}
-						style={{ cursor: 'pointer', color: '#127FE6' }}
-					/>
+					<Tooltip title="Ver venta" placement="top">
+						<Info
+							onClick={e => handleInfoButton(e, row.id)}
+							style={{ cursor: 'pointer', color: '#127FE6' }}
+						/>
+					</Tooltip>
 					{row.status == 'realizado' &&
 						(authContext.userType == 4 ||
 							authContext.userType == 2) && (
-							<Logout
-								onClick={e =>
-									handleOutputButton(e, row.id, false)
-								}
-								className={classes.editIcon}
-							/>
+							<Tooltip
+								title="Realizar salida almacén"
+								placement="top"
+							>
+								<Logout
+									onClick={e =>
+										handleOutputButton(e, row.id, false)
+									}
+									className={classes.editIcon}
+								/>
+							</Tooltip>
 						)}
 					{row.balanceDue > 0 &&
 						(authContext.userType == 4 ||
 							authContext.userType == 1) && (
-							<Payment
-								onClick={e =>
-									handlePaymentButton(e, row.id, true)
-								}
-								className={classes.editIcon}
-							/>
+							<Tooltip title="Agregar pago" placement="top">
+								<Payment
+									onClick={e =>
+										handlePaymentButton(e, row.id, true)
+									}
+									className={classes.editIcon}
+								/>
+							</Tooltip>
 						)}
 					{(row.status == 'proforma' ||
 						row.status == 'realizado') && (
-						<PictureAsPdf
-							onClick={e => handlePdfClick(e, row.id)}
-							style={{ cursor: 'pointer', color: '#127FE6' }}
-						/>
+						<Tooltip title="Generar recibo" placement="top">
+							<PictureAsPdf
+								onClick={e => handlePdfClick(e, row.id)}
+								style={{ cursor: 'pointer', color: '#127FE6' }}
+							/>
+						</Tooltip>
 					)}
 				</div>
 			),

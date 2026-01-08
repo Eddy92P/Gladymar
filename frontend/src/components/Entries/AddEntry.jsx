@@ -36,6 +36,7 @@ import { red } from '@mui/material/colors';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import TextareaAutosize from '@mui/material/TextareaAutosize';
 
 // Validations and Constants
 import { validatePositiveNumber, validDate } from '../../Validations';
@@ -92,6 +93,7 @@ export const AddEntry = () => {
 	const [showProductsModal, setShowProductsModal] = useState(false);
 	const [supplierChoices, setSupplierChoices] = useState([]);
 	const [supplier, setSupplier] = useState(null);
+	const [note, setNote] = useState('');
 
 	const entryDateReducer = (state, action) => {
 		if (action.type === 'INPUT_CHANGE') {
@@ -196,6 +198,10 @@ export const AddEntry = () => {
 		setSupplier(option);
 	};
 
+	const noteInputChangeHandler = event => {
+		setNote(event.target.value);
+	};
+
 	const handlerCancel = () => {
 		if (isForm) {
 			navigate(-1);
@@ -261,6 +267,7 @@ export const AddEntry = () => {
 					product_stock: product.id,
 					quantity: product.quantity.value,
 				})),
+				note: note,
 			};
 
 			const response = await fetch(url, {
@@ -555,6 +562,28 @@ export const AddEntry = () => {
 													fullWidth
 												/>
 											</LocalizationProvider>
+										</Grid>
+									</Grid>
+								</Box>
+								<Box sx={{ mt: 2, flexGrow: 1 }}>
+									<Grid container spacing={2} mt={1} mb={2}>
+										<Grid size={{ xs: 12, sm: 6 }}>
+											<Typography
+												variant="body2"
+												sx={{ mb: 1 }}
+											>
+												Nota
+											</Typography>
+											<TextareaAutosize
+												aria-label="note"
+												minRows={3}
+												style={{ width: '100%' }}
+												value={note}
+												onChange={
+													noteInputChangeHandler
+												}
+												fullWidth
+											/>
 										</Grid>
 									</Grid>
 								</Box>

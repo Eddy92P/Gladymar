@@ -544,7 +544,7 @@ class EntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = Entry
         fields = ['id', 'warehouse_keeper', 'supplier', 'suppliers', 'entry_date', 'purchase', 'agency',
-                  'invoice_number', 'entry_items', 'created_at', 'updated_at']
+                  'invoice_number', 'entry_items', 'note', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
  
     @transaction.atomic
@@ -743,7 +743,7 @@ class OutputSerializer(serializers.ModelSerializer):
     class Meta:
         model = Output
         fields = ['id', 'warehouse_keeper', 'sale', 'invoice_number', 'agency',
-                  'client', 'clients', 'output_date', 'output_items',
+                  'client', 'clients', 'output_date', 'output_items', 'note',
                   'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
@@ -890,6 +890,11 @@ class SaleSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         try:
+            last_sale = Sale.objects.filter(pre_invoice_number__gt=0, status='proforma').order_by('-pre_invoice_number').first()
+            if last_sale:
+                validated_data['pre_invoice_number'] = last_sale.pre_invoice_number + 1
+            else:
+                validated_data['pre_invoice_number'] = 1
             items_data = validated_data.pop('sale_items', [])
             sale = Sale.objects.create(**validated_data)
             for item_data in items_data:
@@ -903,7 +908,7 @@ class SaleSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         items_data = validated_data.pop('sale_items', None)
         payments_data = validated_data.pop('payments', None)
-        try:
+        try: 
             if validated_data.get('status') == 'realizado' and instance.invoice_number == 0:
                 # Obtener el último invoice_number de todas las ventas
                 last_sale = Sale.objects.filter(invoice_number__gt=0, status='realizado').order_by('-invoice_number').first()

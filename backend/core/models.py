@@ -572,6 +572,7 @@ class Output(models.Model):
     sale = models.ForeignKey('Sale', on_delete=models.PROTECT, blank=True, null=True, related_name='outputs')
     invoice_number = models.PositiveIntegerField(default=1)
     output_date = models.DateField()
+    note = models.CharField(max_length=300, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -610,6 +611,7 @@ class Sale(models.Model):
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
     selling_channel = models.ForeignKey(SellingChannel, on_delete=models.PROTECT)
     seller = models.ForeignKey(User, on_delete=models.PROTECT)
+    pre_invoice_number = models.PositiveIntegerField(default=0)
     invoice_number = models.PositiveIntegerField(default=0)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     balance_due = models.DecimalField(max_digits=10, decimal_places=2, default=0)

@@ -5,7 +5,7 @@
         <title>{{ title }}</title>
         <link rel="stylesheet" href="{% static 'css/report.css' %}">
     </head>
-    {% if sales %}
+    {% if sale_items %}
     <body>
         <div class="header-container">
             <div class="header-title">
@@ -14,61 +14,50 @@
             </div>
             <div class="header-second-title">
                 <h2>REPORTE DE VENTAS</h2>
+                <h2>DEL {{ start_date|date:"d/m/Y" }} AL {{ end_date|date:"d/m/Y" }}</h2>
             </div>
         </div>
         <div>
             <table>
-                {% for sale in sales %}
-                    <tr>
-                        <th>AGENCIA</th>
-                        <th>VENDEDOR</th>
-                        <th>CLIENTE</th>
-                        <th>CANAL DE VENTA</th>
-                        <th>TIPO DE VENTA</th>
-                        <th>ESTADO DE LA VENTA</th>
-                        <th>FECHA DE VENTA</th>
-                        <th>FECHA DE REALIZACIÓN</th>
-                        <th>FECHA DE ENTREGA</th>
-                        <th>N° DE FACTURA</th>
-                        <th>TOTAL</th>
-                        <th>SALDO PENDIENTE</th>
-                    </tr>
-                    <tr>
-                        <td>{{ sale.agency.name }}</td>
-                        <td>{{ sale.seller.first_name }} {{ sale.seller.last_name }}</td>
-                        <td>{{ sale.client.name }}</td>
-                        <td>{{ sale.selling_channel.name }}</td>
-                        <td>{{ sale.sale_type }}</td>
-                        <td>{{ sale.status }}</td>
-                        <td>{{ sale.sale_date|date:"d/m/Y" }}</td>
-                        <td>{{ sale.sale_perform_date|date:"d/m/Y" }}</td>
-                        <td>{{ sale.sale_done_date|date:"d/m/Y" }}</td>
-                        <td>{{ sale.invoice_number }}</td>
-                        <td>{{ sale.total }}</td>
-                        <td>{{ sale.balance_due }}</td>
-                    </tr>
-                    {% for sale_item in sale.sale_items.all %}
-                        {% if forloop.first %}
-                            <tr>
-                                <th class="table-secondary-header">PRODUCTO</th>
-                                <th class="table-secondary-header">ESTADO</th>
-                                <th class="table-secondary-header">CANTIDAD</th>
-                                <th class="table-secondary-header">PRECIO UNITARIO</th>
-                                <th class="table-secondary-header">SUB TOTAL</th>
-                                <th class="table-secondary-header">DESCUENTO %</th>
-                                <th class="table-secondary-header">TOTAL</th>
-                            </tr>
-                        {% endif %}
+                {% for sale_item in sale_items %}
+                    {% ifchanged sale_item.sale.id %}
                         <tr>
-                            <td>{{ sale_item.product_stock.product.name }}</td>
-                            <td>{{ sale_item.status }}</td>
-                            <td>{{ sale_item.quantity }}</td>
-                            <td>{{ sale_item.unit_price }}</td>
-                            <td>{{ sale_item.sub_total_price }}</td>
-                            <td>{{ sale_item.discount }}</td>
-                            <td>{{ sale_item.total_price }}</td>
+                            <th>AGENCIA</th>
+                            <th>VENDEDOR</th>
+                            <th>CLIENTE</th>
+                            <th>CANAL DE VENTA</th>
+                            <th>TIPO DE VENTA</th>
+                            <th>FECHA DE VENTA</th>
+                            <th>N° DE FACTURA</th>
+                            <th>TOTAL</th>
+                            <th>SALDO PENDIENTE</th>
+                            <th>PRODUCTO</th>
+                            <th>CANTIDAD</th>
+                            <th>PRECIO UNITARIO</th>
+                            <th>SUB TOTAL</th>
+                            <th>DESCUENTO %</th>
+                            <th>TOTAL ITEM</th>
+                            <th>ESTADO (ENTREGA AL CLIENTE)</th>
                         </tr>
-                    {% endfor %}
+                    {% endifchanged %}
+                    <tr>
+                        <td>{{ sale_item.sale.agency.name }}</td>
+                        <td>{{ sale_item.sale.seller.first_name }} {{ sale_item.sale.seller.last_name }}</td>
+                        <td>{{ sale_item.sale.client.name }}</td>
+                        <td>{{ sale_item.sale.selling_channel.name }}</td>
+                        <td>{{ sale_item.sale.sale_type }}</td>
+                        <td>{{ sale_item.sale.sale_date|date:"d/m/Y" }}</td>
+                        <td>{{ sale_item.sale.invoice_number }}</td>
+                        <td>{{ sale_item.sale.total }}</td>
+                        <td>{{ sale_item.sale.balance_due }}</td>
+                        <td>{{ sale_item.product_stock.product.name }}</td>
+                        <td>{{ sale_item.quantity }}</td>
+                        <td>{{ sale_item.unit_price }}</td>
+                        <td>{{ sale_item.sub_total_price }}</td>
+                        <td>{{ sale_item.discount }}</td>
+                        <td>{{ sale_item.total_price }}</td>
+                        <td>{{ sale_item.get_status_display }}</td>
+                    </tr>
                 {% endfor %}
             </table>
         </div>

@@ -10,6 +10,7 @@ import AuthContext from '../../store/auth-context';
 import { useNavigate } from 'react-router-dom';
 
 import { Info } from '@mui/icons-material';
+import { Tooltip } from '@mui/material';
 
 const OutputList = () => {
 	const authContext = useContext(AuthContext);
@@ -34,13 +35,31 @@ const OutputList = () => {
 			sortable: true,
 		},
 		{
+			name: 'Nota',
+			selector: row => row.note,
+			sortable: true,
+			cell: row => (
+				<div
+					style={{
+						maxWidth: '400px',
+						whiteSpace: 'normal',
+						wordWrap: 'break-word',
+					}}
+				>
+					{row.note || ''}
+				</div>
+			),
+		},
+		{
 			name: 'Acciones',
 			button: 'true',
 			cell: row => (
-				<Info
-					onClick={e => handleInfoButton(e, row.id)}
-					style={{ cursor: 'pointer', color: '#127FE6' }}
-				/>
+				<Tooltip title="Ver salida" placement="top">
+					<Info
+						onClick={e => handleInfoButton(e, row.id)}
+						style={{ cursor: 'pointer', color: '#127FE6' }}
+					/>
+				</Tooltip>
 			),
 		},
 	];
@@ -83,6 +102,7 @@ const OutputList = () => {
 							client: listData.clients.name,
 							outputDate: listData.output_date,
 							outputItems: listData.output_items,
+							note: listData.note,
 						};
 					});
 					setList(parsedList);

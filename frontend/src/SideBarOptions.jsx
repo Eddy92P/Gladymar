@@ -29,6 +29,20 @@ export const options = [
 		icon: Store,
 	},
 	{
+		key: 'categories',
+		label: 'Categorias',
+		path: 'categorias',
+		permission: 'core.view_category',
+		icon: Category,
+	},
+	{
+		key: 'batches',
+		label: 'Lotes',
+		path: 'lotes',
+		permission: 'core.view_batch',
+		icon: Workspaces,
+	},
+	{
 		key: 'products',
 		label: 'Productos',
 		path: 'productos',
@@ -42,6 +56,13 @@ export const options = [
 		),
 	},
 	{
+		key: 'warehouses',
+		label: 'Almacenes',
+		path: 'almacenes',
+		permission: 'core.view_warehouse',
+		icon: Inventory,
+	},
+	{
 		key: 'product_stocks',
 		label: 'Stock de Productos',
 		path: 'product_stocks',
@@ -53,27 +74,6 @@ export const options = [
 				style={{ width: '24px', height: '24px' }}
 			/>
 		),
-	},
-	{
-		key: 'warehouses',
-		label: 'Almacenes',
-		path: 'almacenes',
-		permission: 'core.view_warehouse',
-		icon: Inventory,
-	},
-	{
-		key: 'categories',
-		label: 'Categorias',
-		path: 'categorias',
-		permission: 'core.view_category',
-		icon: Category,
-	},
-	{
-		key: 'batches',
-		label: 'Lotes',
-		path: 'lotes',
-		permission: 'core.view_batch',
-		icon: Workspaces,
 	},
 	{
 		key: 'suppliers',

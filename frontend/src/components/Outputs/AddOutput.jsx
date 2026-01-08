@@ -7,6 +7,7 @@ import React, {
 	useMemo,
 } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import TextareaAutosize from '@mui/material/TextareaAutosize';
 
 // MUI Components and styles
 import {
@@ -97,6 +98,7 @@ export const AddOutput = () => {
 	const [showProductsModal, setShowProductsModal] = useState(false);
 	const [clientChoices, setClientChoices] = useState([]);
 	const [client, setClient] = useState(null);
+	const [note, setNote] = useState('');
 
 	const outputDateReducer = (state, action) => {
 		if (action.type === 'INPUT_CHANGE') {
@@ -179,6 +181,10 @@ export const AddOutput = () => {
 		setClient(option);
 	};
 
+	const noteInputChangeHandler = event => {
+		setNote(event.target.value);
+	};
+
 	const handlerCancel = () => {
 		if (isForm) {
 			navigate(-1);
@@ -243,6 +249,7 @@ export const AddOutput = () => {
 					product_stock: product.id,
 					quantity: product.quantity.value,
 				})),
+				note: note,
 			};
 
 			const response = await fetch(url, {
@@ -505,6 +512,28 @@ export const AddOutput = () => {
 													fullWidth
 												/>
 											</LocalizationProvider>
+										</Grid>
+									</Grid>
+								</Box>
+								<Box sx={{ mt: 2, flexGrow: 1 }}>
+									<Grid container spacing={2} mt={1} mb={2}>
+										<Grid size={{ xs: 12, sm: 6 }}>
+											<Typography
+												variant="body2"
+												sx={{ mb: 1 }}
+											>
+												Nota
+											</Typography>
+											<TextareaAutosize
+												aria-label="note"
+												minRows={3}
+												style={{ width: '100%' }}
+												value={note}
+												onChange={
+													noteInputChangeHandler
+												}
+												fullWidth
+											/>
 										</Grid>
 									</Grid>
 								</Box>

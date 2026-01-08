@@ -5,7 +5,7 @@
         <title>{{ title }}</title>
         <link rel="stylesheet" href="{% static 'css/report.css' %}">
     </head>
-    {% if outputs %}
+    {% if outputs_items %}
     <body>
         <div class="header-container">
             <div class="header-title">
@@ -14,37 +14,32 @@
             </div>
             <div class="header-second-title">
                 <h2>REPORTE DE SALIDAS</h2>
+                <h2>DEL {{ start_date|date:"d/m/Y" }} AL {{ end_date|date:"d/m/Y" }}</h2>
             </div>
         </div>
         <div>
             <table>
-                {% for output in outputs %}
-                    <tr>
-                        <th>AGENCIA</th>
-                        <th>ALMACENERO</th>
-                        <th>CLIENTE</th>
-                        <th>FECHA DE SALIDA</th>
-                        <th>N° DE RECIBO</th>
-                    </tr>
-                    <tr>
-                        <td>{{ output.agency.name }}</td>
-                        <td>{{ output.warehouse_keeper.first_name }} {{ output.warehouse_keeper.last_name }}</td>
-                        <td>{{ output.client.name }}</td>
-                        <td>{{ output.output_date|date:"d/m/Y" }}</td>
-                        <td>{{ output.invoice_number }}</td>
-                    </tr>
-                    {% for output_item in output.output_items.all %}
-                        {% if forloop.first %}
-                            <tr>
-                                <th class="table-secondary-header">PRODUCTO</th>
-                                <th class="table-secondary-header">CANTIDAD</th>
-                            </tr>
-                        {% endif %}
+                {% for output_item in outputs_items %}
+                    {% ifchanged output_item.output.id %}
                         <tr>
-                            <td>{{ output_item.product_stock.product.name }}</td>
-                            <td>{{ output_item.quantity }}</td>
+                            <th>AGENCIA</th>
+                            <th>ALMACENERO</th>
+                            <th>CLIENTE</th>
+                            <th>FECHA DE SALIDA</th>
+                            <th>N° DE RECIBO</th>
+                            <th>PRODUCTO</th>
+                            <th>CANTIDAD</th>
                         </tr>
-                    {% endfor %}
+                    {% endifchanged %}
+                    <tr>
+                        <td>{{ output_item.output.agency.name }}</td>
+                        <td>{{ output_item.output.warehouse_keeper.first_name }} {{ output_item.output.warehouse_keeper.last_name }}</td>
+                        <td>{{ output_item.output.client.name }}</td>
+                        <td>{{ output_item.output.output_date|date:"d/m/Y" }}</td>
+                        <td>{{ output_item.output.invoice_number }}</td>
+                        <td>{{ output_item.product_stock.product.name }}</td>
+                        <td>{{ output_item.quantity }}</td>
+                    </tr>
                 {% endfor %}
             </table>
         </div>

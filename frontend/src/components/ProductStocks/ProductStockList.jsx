@@ -10,6 +10,7 @@ import AuthContext from '../../store/auth-context';
 import Icon from '@mdi/react';
 import { mdiPlusCircle } from '@mdi/js';
 import { makeStyles } from '@mui/styles';
+import { Tooltip } from '@mui/material';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -77,12 +78,14 @@ const ProductStockList = () => {
 			name: 'Acciones',
 			button: 'true',
 			cell: row => (
-				<Icon
-					path={mdiPlusCircle}
-					size={1}
-					onClick={e => handleButtonClick(e, row.id)}
-					className={classes.editIcon}
-				/>
+				<Tooltip title="Agregar productos dañados" placement="top">
+					<Icon
+						path={mdiPlusCircle}
+						size={1}
+						onClick={e => handleButtonClick(e, row.id)}
+						className={classes.editIcon}
+					/>
+				</Tooltip>
 			),
 		},
 	];

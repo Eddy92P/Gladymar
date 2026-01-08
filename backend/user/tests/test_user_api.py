@@ -190,7 +190,7 @@ class PrivateUserApiTests(TestCase):
             'phone': self.user.phone,
             'address': self.user.address,
             'agency': self.user.agency.id,
-            'permissions': [],
+            'permissions': ['can_view_reports'],
         })
 
     def test_post_me_not_allowed(self):

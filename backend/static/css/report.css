@@ -1,5 +1,5 @@
 @page {
-  size: A4 landscape;
+  size: legal landscape;
   margin: 2cm;
   margin-bottom: 2.5cm;
   @bottom-right {
@@ -76,12 +76,6 @@ th {
   font-weight: bold;
   background-color: #b8b8b8;
   page-break-inside: avoid;
-}
-
-.table-secondary-header {
-  background-color: #e2e2e2;
-  font-weight: bold;
-  font-size: 10px;
 }
 
 .total-row {

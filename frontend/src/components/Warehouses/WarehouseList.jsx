@@ -10,6 +10,7 @@ import AuthContext from '../../store/auth-context';
 import Icon from '@mdi/react';
 import { mdiPencilOutline } from '@mdi/js';
 import { makeStyles } from '@mui/styles';
+import { Tooltip } from '@mui/material';
 
 import { useNavigate } from 'react-router-dom';
 
@@ -52,12 +53,14 @@ const WarehouseList = () => {
 			name: 'Acciones',
 			button: 'true',
 			cell: row => (
-				<Icon
-					path={mdiPencilOutline}
-					size={1}
-					onClick={e => handleButtonClick(e, row.id)}
-					className={classes.editIcon}
-				/>
+				<Tooltip title="Editar almacén" placement="top">
+					<Icon
+						path={mdiPencilOutline}
+						size={1}
+						onClick={e => handleButtonClick(e, row.id)}
+						className={classes.editIcon}
+					/>
+				</Tooltip>
 			),
 		},
 	];
