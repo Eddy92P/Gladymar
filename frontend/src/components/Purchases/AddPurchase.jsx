@@ -473,7 +473,9 @@ export const AddPurchase = () => {
 			if (!response.ok) {
 				setErrorMessage('Ocurrió un problema.');
 				setIsForm(true);
-
+				if (data.error) {
+					setErrorMessage(data.error[0]);
+				}
 				if (data.invoice_number) {
 					dispatchInvoiceNumber({
 						type: 'INPUT_ERROR',
