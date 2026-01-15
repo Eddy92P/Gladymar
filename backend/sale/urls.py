@@ -39,4 +39,6 @@ urlpatterns = [
     path('sale-report-excel/', views.SaleReportExcelView.as_view(), name='sale-report-excel'),
     path('entry-report-excel/', views.EntryReportExcelView.as_view(), name='entry-report-excel'),
     path('output-report-excel/', views.OutputReportExcelView.as_view(), name='output-report-excel'),
+    path('inventory-report-pdf/', views.InventoryReportPdfView.as_view(), name='inventory-report-pdf'),
+    path('inventory-report-excel/', views.InventoryReportExcelView.as_view(), name='inventory-report-excel'),
 ]

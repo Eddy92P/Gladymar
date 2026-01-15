@@ -16,6 +16,8 @@ const ReportList = () => {
 	const sellExcelUrl = `${API}${api.SALE_REPORT_EXCEL_URL}`;
 	const entryExcelUrl = `${API}${api.ENTRY_REPORT_EXCEL_URL}`;
 	const outputExcelUrl = `${API}${api.OUTPUT_REPORT_EXCEL_URL}`;
+	const inventoryUrl = `${API}${api.INVENTORY_REPORT_PDF_URL}`;
+	const inventoryExcelUrl = `${API}${api.INVENTORY_REPORT_EXCEL_URL}`;
 
 	const [buyStartDate, setBuyStartDate] = useState(null);
 	const [buyEndDate, setBuyEndDate] = useState(null);
@@ -113,6 +115,18 @@ const ReportList = () => {
 		window.open(fullUrl, '_blank');
 		setOutputStartDate(null);
 		setOutputEndDate(null);
+	};
+
+	const handleGenerateInventoryReport = e => {
+		e.preventDefault();
+		const fullUrl = `${inventoryUrl}`;
+		window.open(fullUrl, '_blank');
+	};
+
+	const handleGenerateInventoryReportExcel = e => {
+		e.preventDefault();
+		const fullUrl = `${inventoryExcelUrl}`;
+		window.open(fullUrl, '_blank');
 	};
 
 	const handleGenerateBuyReportExcel = e => {
@@ -288,6 +302,52 @@ const ReportList = () => {
 						</Paper>
 					</Grid>
 				))}
+				<Grid item xs={12} sm={6} md={4} lg={3}>
+					<Paper elevation={3} sx={{ p: 4 }}>
+						<Typography
+							variant="h5"
+							component="h2"
+							sx={{
+								fontWeight: 'bold',
+								mb: 2,
+								pb: 2,
+								textAlign: 'left',
+							}}
+						>
+							Reporte de Inventario Total
+						</Typography>
+						<Box
+							sx={{
+								mt: 2,
+								display: 'flex',
+								justifyContent: 'center',
+								gap: 2,
+							}}
+						>
+							<Button
+								onClick={handleGenerateInventoryReport}
+								variant="contained"
+								style={{
+									textTransform: 'none',
+									width: '150px',
+								}}
+							>
+								Generar Reporte
+							</Button>
+							<Button
+								color="success"
+								onClick={handleGenerateInventoryReportExcel}
+								variant="contained"
+								style={{
+									textTransform: 'none',
+									width: '150px',
+								}}
+							>
+								Generar Reporte en Excel
+							</Button>
+						</Box>
+					</Paper>
+				</Grid>
 			</Grid>
 		</Box>
 	);

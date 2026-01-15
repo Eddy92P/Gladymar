@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>{{ title }}</title>
+        <link rel="stylesheet" href="{% static 'css/report.css' %}">
+    </head>
+    {% if products_stock %}
+    <body>
+        <div class="header-container">
+            <div class="header-title">
+                <h2>GLADYMAR</h1>
+                <h2>POTOSI - BOLIVIA</h2>
+            </div>
+            <div class="header-second-title">
+                <h2>REPORTE DE INVENTARIO</h2>
+            </div>
+        </div>
+        <div>
+            <table>
+                {% for product_stock in products_stock %}
+                    {% ifchanged product_stock.product.id %}
+                        <tr>
+                            <th>AGENCIA</th>
+                            <th>ALMACEN</th>
+                            <th>PRODUCTO</th>
+                            <th>CODIGO</th>
+                            <th>CANTIDAD TOTAL</th>
+                            <th>RESERVADO</th>
+                            <th>DISPONIBLE PARA VENTA</th>
+                            <th>DAÑADO</th>
+                        </tr>
+                    {% endifchanged %}
+                    <tr>
+                        <td>{{ product_stock.warehouse.agency.name }}</td>
+                        <td>{{ product_stock.warehouse.name }}</td>
+                        <td>{{ product_stock.product.name }}</td>
+                        <td>{{ product_stock.product.code }}</td>
+                        <td>{{ product_stock.stock }}</td>
+                        <td>{{ product_stock.reserved_stock }}</td>
+                        <td>{{ product_stock.available_stock }}</td>
+                        <td>{{ product_stock.damaged_stock }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <div class="footer">
+            <div class="date-container">
+                <p>Potosi, {{ today|date:"j \\d\\e F \\d\\e Y"|lower }}</p>
+            </div>
+        </div>
+    </body>
+    {% else %}
+        <div class="no-purchases">
+            <h2>No hay productos en el inventario.</h2>
+        </div>
+    {% endif %}
+</html>

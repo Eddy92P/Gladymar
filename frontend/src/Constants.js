@@ -48,6 +48,8 @@ const apiUrl = {
 	SALE_REPORT_EXCEL_URL: '/api/sale/sale-report-excel/',
 	ENTRY_REPORT_EXCEL_URL: '/api/sale/entry-report-excel/',
 	OUTPUT_REPORT_EXCEL_URL: '/api/sale/output-report-excel/',
+	INVENTORY_REPORT_PDF_URL: '/api/sale/inventory-report-pdf/',
+	INVENTORY_REPORT_EXCEL_URL: '/api/sale/inventory-report-excel/',
 };
 
 export const config = import.meta.env.MODE === 'development' ? dev : prod;

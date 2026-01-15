@@ -722,14 +722,24 @@ class OutputItemSerializer(serializers.ModelSerializer):
 
         return data
 
+    @transaction.atomic
     def create(self, validated_data):
-        output_item = super().create(validated_data)
-        product_stock = validated_data['product_stock']
-        if validated_data.get('sale_item') is not None:
-            UpdateSaleItem(output_item, product_stock).update_sale_item()
-        DecreaseProductStockService(output_item, product_stock).decrease_product_stock()
-
-        return output_item
+        try:
+            output_item = super().create(validated_data)
+            product_stock = validated_data['product_stock']
+            if validated_data.get('sale_item') is not None:
+                UpdateSaleItem(output_item, product_stock).update_sale_item()
+            DecreaseProductStockService(output_item, product_stock).decrease_product_stock()
+            # Obtener el último invoice_number de todas las salidas
+            last_output = Output.objects.filter(invoice_number__gt=0).order_by('-invoice_number').first()
+            if last_output:
+                output_item.invoice_number = last_output.invoice_number + 1
+            else:
+                output_item.invoice_number = 1
+            output_item.save()
+            return output_item
+        except Exception as e:
+            raise e
 
 
 class OutputSerializer(serializers.ModelSerializer):
@@ -757,7 +767,11 @@ class OutputSerializer(serializers.ModelSerializer):
                 OutputItemSerializer().create(item_data)
             # Obtener el último invoice_number de todas las ventas
             last_output = Output.objects.filter(invoice_number__gt=0).order_by('-invoice_number').first()
-            validated_data['invoice_number'] = last_output.invoice_number + 1
+            if last_output:
+                output.invoice_number = last_output.invoice_number + 1
+            else:
+                output.invoice_number = 1
+            output.save()
 
         except Exception as e:
             raise e
@@ -792,7 +806,7 @@ class OutputSerializer(serializers.ModelSerializer):
 
         return instance
 
-    
+
 class SaleItemSerializer(serializers.ModelSerializer):
     """Serializer for Sale Item model."""
     products_stock = ProductStockSerializer(read_only=True, source='product_stock')

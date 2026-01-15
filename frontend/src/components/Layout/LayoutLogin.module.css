@@ -5,26 +5,9 @@
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	background: #2b2d39;
-	-webkit-background-size: cover;
-	-moz-background-size: cover;
-	-o-background-size: cover;
-	background-size: cover;
-	background-image: url('/gladymarfondo.jpg');
-	background-repeat: no-repeat;
-	background-size: cover;
-	background-position: center;
+	background: linear-gradient(to bottom, #2b2d39, #74353c);
 }
 
 .main.small {
 	flex-direction: column;
-}
-
-.imageLoading {
-	background-image: none;
-	background-color: #2b2d39;
-}
-
-.imageLoaded {
-	background-image: url('/gladymarfondo.jpg');
 }

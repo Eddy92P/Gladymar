@@ -9,7 +9,6 @@ const getWindowSize = () => {
 
 const Layout = props => {
 	const [windowSize, setWindowSize] = useState(getWindowSize());
-	const [imageLoaded, setImageLoaded] = useState(false);
 
 	useEffect(() => {
 		function handleWindowResize() {
@@ -23,20 +22,12 @@ const Layout = props => {
 		};
 	}, []);
 
-	// Preload the background image to ensure it's available
-	useEffect(() => {
-		const img = new Image();
-		img.onload = () => setImageLoaded(true);
-		img.onerror = () => setImageLoaded(false);
-		img.src = '/gladymarfondo.jpg';
-	}, []);
-
 	return (
 		<div>
 			<main
 				className={`${classes.main} ${
 					windowSize.innerWidth <= 980 && classes.small
-				} ${imageLoaded ? classes.imageLoaded : classes.imageLoading}`}
+				}`}
 			>
 				{props.children}
 			</main>

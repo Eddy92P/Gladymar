@@ -706,6 +706,31 @@ class OutputReportPdfView(View):
         return response
 
 
+class InventoryReportPdfView(View):
+    """Generate Inventory Report PDF."""
+    def get(self, request, *args, **kwargs):
+        today = datetime.now().date()
+        try:
+            products_stock = ProductStock.objects.all().select_related("product").order_by("product__id")
+        except ProductStock.DoesNotExist:
+            raise Http404("No hay productos en el inventario.")
+
+        context = {
+            'title': 'Reporte de Inventario',
+            'products_stock': products_stock,
+            'today': today,
+        }
+
+        html_string = render_to_string('inventory_report.html', context)
+        html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+
+        pdf_file = html.write_pdf()
+
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="reporte_de_inventario.pdf"'
+        return response
+
+
 class BuyReportExcelView(APIView):
     """Generate Excel Report."""
     def get(self, request):
@@ -1089,6 +1114,86 @@ class OutputReportExcelView(APIView):
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         response['Content-Disposition'] = f'inline; filename="reporte_de_salidas_{start_date_str}_a_{end_date_str}.xlsx"'
+
+        wb.save(response)
+        return response
+    
+    
+class InventoryReportExcelView(APIView):
+    """Generate Excel Report."""
+    def get(self, request):
+        header_font = Font(
+            bold=True,
+            color="FFFFFF"
+        )
+        header_fill = PatternFill(
+            start_color="1F4E78",
+            end_color="1F4E78",
+            fill_type="solid"
+        )
+        header_alignment = Alignment(
+            horizontal="center",
+            vertical="center"
+        )
+        try:
+            products_stock = ProductStock.objects.all().select_related("product").order_by("product__id")
+        except ProductStock.DoesNotExist:
+            raise Http404("No hay productos en el inventario.")
+        wb = Workbook()
+        ws = wb.active
+
+        ws.title = f"Reporte de Inventario"[:31]
+        ws.append(["REPORTE DE INVENTARIO"])
+        headers = (["AGENCIA",
+                   "ALMACEN",
+                   "PRODUCTO",
+                   "CODIGO",
+                   "CANTIDAD TOTAL",
+                   "CANTIDAD RESERVADA",
+                   "CANTIDAD DISPONIBLE PARA VENTA",
+                   "CANTIDAD DAÑADA"  
+                   ])
+        # Unir todas las celdas de la fila 1 (título) y centrarlo
+        num_columns = len(headers)
+        ws.merge_cells(f'A1:{chr(64 + num_columns)}1')
+        title_cell = ws.cell(row=1, column=1)
+        title_cell.alignment = Alignment(horizontal="center", vertical="center")
+        title_cell.font = Font(bold=True, size=14)
+        ws.append(headers)
+        for col_num in range(1, len(headers) + 1):
+            cell = ws.cell(row=2, column=col_num)
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = header_alignment
+        column_widths = [
+            25, # AGENCIA
+            25, # ALMACEN
+            25, # PRODUCTO
+            20, # CODIGO
+            20, # CANTIDAD TOTAL
+            25, # CANTIDAD RESERVADA
+            35, # CANTIDAD DISPONIBLE PARA VENTA
+            25, # CANTIDAD DAÑADA
+        ]
+        for i, width in enumerate(column_widths, start=1):
+            ws.column_dimensions[chr(64 + i)].width = width
+
+        for product_stock in products_stock:
+            ws.append([
+                product_stock.warehouse.agency.name,
+                product_stock.warehouse.name,
+                product_stock.product.name,
+                product_stock.product.code,
+                product_stock.stock,
+                product_stock.reserved_stock,
+                product_stock.available_stock,
+                product_stock.damaged_stock,
+            ])
+            
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'inline; filename="reporte_de_inventario.xlsx"'
 
         wb.save(response)
         return response
