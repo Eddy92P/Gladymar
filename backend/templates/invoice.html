@@ -79,7 +79,11 @@
                 </div>
             {% endif %}
             <div class="date-container">
-                <p>Potosi, {{ sale.sale_date|date:"j \\d\\e F \\d\\e Y"|lower }}</p>
+                {% if isSale %}
+                    <p>Potosi, {{ sale.sale_perform_date|date:"j \\d\\e F \\d\\e Y"|lower }}</p>
+                {% else %}
+                    <p>Potosi, {{ sale.sale_date|date:"j \\d\\e F \\d\\e Y"|lower }}</p>
+                {% endif %} 
             </div>
         </div>
     </body>

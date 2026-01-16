@@ -302,49 +302,60 @@ const ReportList = () => {
 						</Paper>
 					</Grid>
 				))}
-				<Grid item xs={12} sm={6} md={4} lg={3}>
-					<Paper elevation={3} sx={{ p: 4 }}>
-						<Typography
-							variant="h5"
-							component="h2"
-							sx={{
-								fontWeight: 'bold',
-								mb: 2,
-								pb: 2,
-								textAlign: 'left',
-							}}
-						>
-							Reporte de Inventario Total
-						</Typography>
+				<Grid
+					item
+					xs={12}
+					sm={12}
+					md={12}
+					lg={10}
+					sx={{ width: '48%' }}
+				>
+					<Paper elevation={3} sx={{ p: 4, width: '100%' }}>
 						<Box
 							sx={{
-								mt: 2,
 								display: 'flex',
-								justifyContent: 'center',
-								gap: 2,
+								justifyContent: 'space-between',
+								alignItems: 'center',
 							}}
 						>
-							<Button
-								onClick={handleGenerateInventoryReport}
-								variant="contained"
-								style={{
-									textTransform: 'none',
-									width: '150px',
+							<Typography
+								variant="h5"
+								component="h2"
+								sx={{
+									fontWeight: 'bold',
+									textAlign: 'left',
 								}}
 							>
-								Generar Reporte
-							</Button>
-							<Button
-								color="success"
-								onClick={handleGenerateInventoryReportExcel}
-								variant="contained"
-								style={{
-									textTransform: 'none',
-									width: '150px',
+								Reporte de Inventario Total
+							</Typography>
+							<Box
+								sx={{
+									display: 'flex',
+									gap: 2,
 								}}
 							>
-								Generar Reporte en Excel
-							</Button>
+								<Button
+									onClick={handleGenerateInventoryReport}
+									variant="contained"
+									style={{
+										textTransform: 'none',
+										width: '150px',
+									}}
+								>
+									Generar Reporte
+								</Button>
+								<Button
+									color="success"
+									onClick={handleGenerateInventoryReportExcel}
+									variant="contained"
+									style={{
+										textTransform: 'none',
+										width: '150px',
+									}}
+								>
+									Generar Reporte en Excel
+								</Button>
+							</Box>
 						</Box>
 					</Paper>
 				</Grid>

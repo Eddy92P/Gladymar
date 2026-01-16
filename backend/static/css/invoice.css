@@ -15,7 +15,7 @@ body::before {
   left: 10%;
   width: 80%;
   height: 50%;
-  background: url("/static/image/gladymar logo.png") no-repeat center center;
+  background: url("/static/image/decorestilo_icon.jpeg") no-repeat center center;
   background-size: contain;
   opacity: 0.1;
   z-index: -1;
