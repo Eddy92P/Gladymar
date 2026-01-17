@@ -9,7 +9,7 @@
     <body>
         <div class="header-container">
             <div class="header-title">
-                <h2>GLADYMAR</h1>
+                <h2>DECORESTILO</h1>
                 <h2>POTOSI - BOLIVIA</h2>
             </div>
             <div class="header-second-title">
@@ -18,19 +18,17 @@
         </div>
         <div>
             <table>
+                <tr>
+                    <th>AGENCIA</th>
+                    <th>ALMACEN</th>
+                    <th>PRODUCTO</th>
+                    <th>CODIGO</th>
+                    <th>CANTIDAD TOTAL</th>
+                    <th>RESERVADO</th>
+                    <th>DISPONIBLE PARA VENTA</th>
+                    <th>DAÑADO</th>
+                </tr>
                 {% for product_stock in products_stock %}
-                    {% ifchanged product_stock.product.id %}
-                        <tr>
-                            <th>AGENCIA</th>
-                            <th>ALMACEN</th>
-                            <th>PRODUCTO</th>
-                            <th>CODIGO</th>
-                            <th>CANTIDAD TOTAL</th>
-                            <th>RESERVADO</th>
-                            <th>DISPONIBLE PARA VENTA</th>
-                            <th>DAÑADO</th>
-                        </tr>
-                    {% endifchanged %}
                     <tr>
                         <td>{{ product_stock.warehouse.agency.name }}</td>
                         <td>{{ product_stock.warehouse.name }}</td>
