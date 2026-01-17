@@ -11,7 +11,7 @@ import Alert from '@mui/material/Alert';
 
 import AuthContext from '../../store/auth-context';
 import { api } from '../../Constants';
-import { validatePositiveNumber, validDate } from '../../Validations';
+import { validatePositiveNumber, validTransactionDate } from '../../Validations';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -111,9 +111,9 @@ function AddPayment() {
 		if (action.type === 'INPUT_CHANGE') {
 			return {
 				value: action.val,
-				isValid: validDate(action.val),
+				isValid: validTransactionDate(action.val),
 				feedbackText:
-					'La fecha no puede ser anterior ni posterior a la actual',
+					'La fecha no puede ser posterior a la actual',
 			};
 		}
 		return state;

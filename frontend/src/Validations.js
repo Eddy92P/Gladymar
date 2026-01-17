@@ -96,6 +96,12 @@ export const validDate = date => {
 	);
 };
 
+export const validTransactionDate = date => {
+	return (
+		dayjs(date).isValid() && !dayjs(date).isAfter(dayjs(), 'day')
+	);
+};
+
 export const validateEndDate = (endDate, startDate) => {
 	if (!endDate || !startDate) return true;
 	return !dayjs(endDate).isBefore(dayjs(startDate), 'day');

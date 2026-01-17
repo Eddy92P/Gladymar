@@ -43,7 +43,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
 // Validations and Constants
-import { validatePositiveNumber, validDate } from '../../Validations';
+import { validatePositiveNumber, validTransactionDate } from '../../Validations';
 import { api } from '../../Constants';
 
 // Components
@@ -110,9 +110,9 @@ export const AddPurchase = () => {
 		if (action.type === 'INPUT_CHANGE') {
 			return {
 				value: action.val,
-				isValid: validDate(action.val),
+				isValid: validTransactionDate(action.val),
 				feedbackText:
-					'La fecha no puede ser anterior ni posterior a la actual',
+					'La fecha no puede ser posterior a la actual',
 			};
 		}
 		return state;
@@ -158,9 +158,9 @@ export const AddPurchase = () => {
 		if (action.type === 'INPUT_CHANGE') {
 			return {
 				value: action.val,
-				isValid: validDate(action.val),
+				isValid: validTransactionDate(action.val),
 				feedbackText:
-					'La fecha no puede ser anterior ni posterior a la actual',
+					'La fecha no puede ser posterior a la actual',
 			};
 		}
 		return state;
