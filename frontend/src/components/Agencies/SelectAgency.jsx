@@ -29,6 +29,9 @@ import { StoreContext } from '../../store/store-context';
 // Navigate
 import { useNavigate } from 'react-router-dom';
 
+// API
+import authFetch from '../../api/authFetch';
+
 const StyledDialog = styled(Dialog)({
 	'& .MuiDialog-paper': {
 		padding: '32px',
@@ -79,10 +82,9 @@ const SelectAgency = () => {
 
 		const fetchAgencies = async () => {
 			try {
-				const response = await fetch(url, {
+				const response = await authFetch(url, {
 					method: 'GET',
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 					signal: controller.signal,

@@ -11,6 +11,8 @@ import { api } from '../../Constants';
 import AuthContext from '../../store/auth-context';
 import { StoreContext } from '../../store/store-context';
 
+import authFetch from '../../api/authFetch';
+
 const AddProductDetailedList = ({
 	onClose,
 	onProductList,
@@ -77,10 +79,9 @@ const AddProductDetailedList = ({
 				let products = [];
 				if (sellingChannel) {
 					let allProducts = [];
-					const response = await fetch(url, {
+					const response = await authFetch(url, {
 						method: 'GET',
 						headers: {
-							Authorization: `Token ${authContext.token}`,
 							'Content-Type': 'application/json',
 						},
 						signal: controller.signal,
@@ -110,10 +111,9 @@ const AddProductDetailedList = ({
 							item.stock > 0
 					);
 				} else if (sale?.id) {
-					const response = await fetch(url, {
+					const response = await authFetch(url, {
 						method: 'GET',
 						headers: {
-							Authorization: `Token ${authContext.token}`,
 							'Content-Type': 'application/json',
 						},
 						signal: controller.signal,
@@ -133,6 +133,7 @@ const AddProductDetailedList = ({
 						code: item.code,
 						price: item.price,
 						stock: item.stock,
+						reservedStock: item.reserved_stock,
 					}));
 				} else if (purchase?.id) {
 					const response = await fetch(url, {

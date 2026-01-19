@@ -55,11 +55,11 @@ import AddSaleModal from './AddSaleModal';
 import ListHeader from '../UI/List/ListHeader';
 
 // Context
-import AuthContext from '../../store/auth-context';
 import { StoreContext } from '../../store/store-context';
 
 // CSS classes
 import classes from '../UI/List/List.module.css';
+import authFetch from '../../api/authFetch';
 
 // Styled components defined outside the component
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -90,7 +90,6 @@ export const AddSale = () => {
 	];
 
 	const [isLoading, setIsLoading] = useState(false);
-	const authContext = useContext(AuthContext);
 	const storeContext = useContext(StoreContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
@@ -544,10 +543,9 @@ export const AddSale = () => {
 	useEffect(() => {
 		const fetchClients = async () => {
 			try {
-				const response = await fetch(urlClientChoices, {
+				const response = await authFetch(urlClientChoices, {
 					method: 'GET',
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 				});
@@ -573,15 +571,14 @@ export const AddSale = () => {
 		};
 
 		fetchClients();
-	}, [authContext.token, urlClientChoices, saleData]);
+	}, [urlClientChoices, saleData]);
 
 	useEffect(() => {
 		const fetchSellingChannels = async () => {
 			try {
-				const response = await fetch(urlSellingChannelsChoices, {
+				const response = await authFetch(urlSellingChannelsChoices, {
 					method: 'GET',
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 				});
@@ -607,7 +604,7 @@ export const AddSale = () => {
 		};
 
 		fetchSellingChannels();
-	}, [authContext.token, urlSellingChannelsChoices, saleData]);
+	}, [urlSellingChannelsChoices, saleData]);
 
 	const handleSubmit = async () => {
 		try {
@@ -631,11 +628,10 @@ export const AddSale = () => {
 				})),
 			};
 
-			const response = await fetch(url, {
+			const response = await authFetch(url, {
 				method: 'POST',
 				body: JSON.stringify(saleInfo),
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});
@@ -791,11 +787,10 @@ export const AddSale = () => {
 				};
 			}
 
-			const response = await fetch(`${url}${saleData.id}/`, {
+			const response = await authFetch(`${url}${saleData.id}/`, {
 				method: 'PUT',
 				body: JSON.stringify(saleInfo),
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});

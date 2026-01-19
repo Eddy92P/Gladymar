@@ -3,9 +3,7 @@ import List from '../UI/List/List';
 import { api } from '../../Constants';
 import ListHeader from '../UI/List/ListHeader';
 import Filter from '../UI/List/Filter';
-import { Fragment, useEffect, useState, useContext } from 'react';
-
-import AuthContext from '../../store/auth-context';
+import { Fragment, useEffect, useState } from 'react';
 
 import Icon from '@mdi/react';
 import { mdiPlusCircle } from '@mdi/js';
@@ -13,6 +11,8 @@ import { makeStyles } from '@mui/styles';
 import { Tooltip } from '@mui/material';
 
 import { useNavigate } from 'react-router-dom';
+
+import authFetch from '../../api/authFetch';
 
 const useStyles = makeStyles({
 	editIcon: {
@@ -23,7 +23,6 @@ const useStyles = makeStyles({
 
 const ProductStockList = () => {
 	const classes = useStyles();
-	const authContext = useContext(AuthContext);
 
 	const [list, setList] = useState([]);
 	const [error, setError] = useState(null);
@@ -104,10 +103,9 @@ const ProductStockList = () => {
 
 		const fetchAgencies = async () => {
 			try {
-				const response = await fetch(url, {
+				const response = await authFetch(url, {
 					method: 'GET',
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 					signal: controller.signal,
@@ -152,7 +150,7 @@ const ProductStockList = () => {
 			isMounted = false;
 			controller.abort();
 		};
-	}, [filterText, authContext.token, page, pageSize]);
+	}, [filterText, page, pageSize]);
 
 	const handleButtonClick = (e, id) => {
 		e.preventDefault();

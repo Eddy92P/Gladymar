@@ -3,17 +3,15 @@ import List from '../UI/List/List';
 import { api } from '../../Constants';
 import ListHeader from '../UI/List/ListHeader';
 import Filter from '../UI/List/Filter';
-import { Fragment, useEffect, useState, useContext } from 'react';
-
-import AuthContext from '../../store/auth-context';
+import { Fragment, useEffect, useState } from 'react';
 
 import { useNavigate } from 'react-router-dom';
 
 import { Info } from '@mui/icons-material';
 import { Tooltip } from '@mui/material';
+import authFetch from '../../api/authFetch';
 
 const OutputList = () => {
-	const authContext = useContext(AuthContext);
 
 	const [list, setList] = useState([]);
 	const [error, setError] = useState(null);
@@ -79,10 +77,9 @@ const OutputList = () => {
 
 		const fetchOutputs = async () => {
 			try {
-				const response = await fetch(url, {
+				const response = await authFetch(url, {
 					method: 'GET',
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 					signal: controller.signal,
@@ -123,7 +120,7 @@ const OutputList = () => {
 			isMounted = false;
 			controller.abort();
 		};
-	}, [filterText, authContext.token, page, pageSize]);
+	}, [filterText, page, pageSize]);
 
 	const handleAddOutput = isOutput => {
 		navigate('agregar_salida', { state: { isOutput: isOutput } });

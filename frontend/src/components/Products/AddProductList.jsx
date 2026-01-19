@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 
 // Components
 import Filter from '../UI/List/Filter';
@@ -8,7 +8,7 @@ import TableList from '../UI/Table/TableList';
 import { api } from '../../Constants';
 
 // Context
-import AuthContext from '../../store/auth-context';
+import authFetch from '../../api/authFetch';
 
 const AddProductList = ({ onClose, onProductList, addedProducts = [] }) => {
 	const [list, setList] = useState([]);
@@ -16,7 +16,6 @@ const AddProductList = ({ onClose, onProductList, addedProducts = [] }) => {
 	const [filterText, setFilterText] = useState('');
 	const [showModal, setShowModal] = useState(true);
 
-	const authContext = useContext(AuthContext);
 
 	useEffect(() => {
 		const API = import.meta.env.VITE_API_URL;
@@ -31,10 +30,9 @@ const AddProductList = ({ onClose, onProductList, addedProducts = [] }) => {
 
 		const fetchProducts = async () => {
 			try {
-				const response = await fetch(url, {
+				const response = await authFetch(url, {
 					method: 'GET',
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 					signal: controller.signal,
@@ -72,7 +70,7 @@ const AddProductList = ({ onClose, onProductList, addedProducts = [] }) => {
 			isMounted = false;
 			controller.abort();
 		};
-	}, [authContext.token, filterText]);
+	}, [filterText]);
 
 	const handleCloseModal = () => {
 		setShowModal(false);

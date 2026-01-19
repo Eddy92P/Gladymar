@@ -3,8 +3,8 @@ import React, {
 	useState,
 	useEffect,
 	useReducer,
-	useContext,
 	useMemo,
+	useContext,
 	useRef,
 } from 'react';
 
@@ -18,6 +18,7 @@ import {
 	validatePositiveNumber,
 } from '../../Validations';
 
+import authFetch from '../../api/authFetch';
 import {
 	Grid,
 	TextField,
@@ -283,9 +284,8 @@ function AddProduct() {
 	useEffect(() => {
 		const fetchBatchChoices = async () => {
 			try {
-				const response = await fetch(urlBatchChoices, {
+				const response = await authFetch(urlBatchChoices, {
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 				});
@@ -308,7 +308,7 @@ function AddProduct() {
 		};
 
 		fetchBatchChoices();
-	}, [urlBatchChoices, authContext.token, productData.batch]);
+	}, [urlBatchChoices, productData.batch]);
 
 	useEffect(() => {
 		if (productData.image && productData.length !== 0) {
@@ -359,12 +359,11 @@ function AddProduct() {
 		formData.append('unit_of_measurement', unitMeasurementState.value);
 
 		try {
-			const response = await fetch(url, {
+			const response = await authFetch(url, {
 				method: 'POST',
 				body: formData,
-				headers: {
-					Authorization: `Token ${authContext.token}`,
-				},
+				// No establecer Content-Type cuando se envía FormData
+				// El navegador lo establecerá automáticamente con el boundary correcto
 			});
 			const data = await response.json();
 
@@ -419,12 +418,11 @@ function AddProduct() {
 		formData.append('unit_of_measurement', unitMeasurementState.value);
 
 		try {
-			const response = await fetch(`${url}${productData.id}/`, {
+			const response = await authFetch(`${url}${productData.id}/`, {
 				method: 'PUT',
 				body: formData,
-				headers: {
-					Authorization: `Token ${authContext.token}`,
-				},
+				// No establecer Content-Type cuando se envía FormData
+				// El navegador lo establecerá automáticamente con el boundary correcto
 			});
 			const data = await response.json();
 

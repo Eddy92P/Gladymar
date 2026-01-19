@@ -3,9 +3,7 @@ import List from '../UI/List/List';
 import { api } from '../../Constants';
 import ListHeader from '../UI/List/ListHeader';
 import ClientFilter from '../UI/List/ClientFilter';
-import { Fragment, useEffect, useState, useContext } from 'react';
-
-import AuthContext from '../../store/auth-context';
+import { Fragment, useEffect, useState } from 'react';
 
 import Icon from '@mdi/react';
 import { mdiPencilOutline } from '@mdi/js';
@@ -14,6 +12,8 @@ import { makeStyles } from '@mui/styles';
 import { useNavigate } from 'react-router-dom';
 
 import { Tooltip } from '@mui/material';
+
+import authFetch from '../../api/authFetch';
 
 const useStyles = makeStyles({
 	editIcon: {
@@ -26,7 +26,6 @@ const ClientList = () => {
 	const API = import.meta.env.VITE_API_URL;
 	const urlClientChoices = `${API}${api.API_URL_CLIENT_CHOICES}`;
 	const classes = useStyles();
-	const authContext = useContext(AuthContext);
 
 	const [list, setList] = useState([]);
 	const [error, setError] = useState(null);
@@ -88,9 +87,9 @@ const ClientList = () => {
 	useEffect(() => {
 		const fetchClientTypeChoices = async () => {
 			try {
-				const response = await fetch(urlClientChoices, {
+				const response = await authFetch(urlClientChoices, {
+					method: 'GET',
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 				});
@@ -104,7 +103,7 @@ const ClientList = () => {
 		};
 
 		fetchClientTypeChoices();
-	}, [urlClientChoices, authContext.token]);
+	}, [urlClientChoices]);
 
 	useEffect(() => {
 		let isMounted = true;
@@ -123,10 +122,9 @@ const ClientList = () => {
 
 		const fetchClients = async () => {
 			try {
-				const response = await fetch(url, {
+				const response = await authFetch(url, {
 					method: 'GET',
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 					signal: controller.signal,
@@ -169,7 +167,7 @@ const ClientList = () => {
 			isMounted = false;
 			controller.abort();
 		};
-	}, [filterText, authContext.token, page, pageSize, filterTab, API]);
+	}, [filterText, page, pageSize, filterTab, API]);
 
 	const handleAddClient = () => {
 		navigate('agregar_cliente');

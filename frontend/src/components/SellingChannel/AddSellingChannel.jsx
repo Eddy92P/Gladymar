@@ -1,7 +1,6 @@
 import React, {
 	useState,
 	useEffect,
-	useContext,
 	useMemo,
 	useReducer,
 	Fragment,
@@ -46,9 +45,7 @@ import AddProductDetailedList from '../Products/AddProductDetailedList';
 import AddSellingChannelPreview from './AddSellingChannelPreview';
 import AddSellingChannelModal from './AddSellingChannelModal';
 import ListHeader from '../UI/List/ListHeader';
-
-// Context
-import AuthContext from '../../store/auth-context';
+import authFetch from '../../api/authFetch';
 
 // CSS classes
 import classes from '../UI/List/List.module.css';
@@ -69,7 +66,6 @@ export const AddSellingChannel = () => {
 	const url = `${API}${api.API_URL_SELLING_CHANNEL}`;
 
 	const [isLoading, setIsLoading] = useState(false);
-	const authContext = useContext(AuthContext);
 	const [, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -287,7 +283,7 @@ export const AddSellingChannel = () => {
 
 	const handleSubmit = async () => {
 		try {
-			const response = await fetch(url, {
+			const response = await authFetch(url, {
 				method: 'POST',
 				body: JSON.stringify({
 					name: nameState.value,
@@ -299,7 +295,6 @@ export const AddSellingChannel = () => {
 					})),
 				}),
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});
@@ -380,7 +375,7 @@ export const AddSellingChannel = () => {
 
 	const handleEdit = async () => {
 		try {
-			const response = await fetch(`${url}${sellingChannelData.id}/`, {
+			const response = await authFetch(`${url}${sellingChannelData.id}/`, {
 				method: 'PUT',
 				body: JSON.stringify({
 					name: nameState.value,
@@ -392,9 +387,7 @@ export const AddSellingChannel = () => {
 						end_date: product.endDate?.value || null,
 					})),
 				}),
-
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});

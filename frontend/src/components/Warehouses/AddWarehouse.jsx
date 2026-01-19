@@ -3,13 +3,12 @@ import React, {
 	useState,
 	useEffect,
 	useReducer,
-	useContext,
 	useMemo,
 } from 'react';
 
 import Alert from '@mui/material/Alert';
 
-import AuthContext from '../../store/auth-context';
+import authFetch from '../../api/authFetch';
 import { api } from '../../Constants';
 import {
 	validateNameLength,
@@ -67,7 +66,6 @@ function AddWarehouse() {
 	const url = `${API}${api.API_URL_WAREHOUSES}`;
 	const urlAgencyChoices = `${API}${api.API_URL_AGENCIES}`;
 	const [isLoading, setIsLoading] = useState(false);
-	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -328,9 +326,8 @@ function AddWarehouse() {
 	useEffect(() => {
 		const fetchAgencyChoices = async () => {
 			try {
-				const response = await fetch(urlAgencyChoices, {
+				const response = await authFetch(urlAgencyChoices, {
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 				});
@@ -353,11 +350,11 @@ function AddWarehouse() {
 		};
 
 		fetchAgencyChoices();
-	}, [urlAgencyChoices, authContext.token, warehouseData.agency]);
+	}, [urlAgencyChoices, warehouseData.agency]);
 
 	const handleSubmit = async () => {
 		try {
-			const response = await fetch(url, {
+			const response = await authFetch(url, {
 				method: 'POST',
 				body: JSON.stringify({
 					name: nameState.value,
@@ -371,7 +368,6 @@ function AddWarehouse() {
 					})),
 				}),
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});
@@ -436,7 +432,7 @@ function AddWarehouse() {
 	};
 	const handleEdit = async () => {
 		try {
-			const response = await fetch(`${url}${warehouseData.id}/`, {
+			const response = await authFetch(`${url}${warehouseData.id}/`, {
 				method: 'PUT',
 				body: JSON.stringify({
 					name: nameState.value,
@@ -452,7 +448,6 @@ function AddWarehouse() {
 				}),
 
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});

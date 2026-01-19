@@ -3,13 +3,12 @@ import React, {
 	useState,
 	useEffect,
 	useReducer,
-	useContext,
 	useMemo,
 } from 'react';
 
 import Alert from '@mui/material/Alert';
 
-import AuthContext from '../../store/auth-context';
+import authFetch from '../../api/authFetch';
 import { api } from '../../Constants';
 import { validatePositiveNumber, validTransactionDate } from '../../Validations';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -65,7 +64,6 @@ function AddPayment() {
 	];
 
 	const [isLoading, setIsLoading] = useState(false);
-	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -168,7 +166,7 @@ function AddPayment() {
 
 	const handleSubmit = async () => {
 		try {
-			const response = await fetch(url, {
+			const response = await authFetch(url, {
 				method: 'POST',
 				body: JSON.stringify({
 					transaction_id: transactionData.id,
@@ -178,7 +176,6 @@ function AddPayment() {
 					payment_date: paymentDateState.value.format('YYYY-MM-DD'),
 				}),
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});

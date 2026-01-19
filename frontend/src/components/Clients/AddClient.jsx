@@ -3,13 +3,11 @@ import React, {
 	useState,
 	useEffect,
 	useReducer,
-	useContext,
 	useMemo,
 } from 'react';
 
 import Alert from '@mui/material/Alert';
 
-import AuthContext from '../../store/auth-context';
 import { api } from '../../Constants';
 import {
 	validateNameLength,
@@ -18,6 +16,8 @@ import {
 	validateCiNumber,
 	validateEmail,
 } from '../../Validations';
+
+import authFetch from '../../api/authFetch';
 
 import {
 	Grid,
@@ -41,7 +41,6 @@ function AddClient() {
 	const url = `${API}${api.API_URL_CLIENTS}`;
 	const urlClientChoices = `${API}${api.API_URL_CLIENT_CHOICES}`;
 	const [isLoading, setIsLoading] = useState(false);
-	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -258,9 +257,8 @@ function AddClient() {
 	useEffect(() => {
 		const fetchClientTypeChoices = async () => {
 			try {
-				const response = await fetch(urlClientChoices, {
+				const response = await authFetch(urlClientChoices, {
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 				});
@@ -282,11 +280,11 @@ function AddClient() {
 		};
 
 		fetchClientTypeChoices();
-	}, [urlClientChoices, authContext.token, clientData.clientType]);
+	}, [urlClientChoices, clientData.clientType]);
 
 	const handleSubmit = async () => {
 		try {
-			const response = await fetch(url, {
+			const response = await authFetch(url, {
 				method: 'POST',
 				body: JSON.stringify({
 					name: nameState.value,
@@ -297,7 +295,6 @@ function AddClient() {
 					client_type: clientType.value,
 				}),
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});
@@ -342,7 +339,7 @@ function AddClient() {
 	};
 	const handleEdit = async () => {
 		try {
-			const response = await fetch(`${url}${clientData.id}/`, {
+			const response = await authFetch(`${url}${clientData.id}/`, {
 				method: 'PUT',
 				body: JSON.stringify({
 					name: nameState.value,
@@ -354,7 +351,6 @@ function AddClient() {
 				}),
 
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});

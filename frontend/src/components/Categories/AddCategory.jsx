@@ -3,13 +3,11 @@ import React, {
 	useState,
 	useEffect,
 	useReducer,
-	useContext,
 	useMemo,
 } from 'react';
 
 import Alert from '@mui/material/Alert';
 
-import AuthContext from '../../store/auth-context';
 import { api } from '../../Constants';
 import { validateNameLength } from '../../Validations';
 
@@ -27,13 +25,14 @@ import AddCategoryPreview from './AddCategoryPreview';
 import AddCategoryModal from './AddCategoryModal';
 import ListHeader from '../UI/List/ListHeader';
 
+import authFetch from '../../api/authFetch';
+
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function AddCategory() {
 	const API = import.meta.env.VITE_API_URL;
 	const url = `${API}${api.API_URL_CATEGORIES}`;
 	const [isLoading, setIsLoading] = useState(false);
-	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -111,13 +110,12 @@ function AddCategory() {
 
 	const handleSubmit = async () => {
 		try {
-			const response = await fetch(url, {
+			const response = await authFetch(url, {
 				method: 'POST',
 				body: JSON.stringify({
 					name: nameState.value,
 				}),
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});
@@ -144,14 +142,12 @@ function AddCategory() {
 	};
 	const handleEdit = async () => {
 		try {
-			const response = await fetch(`${url}${categoryData.id}/`, {
+			const response = await authFetch(`${url}${categoryData.id}/`, {
 				method: 'PUT',
 				body: JSON.stringify({
 					name: nameState.value,
 				}),
-
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});

@@ -94,6 +94,7 @@ class CatalogView(APIView):
                     "code": product.code,
                     "price": 0,
                     "stock": sale_item.product_stock.available_stock,
+                    "reserved_stock": sale_item.product_stock.reserved_stock,
                     "minimum_stock": sale_item.product_stock.minimum_stock,
                     "maximum_stock": sale_item.product_stock.maximum_stock,
                     "minimum_sale_price": product.minimum_sale_price,
@@ -175,7 +176,6 @@ class AgencyViewSet(viewsets.ModelViewSet):
     """View for managing agency APIs."""
     serializer_class = AgencySerializer
     queryset = Agency.objects.all()
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
@@ -205,7 +205,6 @@ class WarehouseViewSet(viewsets.ModelViewSet):
     """View for managing warehouse APIs."""
     serializer_class = WarehouseSerializer
     queryset = Warehouse.objects.all()
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
@@ -221,7 +220,6 @@ class CategoryViewSet(viewsets.ModelViewSet):
     """View for managing category APIs."""
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
@@ -242,7 +240,6 @@ class BatchViewSet(viewsets.ModelViewSet):
     """View for managing batch APIs."""
     serializer_class = BatchSerializer
     queryset = Batch.objects.all()
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
@@ -263,7 +260,6 @@ class ProductViewSet(viewsets.ModelViewSet):
     """View for managing product APIs."""
     serializer_class = ProductSerializer
     queryset = Product.objects.all()
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
@@ -296,7 +292,6 @@ class ProductStockViewSet(viewsets.ModelViewSet):
     """View for managing product stock APIs."""
     serializer_class = ProductStockSerializer
     queryset = ProductStock.objects.all()
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
@@ -334,7 +329,6 @@ class ClientViewSet(viewsets.ModelViewSet):
     """View for managing client APIs."""
     serializer_class = ClientSerializer
     queryset = Client.objects.all()
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
@@ -365,7 +359,6 @@ class SupplierViewSet(viewsets.ModelViewSet):
     """View for managing supplier APIs."""
     serializer_class = SupplierSerializer
     queryset = Supplier.objects.all()
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
@@ -386,7 +379,6 @@ class EntryViewSet(viewsets.ModelViewSet):
     """View for managing entry APIs."""
     serializer_class = EntrySerializer
     queryset = Entry.objects.all()
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
@@ -406,7 +398,6 @@ class OutputViewSet(viewsets.ModelViewSet):
     """View for managing output APIs."""
     serializer_class = OutputSerializer
     queryset = Output.objects.all()
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
@@ -426,7 +417,6 @@ class ProductChannelPriceViewSet(viewsets.ModelViewSet):
     """View for managing product channel price APIs."""
     serializer_class = ProductChannelPriceSerializer
     queryset = ProductChannelPrice.objects.all()
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
@@ -442,7 +432,6 @@ class SellingChannelViewSet(viewsets.ModelViewSet):
     """View for managing selling channel APIs."""
     serializer_class = SellingChannelSerializer
     queryset = SellingChannel.objects.all()
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
@@ -464,7 +453,6 @@ class PurchaseViewSet(viewsets.ModelViewSet):
     """View for managing purchase APIs."""
     serializer_class = PurchaseSerializer
     queryset = Purchase.objects.all()
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
@@ -490,7 +478,6 @@ class SaleViewSet(viewsets.ModelViewSet):
     """View for managin Sale APIs."""
     serializer_class = SaleSerializer
     queryset = Sale.objects.all()
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
@@ -515,7 +502,6 @@ class PaymentViewSet(viewsets.ModelViewSet):
     """View for managing Payment APIs."""
     serializer_class = PaymentSerializer
     queryset = Payment.objects.all()
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]

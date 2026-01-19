@@ -3,13 +3,11 @@ import React, {
 	useState,
 	useEffect,
 	useReducer,
-	useContext,
 	useMemo,
 } from 'react';
 
 import Alert from '@mui/material/Alert';
 
-import AuthContext from '../../store/auth-context';
 import { api } from '../../Constants';
 import { validateNameLength } from '../../Validations';
 
@@ -30,12 +28,13 @@ import ListHeader from '../UI/List/ListHeader';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 
+import authFetch from '../../api/authFetch';
+
 function AddBatch() {
 	const API = import.meta.env.VITE_API_URL;
 	const url = `${API}${api.API_URL_BATCHES}`;
 	const urlCategoryChoices = `${API}${api.API_URL_ALL_CATEGORIES}`;
 	const [isLoading, setIsLoading] = useState(false);
-	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -120,9 +119,8 @@ function AddBatch() {
 	useEffect(() => {
 		const fetchCategoryChoices = async () => {
 			try {
-				const response = await fetch(urlCategoryChoices, {
+				const response = await authFetch(urlCategoryChoices, {
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 				});
@@ -145,18 +143,17 @@ function AddBatch() {
 		};
 
 		fetchCategoryChoices();
-	}, [urlCategoryChoices, authContext.token, batchData.category]);
+	}, [urlCategoryChoices, batchData.category]);
 
 	const handleSubmit = async () => {
 		try {
-			const response = await fetch(url, {
+			const response = await authFetch(url, {
 				method: 'POST',
 				body: JSON.stringify({
 					name: nameState.value,
 					category_id: category.id,
 				}),
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});
@@ -183,15 +180,13 @@ function AddBatch() {
 	};
 	const handleEdit = async () => {
 		try {
-			const response = await fetch(`${url}${batchData.id}/`, {
+			const response = await authFetch(`${url}${batchData.id}/`, {
 				method: 'PUT',
 				body: JSON.stringify({
 					name: nameState.value,
 					category_id: category.id,
 				}),
-
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});

@@ -13,6 +13,7 @@ import { Tooltip } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 
 import { makeStyles } from '@mui/styles';
+import authFetch from '../../api/authFetch';
 
 const useStyles = makeStyles({
 	editIcon: {
@@ -134,10 +135,9 @@ const PurchaseList = () => {
 
 		const fetchSuppliers = async () => {
 			try {
-				const response = await fetch(url, {
+				const response = await authFetch(url, {
 					method: 'GET',
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 					signal: controller.signal,
@@ -188,7 +188,7 @@ const PurchaseList = () => {
 			isMounted = false;
 			controller.abort();
 		};
-	}, [filterText, authContext.token, page, pageSize]);
+	}, [filterText, page, pageSize]);
 
 	const handleAddPurchase = () => {
 		navigate('agregar_compra');

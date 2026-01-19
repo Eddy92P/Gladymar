@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
-
-// let logoutTimer;
+import { api } from '../Constants';
 
 const AuthContext = React.createContext({
 	token: '',
@@ -9,15 +8,6 @@ const AuthContext = React.createContext({
 	login: () => {},
 	logout: () => {},
 });
-
-// const calculateRemainingTime = (expirationTime) => {
-//   const currentTime = new Date().getTime();
-//   const adjExpirationTime = new Date(expirationTime).getTime();
-
-//   const remainingDuration = adjExpirationTime - currentTime;
-
-//   return remainingDuration;
-// };
 
 const retrieveStoredToken = () => {
 	const storedToken = sessionStorage.getItem('token');
@@ -135,6 +125,16 @@ export const AuthContextProvider = props => {
 		sessionStorage.removeItem('is_superuser');
 		sessionStorage.removeItem('user_type');
 
+		const API = import.meta.env.VITE_API_URL;
+		const urlLogout = `${API}${api.API_URL_LOGOUT}`;
+		
+		fetch(urlLogout, {
+			method: 'POST',
+			credentials: 'include',
+		}).catch(error => {
+			console.error('Error al cerrar sesión:', error);
+		});
+
 		// Disparar evento personalizado para resetear la agencia
 		window.dispatchEvent(new CustomEvent('userLogout'));
 	}, []);
@@ -161,12 +161,6 @@ export const AuthContextProvider = props => {
 		sessionStorage.setItem('is_superuser', is_superuser);
 		sessionStorage.setItem('user_type', user_type);
 	};
-
-	// useEffect(() => {
-	//   if (tokenData) {
-	//     logoutTimer = setTimeout(logoutHandler, tokenData.duration);
-	//   }
-	// }, [tokenData, logoutHandler]);
 
 	const contextValue = {
 		token: token,

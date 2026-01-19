@@ -3,7 +3,6 @@ import React, {
 	useState,
 	useEffect,
 	useReducer,
-	useContext,
 	useMemo,
 } from 'react';
 
@@ -30,12 +29,13 @@ import ListHeader from '../UI/List/ListHeader';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 
+import authFetch from '../../api/authFetch';
+
 function AddAgency() {
 	const API = import.meta.env.VITE_API_URL;
 	const url = `${API}${api.API_URL_AGENCIES}`;
 	const urlCityChoices = `${API}${api.API_URL_CITY_CHOICES}`;
 	const [isLoading, setIsLoading] = useState(false);
-	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -147,11 +147,11 @@ function AddAgency() {
 	useEffect(() => {
 		const fetchCityChoices = async () => {
 			try {
-				const response = await fetch(urlCityChoices, {
+				const response = await authFetch(urlCityChoices, {
+					method: 'GET',
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
-					},
+					}
 				});
 				if (response.ok) {
 					const choices = await response.json();
@@ -171,11 +171,11 @@ function AddAgency() {
 		};
 
 		fetchCityChoices();
-	}, [urlCityChoices, authContext.token, agencyData.city]);
+	}, [urlCityChoices, agencyData.city]);
 
 	const handleSubmit = async () => {
 		try {
-			const response = await fetch(url, {
+			const response = await authFetch(url, {
 				method: 'POST',
 				body: JSON.stringify({
 					name: nameState.value,
@@ -183,7 +183,6 @@ function AddAgency() {
 					city: city.value,
 				}),
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});
@@ -210,7 +209,7 @@ function AddAgency() {
 	};
 	const handleEdit = async () => {
 		try {
-			const response = await fetch(`${url}${agencyData.id}/`, {
+			const response = await authFetch(`${url}${agencyData.id}/`, {
 				method: 'PUT',
 				body: JSON.stringify({
 					name: nameState.value,
@@ -219,7 +218,6 @@ function AddAgency() {
 				}),
 
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});

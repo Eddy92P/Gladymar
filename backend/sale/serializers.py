@@ -94,6 +94,7 @@ class CatalogProductSerializer(serializers.Serializer):
     code = serializers.CharField()
     price = serializers.DecimalField(max_digits=10, decimal_places=2)
     stock = serializers.IntegerField()
+    reserved_stock = serializers.IntegerField(required=False, allow_null=True)
     minimum_stock = serializers.IntegerField()
     maximum_stock = serializers.IntegerField()
     minimum_sale_price = serializers.DecimalField(max_digits=10, decimal_places=2)
@@ -715,9 +716,9 @@ class OutputItemSerializer(serializers.ModelSerializer):
                     'quantity': "La cantidad despachada excede la cantidad vendida."
                 })
         if product_stock:
-            if product_stock.available_stock - quantity < 0:
+            if product_stock.reserved_stock - quantity < 0:
                 raise serializers.ValidationError({
-                    'quantity': "La cantidad excede el stock disponible."
+                    'quantity': "La cantidad excede el stock reservado."
                 })
 
         return data

@@ -3,13 +3,11 @@ import React, {
 	useState,
 	useEffect,
 	useReducer,
-	useContext,
 	useMemo,
 } from 'react';
 
 import Alert from '@mui/material/Alert';
 
-import AuthContext from '../../store/auth-context';
 import { api } from '../../Constants';
 import { validatePositiveNumber } from '../../Validations';
 
@@ -28,12 +26,12 @@ import AddDamagedProductStockModal from './AddDamagedProductStockModal';
 import ListHeader from '../UI/List/ListHeader';
 
 import { useNavigate, useLocation } from 'react-router-dom';
+import authFetch from '../../api/authFetch';
 
 function AddDamagedProductStock() {
 	const API = import.meta.env.VITE_API_URL;
 	const url = `${API}${api.API_URL_PRODUCT_STOCKS}`;
 	const [isLoading, setIsLoading] = useState(false);
-	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -101,7 +99,7 @@ function AddDamagedProductStock() {
 
 	const handleSubmit = async () => {
 		try {
-			const response = await fetch(
+			const response = await authFetch(
 				`${url}${productStockData.id}/increment-damaged-stock/`,
 				{
 					method: 'POST',
@@ -109,7 +107,6 @@ function AddDamagedProductStock() {
 						quantity: quantityState.value,
 					}),
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 				}

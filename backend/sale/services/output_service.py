@@ -15,7 +15,7 @@ class DecreaseProductStockService:
         Decrease product stock when an output is created
         """
         try:
-            if self.product_stock.available_stock - self.output_item.quantity < 0:
+            if self.product_stock.stock - self.output_item.quantity < 0:
                 raise ValidationError("La cantidad excede el stock disponible.")
             self.product_stock.stock -= self.output_item.quantity
             self.product_stock.save()

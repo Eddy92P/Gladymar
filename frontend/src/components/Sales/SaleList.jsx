@@ -19,6 +19,7 @@ import { makeStyles } from '@mui/styles';
 import { Tooltip } from '@mui/material';
 
 import { useNavigate } from 'react-router-dom';
+import authFetch from '../../api/authFetch';
 
 const useStyles = makeStyles({
 	editIcon: {
@@ -130,7 +131,7 @@ const SaleList = () => {
 							>
 								<Logout
 									onClick={e =>
-										handleOutputButton(e, row.id, false)
+										handleOutputButton(e, row.id)
 									}
 									className={classes.editIcon}
 								/>
@@ -176,10 +177,9 @@ const SaleList = () => {
 
 		const fetchSales = async () => {
 			try {
-				const response = await fetch(url, {
+				const response = await authFetch(url, {
 					method: 'GET',
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 					signal: controller.signal,
@@ -232,7 +232,7 @@ const SaleList = () => {
 			isMounted = false;
 			controller.abort();
 		};
-	}, [filterText, authContext.token, page, pageSize, API]);
+	}, [filterText, page, pageSize, API]);
 
 	const handleAddSale = () => {
 		navigate('agregar_venta');

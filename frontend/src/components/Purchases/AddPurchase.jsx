@@ -53,11 +53,12 @@ import AddPurchaseModal from './AddPurchaseModal';
 import ListHeader from '../UI/List/ListHeader';
 
 // Context
-import AuthContext from '../../store/auth-context';
 import { StoreContext } from '../../store/store-context';
 
 // CSS classes
 import classes from '../UI/List/List.module.css';
+
+import authFetch from '../../api/authFetch';
 
 // Styled components defined outside the component
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -87,7 +88,6 @@ export const AddPurchase = () => {
 	];
 
 	const [isLoading, setIsLoading] = useState(false);
-	const authContext = useContext(AuthContext);
 	const storeContext = useContext(StoreContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
@@ -413,10 +413,9 @@ export const AddPurchase = () => {
 	useEffect(() => {
 		const fetchSuppliers = async () => {
 			try {
-				const response = await fetch(urlSupplierChoices, {
+				const response = await authFetch(urlSupplierChoices, {
 					method: 'GET',
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 				});
@@ -434,11 +433,11 @@ export const AddPurchase = () => {
 		};
 
 		fetchSuppliers();
-	}, [authContext.token, urlSupplierChoices]);
+	}, [urlSupplierChoices]);
 
 	const handleSubmit = async () => {
 		try {
-			const response = await fetch(url, {
+			const response = await authFetch(url, {
 				method: 'POST',
 				body: JSON.stringify({
 					agency: storeContext.agency,
@@ -464,7 +463,6 @@ export const AddPurchase = () => {
 					},
 				}),
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});

@@ -3,9 +3,9 @@ import DetailedProductList from '../UI/List/DetailedProductList';
 import { api } from '../../Constants';
 import ListHeader from '../UI/List/ListHeader';
 import Filter from '../UI/List/Filter';
-import { Fragment, useEffect, useState, useContext } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 
-import AuthContext from '../../store/auth-context';
+import authFetch from '../../api/authFetch';
 
 import Icon from '@mdi/react';
 import { mdiPencilOutline } from '@mdi/js';
@@ -24,7 +24,6 @@ const useStyles = makeStyles({
 
 const SuppliersList = () => {
 	const classes = useStyles();
-	const authContext = useContext(AuthContext);
 
 	const [list, setList] = useState([]);
 	const [error, setError] = useState(null);
@@ -91,10 +90,9 @@ const SuppliersList = () => {
 
 		const fetchSuppliers = async () => {
 			try {
-				const response = await fetch(url, {
+				const response = await authFetch(url, {
 					method: 'GET',
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 					signal: controller.signal,
@@ -139,7 +137,7 @@ const SuppliersList = () => {
 			isMounted = false;
 			controller.abort();
 		};
-	}, [filterText, authContext.token, page, pageSize]);
+	}, [filterText, page, pageSize]);
 
 	const handleAddBatch = () => {
 		navigate('agregar_proveedor');

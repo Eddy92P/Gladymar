@@ -10,7 +10,9 @@ from rest_framework import status
 
 
 CREATE_USER_URL = reverse('user:create')
-TOKEN_URL = reverse('user:token')
+LOGIN_URL = reverse('user:login')
+LOGOUT_URL = reverse('user:logout')
+REFRESH_URL = reverse('user:refresh')
 ME_URL = reverse('user:me')
 
 
@@ -107,52 +109,6 @@ class PublicUserApiTests(TestCase):
             email=payload['email']
         ).exists()
         self.assertFalse(user_exists)
-
-    def test_create_token_for_user(self):
-        """Test generate token for valid credentials."""
-        user_details = {
-            'first_name': 'Test',
-            'last_name': 'User1',
-            'email': 'test1@example.com',
-            'password': 'testpass123',
-            'ci': '1234567',
-            'phone': '12345678',
-            'address': 'Test Address',
-        }
-        create_user(**user_details)
-
-        payload = {
-            'email': user_details['email'],
-            'password': user_details['password'],
-        }
-        res = self.client.post(TOKEN_URL, payload)
-
-        self.assertIn('token', res.data)
-        self.assertEqual(res.status_code, status.HTTP_200_OK)
-
-    def test_create_token_invalid_credentials(self):
-        """Test returns error if credentials invalid."""
-        create_user(email='invalid@test.com', password='testpass123')
-
-        payload = {
-            'email': 'test1@example.com',
-            'password': 'badpass'
-        }
-        res = self.client.post(TOKEN_URL, payload)
-
-        self.assertNotIn('token', res.data)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_create_blank_password(self):
-        """Test returns error if password is blank."""
-        payload = {
-            'email': 'test1@example.com',
-            'password': '',
-        }
-        res = self.client.post(TOKEN_URL, payload)
-
-        self.assertNotIn('token', res.data)
-        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_retrieve_user_unauthorized(self):
         """Test authentication is required for users."""

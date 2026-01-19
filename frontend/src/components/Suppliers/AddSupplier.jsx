@@ -1,7 +1,6 @@
 import React, {
 	useState,
 	useEffect,
-	useContext,
 	useMemo,
 	useReducer,
 	Fragment,
@@ -50,10 +49,10 @@ import AddSupplierModal from './AddSupplierModal';
 import ListHeader from '../UI/List/ListHeader';
 
 // Context
-import AuthContext from '../../store/auth-context';
 
 // CSS classes
 import classes from '../UI/List/List.module.css';
+import authFetch from '../../api/authFetch';
 
 // Styled components defined outside the component
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -71,7 +70,6 @@ export const AddSupplier = () => {
 	const url = `${API}${api.API_URL_SUPPLIERS}`;
 
 	const [isLoading, setIsLoading] = useState(false);
-	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -297,7 +295,7 @@ export const AddSupplier = () => {
 
 	const handleSubmit = async () => {
 		try {
-			const response = await fetch(url, {
+			const response = await authFetch(url, {
 				method: 'POST',
 				body: JSON.stringify({
 					name: nameState.value,
@@ -308,7 +306,6 @@ export const AddSupplier = () => {
 					product: productsList.map(product => product.id),
 				}),
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});
@@ -360,7 +357,7 @@ export const AddSupplier = () => {
 
 	const handleEdit = async () => {
 		try {
-			const response = await fetch(`${url}${supplierData.id}/`, {
+			const response = await authFetch(`${url}${supplierData.id}/`, {
 				method: 'PUT',
 				body: JSON.stringify({
 					name: nameState.value,
@@ -372,7 +369,6 @@ export const AddSupplier = () => {
 				}),
 
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});

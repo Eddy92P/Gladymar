@@ -1,13 +1,13 @@
 """
 Views for user API.
 """
-from rest_framework import generics, authentication, permissions
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.settings import api_settings
+from rest_framework import generics, permissions
 from rest_framework.response import Response
-from rest_framework.authtoken.models import Token
-
-from user.serializers import UserSerializer, AuthTokenSerializer
+from rest_framework.views import APIView
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+from user.serializers import UserSerializer, LoginSerializer
+from django.conf import settings
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -16,40 +16,93 @@ class CreateUserView(generics.CreateAPIView):
     serializer_class = UserSerializer
 
 
-class CreateTokenView(ObtainAuthToken):
-    """Create a new auth token for user."""
+class LoginView(APIView):
+    """Login a user in the system."""
+    permission_classes = [permissions.AllowAny]
 
-    serializer_class = AuthTokenSerializer
-    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
-    
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(
-            data=request.data,
-            context={'request': request}
-        )
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
 
-        # Crear o recuperar token
-        token, created = Token.objects.get_or_create(user=user)
+        user = authenticate(
+            email=serializer.validated_data.get('email'),
+            password=serializer.validated_data.get('password')
+        )
+        if user is None:
+            return Response({'error': 'Invalid credentials'}, status=401)
 
-        # Retornar token + permisos
-        return Response({
-            'token': token.key,
+        refresh = RefreshToken.for_user(user)
+
+        response = Response({
             'name': user.first_name,
             'last_name': user.last_name,
             'email': user.email,
             'is_superuser': user.is_superuser,
             'user_type': user.user_type,
-            'permissions': list(user.get_all_permissions())
+            'permissions': list(user.get_all_permissions()),
         })
+
+        response.set_cookie(
+            'refresh',
+            str(refresh),
+            httponly=True,
+            secure=not settings.DEBUG,
+            samesite='Lax' if settings.DEBUG else 'Strict',
+        )
+
+        response.set_cookie(
+            'access',
+            str(refresh.access_token),
+            httponly=True,
+            secure=not settings.DEBUG,
+            samesite='Lax' if settings.DEBUG else 'Strict',
+        )
+
+        return response
+
+    
+class LogoutView(APIView):
+    """Logout a user from the system."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        response = Response({'message': 'Logged out successfully'})
+        response.delete_cookie('refresh')
+        response.delete_cookie('access')
+        return response
+    
+    
+class RefreshView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        refresh_token = request.COOKIES.get('refresh')
+        if not refresh_token:
+            return Response({'detail': 'No refresh token'}, status=401)
+
+        try:
+            refresh = RefreshToken(refresh_token)
+            access = refresh.access_token
+        except Exception:
+            return Response({'detail': 'Token inválido'}, status=401)
+
+        response = Response({'detail': 'Token refrescado'})
+
+        response.set_cookie(
+            'access',
+            str(access),
+            httponly=True,
+            secure=not settings.DEBUG,
+            samesite='Lax' if settings.DEBUG else 'Strict',
+        )
+
+        return response
 
 
 class ManageUserView(generics.RetrieveUpdateAPIView):
     """Manage the authenticated user."""
 
     serializer_class = UserSerializer
-    authentication_classes = [authentication.TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def get_object(self):

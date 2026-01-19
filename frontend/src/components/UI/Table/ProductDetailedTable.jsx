@@ -207,6 +207,9 @@ const ProductDetailedTable = ({
 								{data[0].stock != null && (
 									<StyledTableCell>Stock</StyledTableCell>
 								)}
+								{data[0].reservedStock != null && (
+									<StyledTableCell>Stock Reservado</StyledTableCell>
+								)}
 								{data[0].minimumSalePrice != null && (
 									<StyledTableCell>
 										Precio Mínimo Bs.

@@ -49,11 +49,12 @@ import AddOutputModal from './AddOutputModal';
 import ListHeader from '../UI/List/ListHeader';
 
 // Context
-import AuthContext from '../../store/auth-context';
 import { StoreContext } from '../../store/store-context';
 
 // CSS classes
 import classes from '../UI/List/List.module.css';
+
+import authFetch from '../../api/authFetch';
 
 // Styled components defined outside the component
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -72,7 +73,6 @@ export const AddOutput = () => {
 	const urlClientChoices = `${API}${api.API_URL_ALL_CLIENTS}`;
 
 	const [isLoading, setIsLoading] = useState(false);
-	const authContext = useContext(AuthContext);
 	const storeContext = useContext(StoreContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
@@ -205,10 +205,9 @@ export const AddOutput = () => {
 	useEffect(() => {
 		const fetchClients = async () => {
 			try {
-				const response = await fetch(urlClientChoices, {
+				const response = await authFetch(urlClientChoices, {
 					method: 'GET',
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 				});
@@ -234,7 +233,7 @@ export const AddOutput = () => {
 		};
 
 		fetchClients();
-	}, [authContext.token, urlClientChoices, saleData.client]);
+	}, [urlClientChoices, saleData.client]);
 
 	const handleSubmit = async () => {
 		try {
@@ -252,11 +251,10 @@ export const AddOutput = () => {
 				note: note,
 			};
 
-			const response = await fetch(url, {
+			const response = await authFetch(url, {
 				method: 'POST',
 				body: JSON.stringify(outputInfo),
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});
@@ -568,6 +566,9 @@ export const AddOutput = () => {
 																Stock
 															</StyledTableCell>
 															<StyledTableCell>
+																Stock Reservado
+															</StyledTableCell>
+															<StyledTableCell>
 																Cantidad
 															</StyledTableCell>
 															<StyledTableCell>
@@ -596,6 +597,12 @@ export const AddOutput = () => {
 																			product
 																				.stock
 																				.value
+																		}
+																	</TableCell>
+																	<TableCell>
+																		{
+																			product
+																				.reservedStock
 																		}
 																	</TableCell>
 																	<TableCell>

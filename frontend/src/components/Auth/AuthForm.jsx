@@ -110,6 +110,7 @@ const AuthForm = () => {
 			try {
 				const response = await fetch(url, {
 					method: 'POST',
+					credentials: 'include',
 					body: JSON.stringify({
 						email: emailState.value,
 						password: passwordState.value,
@@ -127,11 +128,10 @@ const AuthForm = () => {
 					}
 					throw new Error(errorMessage);
 				}
-				// const expirationTime = new Date(
-				//   new Date().getTime() + +data.expiresIn * 1000
-				// );
+				// Con JWT en cookies, pasamos 'authenticated' como token placeholder
+				// El token real está en las cookies HTTP-only
 				authContext.login(
-					data.token,
+					'authenticated',
 					data.permissions || [],
 					data.name || '',
 					data.last_name || '',

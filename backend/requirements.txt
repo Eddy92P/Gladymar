@@ -9,3 +9,4 @@ dj-database-url
 whitenoise>=6.0.0,<7.0
 gunicorn
 openpyxl
+djangorestframework-simplejwt

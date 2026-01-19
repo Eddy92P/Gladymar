@@ -64,3 +64,23 @@ class AuthTokenSerializer(serializers.Serializer):
 
         attrs['user'] = user
         return attrs
+    
+
+class LoginSerializer(serializers.Serializer):
+    """Serializer for the user login."""
+    email = serializers.EmailField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        """Validate and authenticate the user."""
+        email = attrs.get('email')
+        password = attrs.get('password')
+
+        user = authenticate(request=self.context.get('request'),
+                            username=email, password=password)
+
+        if not user:
+            raise serializers.ValidationError('Invalid credentials')
+
+        attrs['user'] = user
+        return attrs

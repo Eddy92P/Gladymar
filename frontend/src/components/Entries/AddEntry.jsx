@@ -49,11 +49,12 @@ import AddEntryModal from './AddEntryModal';
 import ListHeader from '../UI/List/ListHeader';
 
 // Context
-import AuthContext from '../../store/auth-context';
 import { StoreContext } from '../../store/store-context';
 
 // CSS classes
 import classes from '../UI/List/List.module.css';
+
+import authFetch from '../../api/authFetch';
 
 // Styled components defined outside the component
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -72,7 +73,6 @@ export const AddEntry = () => {
 	const urlSupplierChoices = `${API}${api.API_URL_ALL_SUPPLIERS}`;
 
 	const [isLoading, setIsLoading] = useState(false);
-	const authContext = useContext(AuthContext);
 	const storeContext = useContext(StoreContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
@@ -223,10 +223,9 @@ export const AddEntry = () => {
 	useEffect(() => {
 		const fetchSuppliers = async () => {
 			try {
-				const response = await fetch(urlSupplierChoices, {
+				const response = await authFetch(urlSupplierChoices, {
 					method: 'GET',
 					headers: {
-						Authorization: `Token ${authContext.token}`,
 						'Content-Type': 'application/json',
 					},
 				});
@@ -252,7 +251,7 @@ export const AddEntry = () => {
 		};
 
 		fetchSuppliers();
-	}, [authContext.token, urlSupplierChoices, purchaseData.supplier]);
+	}, [urlSupplierChoices, purchaseData.supplier]);
 	const handleSubmit = async () => {
 		try {
 			// Preparar los datos básicos de la entrada
@@ -270,11 +269,10 @@ export const AddEntry = () => {
 				note: note,
 			};
 
-			const response = await fetch(url, {
+			const response = await authFetch(url, {
 				method: 'POST',
 				body: JSON.stringify(entryInfo),
 				headers: {
-					Authorization: `Token ${authContext.token}`,
 					'Content-Type': 'application/json',
 				},
 			});
