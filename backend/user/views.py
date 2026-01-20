@@ -48,7 +48,8 @@ class LoginView(APIView):
             httponly=True,
             path='/',
             secure=not settings.DEBUG,
-            samesite='None' if not settings.DEBUG else 'Lax'
+            samesite='None' if not settings.DEBUG else 'Lax',
+            domain=settings.COOKIE_DOMAIN if not settings.DEBUG else None,
         )
 
         response.set_cookie(
@@ -58,6 +59,7 @@ class LoginView(APIView):
             path='/',
             secure=not settings.DEBUG,
             samesite='None' if not settings.DEBUG else 'Lax',
+            domain=settings.COOKIE_DOMAIN if not settings.DEBUG else None,
         )
 
         return response
@@ -78,6 +80,7 @@ class LogoutView(APIView):
             'httponly': True,
             'secure': not settings.DEBUG,
             'samesite': 'None' if not settings.DEBUG else 'Lax',
+            'domain': settings.COOKIE_DOMAIN if not settings.DEBUG else None,
         }
 
         response.set_cookie(
@@ -117,8 +120,10 @@ class RefreshView(APIView):
             'access',
             str(access),
             httponly=True,
+            path='/',
             secure=not settings.DEBUG,
             samesite='None' if not settings.DEBUG else 'Lax',
+            domain=settings.COOKIE_DOMAIN if not settings.DEBUG else None,
         )
 
         return response

@@ -248,6 +248,8 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
+COOKIE_DOMAIN = "gladymar.onrender.com"
+
 SPECTACULAR_SETTINGS = {
     "TITLE": "Decorestilo API",
     "VERSION": "1.0.0",
