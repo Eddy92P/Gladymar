@@ -46,6 +46,7 @@ class LoginView(APIView):
             'refresh',
             str(refresh),
             httponly=True,
+            path='/',
             secure=not settings.DEBUG,
             samesite='None' if not settings.DEBUG else 'Lax'
         )
@@ -54,6 +55,7 @@ class LoginView(APIView):
             'access',
             str(refresh.access_token),
             httponly=True,
+            path='/',
             secure=not settings.DEBUG,
             samesite='None' if not settings.DEBUG else 'Lax',
         )
@@ -66,9 +68,32 @@ class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        response = Response({'message': 'Logged out successfully'})
-        response.delete_cookie('refresh')
-        response.delete_cookie('access')
+        response = Response(
+            {"message": "Logged out successfully"},
+            status=200
+        )
+
+        cookie_opts = {
+            'path': '/',
+            'httponly': True,
+            'secure': not settings.DEBUG,
+            'samesite': 'None' if not settings.DEBUG else 'Lax',
+        }
+
+        response.set_cookie(
+            'access',
+            value='',
+            max_age=0,
+            **cookie_opts
+        )
+
+        response.set_cookie(
+            'refresh',
+            value='',
+            max_age=0,
+            **cookie_opts
+        )
+
         return response
     
     
