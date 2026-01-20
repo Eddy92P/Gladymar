@@ -47,7 +47,7 @@ class LoginView(APIView):
             str(refresh),
             httponly=True,
             secure=not settings.DEBUG,
-            samesite='Lax' if settings.DEBUG else 'Strict',
+            samesite='None' if not settings.DEBUG else 'Lax'
         )
 
         response.set_cookie(
@@ -55,7 +55,7 @@ class LoginView(APIView):
             str(refresh.access_token),
             httponly=True,
             secure=not settings.DEBUG,
-            samesite='Lax' if settings.DEBUG else 'Strict',
+            samesite='None' if not settings.DEBUG else 'Lax',
         )
 
         return response
