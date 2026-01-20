@@ -93,7 +93,7 @@ class RefreshView(APIView):
             str(access),
             httponly=True,
             secure=not settings.DEBUG,
-            samesite='Lax' if settings.DEBUG else 'Strict',
+            samesite='None' if not settings.DEBUG else 'Lax',
         )
 
         return response
