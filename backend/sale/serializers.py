@@ -13,6 +13,7 @@ from sale.services.output_service import DecreaseProductStockService
 from sale.services.update_transaction_service import UpdateTransactionService
 from sale.services.entry_purchase_service import UpdatePurchaseItem
 from sale.services.output_sale_service import UpdateSaleItem
+from django.db.models import F
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -954,8 +955,8 @@ class SaleSerializer(serializers.ModelSerializer):
                     
                     # Actualizar stock para productos existentes y nuevos cuando el status es 'realizado'
                     if validated_data.get('status') == 'realizado':
-                        item_data['product_stock'].reserved_stock += item_data['quantity']
-                        item_data['product_stock'].available_stock -= item_data['quantity']
+                        item_data['product_stock'].reserved_stock = F('reserved_stock') + item_data['quantity']
+                        item_data['product_stock'].available_stock = F('available_stock') - item_data['quantity']
                         item_data['product_stock'].save()
                         
             if payments_data is not None:
