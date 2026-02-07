@@ -136,10 +136,9 @@ const AddProductDetailedList = ({
 						reservedStock: item.reserved_stock,
 					}));
 				} else if (purchase?.id) {
-					const response = await fetch(url, {
+					const response = await authFetch(url, {
 						method: 'GET',
 						headers: {
-							Authorization: `Token ${authContext.token}`,
 							'Content-Type': 'application/json',
 						},
 						signal: controller.signal,
@@ -161,10 +160,9 @@ const AddProductDetailedList = ({
 						stock: item.stock,
 					}));
 				} else if (isEntry || isOutput || isPurchase) {
-					const response = await fetch(url, {
+					const response = await authFetch(url, {
 						method: 'GET',
 						headers: {
-							Authorization: `Token ${authContext.token}`,
 							'Content-Type': 'application/json',
 						},
 						signal: controller.signal,
@@ -186,10 +184,9 @@ const AddProductDetailedList = ({
 						stock: item.stock,
 					}));
 				} else {
-					const response = await fetch(url, {
+					const response = await authFetch(url, {
 						method: 'GET',
 						headers: {
-							Authorization: `Token ${authContext.token}`,
 							'Content-Type': 'application/json',
 						},
 						signal: controller.signal,
