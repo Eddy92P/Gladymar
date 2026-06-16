@@ -2,7 +2,9 @@
 Service to update a sale item when an output is done.
 """
 from django.core.exceptions import ValidationError
+import logging
 
+logger = logging.getLogger(__name__)
 
 class UpdateSaleItem:
     def __init__(self, output_item, product_stock):
@@ -22,4 +24,5 @@ class UpdateSaleItem:
                 sale_item.status = 'completado'
             sale_item.save()
         except Exception as e:
+            logger.error(f"Error updating sale item: {e}")
             raise e

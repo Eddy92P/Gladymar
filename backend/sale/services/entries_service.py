@@ -2,6 +2,9 @@
 Service to increase product stock when an entry is created
 """
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 class IncreaseProductStockService:
     def __init__(self, entry_item):
@@ -18,4 +21,5 @@ class IncreaseProductStockService:
             product.save()
 
         except Exception as e:
+            logger.error(f"Error increasing product stock: {e}")
             raise e

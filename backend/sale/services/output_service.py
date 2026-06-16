@@ -3,7 +3,9 @@ Service to update product stock when an output is updated
 """
 
 from django.core.exceptions import ValidationError
+import logging
 
+logger = logging.getLogger(__name__)
 
 class DecreaseProductStockService:
     def __init__(self, output_item, product_stock):
@@ -20,4 +22,5 @@ class DecreaseProductStockService:
             self.product_stock.stock -= self.output_item.quantity
             self.product_stock.save()
         except Exception as e:
+            logger.error(f"Error decreasing product stock: {e}")
             raise e

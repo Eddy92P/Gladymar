@@ -3,7 +3,9 @@ Service to update a sale/purchase balance_due when a payment is done.
 """
 from django.core.exceptions import ValidationError
 from core.models import Purchase, Sale
+import logging
 
+logger = logging.getLogger(__name__)
 
 class UpdateTransactionService:
     def __init__(self, transaction_id, payment_amount, transaction_type):
@@ -27,4 +29,5 @@ class UpdateTransactionService:
             transaction.balance_due -= self.payment_amount
             transaction.save(update_fields=['balance_due'])
         except Exception as e:
+            logger.error(f"Error updating transaction balance due: {e}")
             raise e

@@ -14,7 +14,9 @@ from sale.services.update_transaction_service import UpdateTransactionService
 from sale.services.entry_purchase_service import UpdatePurchaseItem
 from sale.services.output_sale_service import UpdateSaleItem
 from django.db.models import F
+import logging
 
+logger = logging.getLogger(__name__)
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for User model"""
@@ -134,8 +136,12 @@ class NestedProductStockSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        validated_data['available_stock'] = validated_data['stock']
-        return super().create(validated_data)
+        try:
+            validated_data['available_stock'] = validated_data['stock']
+            return super().create(validated_data)
+        except Exception as e:
+            logger.error(f"Error creating product stock: {e}")
+            raise serializers.ValidationError({"detail": "Error al crear el stock del producto."})
 
 
 class AgencySerializer(serializers.ModelSerializer):
@@ -172,7 +178,8 @@ class WarehouseSerializer(serializers.ModelSerializer):
                 product_stock_data['available_stock'] = product_stock_data['stock']
                 ProductStock.objects.create(warehouse=warehouse, **product_stock_data)
         except Exception as e:
-            raise e
+            logger.error(f"Error creating warehouse: {e}")
+            raise serializers.ValidationError({"detail": "Error al crear el warehouse."})
 
         return warehouse
 
@@ -202,7 +209,8 @@ class WarehouseSerializer(serializers.ModelSerializer):
                         item_data_copy.pop('warehouse', None)
                         ProductStock.objects.create(warehouse=instance, **item_data_copy)
         except Exception as e:
-            raise e
+            logger.error(f"Error updating warehouse: {e}")
+            raise serializers.ValidationError({"detail": "Error al actualizar el warehouse."})
 
         return instance
 
@@ -240,7 +248,11 @@ class ProductStockSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data['available_stock'] = validated_data['stock']
-        return super().create(validated_data)
+        try:
+            return super().create(validated_data)
+        except Exception as e:
+            logger.error(f"Error creating product stock: {e}")
+            raise serializers.ValidationError({"detail": "Error al crear el stock del producto."})
 
 
 class IncrementDamagedStockSerializer(serializers.Serializer):
@@ -410,9 +422,14 @@ class SellingChannelSerializer(serializers.ModelSerializer):
             selling_channel = SellingChannel.objects.create(**validated_data)
 
             for product_channel_data in products_channel_data:
-                ProductChannelPrice.objects.create(selling_channel=selling_channel, **product_channel_data)
+                try:
+                    ProductChannelPrice.objects.create(selling_channel=selling_channel, **product_channel_data)
+                except Exception as e:
+                    logger.error(f"Error creating product channel price: {e}")
+                    raise serializers.ValidationError({"detail": "Error al crear el precio del producto por canal."})
         except Exception as e:
-            raise e
+            logger.error(f"Error creating selling channel: {e}")
+            raise serializers.ValidationError({"detail": "Error al crear el selling channel."})
         
         return selling_channel
     
@@ -428,7 +445,11 @@ class SellingChannelSerializer(serializers.ModelSerializer):
 
                 for item in existing_items:
                     if item.id not in [item_data.get('id') for item_data in products_channel_data if item_data.get('id')]:
-                        item.delete()
+                        try:
+                            item.delete()
+                        except Exception as e:
+                            logger.error(f"Error deleting product channel price: {e}")
+                            raise serializers.ValidationError({"detail": "Error al eliminar el precio del producto por canal."})
                 for item_data in products_channel_data:
                     if item_data.get('id'):
                         item = existing_items.get(id=item_data['id'])
@@ -439,9 +460,14 @@ class SellingChannelSerializer(serializers.ModelSerializer):
                     else:
                         item_data_copy = item_data.copy()
                         item_data_copy.pop('selling_channel', None)
-                        ProductChannelPrice.objects.create(selling_channel=instance, **item_data_copy)
+                        try:
+                            ProductChannelPrice.objects.create(selling_channel=instance, **item_data_copy)
+                        except Exception as e:
+                            logger.error(f"Error creating product channel price: {e}")
+                            raise serializers.ValidationError({"detail": "Error al crear el precio del producto por canal."})
         except Exception as e:
-            raise e
+            logger.error(f"Error updating selling channel: {e}")
+            raise serializers.ValidationError({"detail": "Error al actualizar el selling channel."})
 
         return instance
 
@@ -558,7 +584,8 @@ class EntrySerializer(serializers.ModelSerializer):
                 item_data['entry'] = entry
                 EntryItemSerializer().create(item_data)
         except Exception as e:
-            raise e
+            logger.error(f"Error creating entry: {e}")
+            raise serializers.ValidationError({"detail": "Error al crear la entrada."})
         return entry
 
     @transaction.atomic
@@ -586,7 +613,8 @@ class EntrySerializer(serializers.ModelSerializer):
                         EntryItem.objects.create(entry=instance, **item_data)
                 UpdateProductStockService(instance, {'entry_items': items_data}).update_entry_product_stock()
         except Exception as e:
-            raise e
+            logger.error(f"Error updating entry: {e}")
+            raise serializers.ValidationError({"detail": "Error al actualizar la entrada."})
 
         return instance
 
@@ -682,13 +710,26 @@ class PurchaseSerializer(serializers.ModelSerializer):
                     }
                 })
             validated_data['balance_due'] -= payment_amount
-            purchase = Purchase.objects.create(**validated_data)
+            try:
+                purchase = Purchase.objects.create(**validated_data)
+            except Exception as e:
+                logger.error(f"Error creating purchase: {e}")
+                raise serializers.ValidationError({"detail": "Error al crear la compra."})
             for item_data in items_data:
-                PurchaseItem.objects.create(purchase=purchase, **item_data)
+                try:
+                    PurchaseItem.objects.create(purchase=purchase, **item_data)
+                except Exception as e:
+                    logger.error(f"Error creating purchase item: {e}")
+                    raise serializers.ValidationError({"detail": "Error al crear el item de compra."})
 
-            Payment.objects.create(transaction_id=purchase.id, **payment_data)
+            try:
+                Payment.objects.create(transaction_id=purchase.id, **payment_data)
+            except Exception as e:
+                logger.error(f"Error creating payment: {e}")
+                raise serializers.ValidationError({"detail": "Error al crear el pago."})
         except Exception as e:
-            raise e
+            logger.error(f"Error creating purchase: {e}")
+            raise serializers.ValidationError({"detail": "Error al crear la compra."})
 
         return purchase
 
@@ -741,7 +782,8 @@ class OutputItemSerializer(serializers.ModelSerializer):
             output_item.save()
             return output_item
         except Exception as e:
-            raise e
+            logger.error(f"Error creating output item: {e}")
+            raise serializers.ValidationError({"detail": "Error al crear el item de salida."})
 
 
 class OutputSerializer(serializers.ModelSerializer):
@@ -776,7 +818,8 @@ class OutputSerializer(serializers.ModelSerializer):
             output.save()
 
         except Exception as e:
-            raise e
+            logger.error(f"Error creating output: {e}")
+            raise serializers.ValidationError({"detail": "Error al crear la salida."})
 
         return output
 
@@ -801,10 +844,15 @@ class OutputSerializer(serializers.ModelSerializer):
                                 setattr(item, attr, value)
                         item.save()
                     else:
-                        OutputItem.objects.create(output=instance, **item_data)
+                        try:
+                            OutputItem.objects.create(output=instance, **item_data)
+                        except Exception as e:
+                            logger.error(f"Error creating output item: {e}")
+                            raise serializers.ValidationError({"detail": "Error al crear el item de salida."})
                 UpdateProductStockService(instance, {'output_items': items_data}).update_output_product_stock()
         except Exception as e:
-            raise e
+            logger.error(f"Error updating output: {e}")
+            raise serializers.ValidationError({"detail": "Error al actualizar la salida."})
 
         return instance
 
@@ -914,9 +962,14 @@ class SaleSerializer(serializers.ModelSerializer):
             items_data = validated_data.pop('sale_items', [])
             sale = Sale.objects.create(**validated_data)
             for item_data in items_data:
-                SaleItem.objects.create(sale=sale, **item_data)
+                try:
+                    SaleItem.objects.create(sale=sale, **item_data)
+                except Exception as e:
+                    logger.error(f"Error creating sale item: {e}")
+                    raise serializers.ValidationError({"detail": "Error al crear el item de venta."})
         except Exception as e:
-            raise e
+            logger.error(f"Error creating sale: {e}")
+            raise serializers.ValidationError({"detail": "Error al crear la venta."})
 
         return sale
     
@@ -951,13 +1004,21 @@ class SaleSerializer(serializers.ModelSerializer):
                                     setattr(item, attr, value)
                         item.save()
                     else:
-                        SaleItem.objects.create(sale=instance, **item_data)
+                        try:
+                            SaleItem.objects.create(sale=instance, **item_data)
+                        except Exception as e:
+                            logger.error(f"Error creating sale item: {e}")
+                            raise serializers.ValidationError({"detail": "Error al crear el item de venta."})
                     
                     # Actualizar stock para productos existentes y nuevos cuando el status es 'realizado'
                     if validated_data.get('status') == 'realizado':
                         item_data['product_stock'].reserved_stock = F('reserved_stock') + item_data['quantity']
                         item_data['product_stock'].available_stock = F('available_stock') - item_data['quantity']
-                        item_data['product_stock'].save()
+                        try:
+                            item_data['product_stock'].save()
+                        except Exception as e:
+                            logger.error(f"Error saving product stock: {e}")
+                            raise serializers.ValidationError({"detail": "Error al actualizar el stock del producto."})
                         
             if payments_data is not None:
                 payment_amount = payments_data['amount']
@@ -970,8 +1031,13 @@ class SaleSerializer(serializers.ModelSerializer):
                     })
                 instance.balance_due -= payment_amount
                 instance.save()
-                Payment.objects.create(transaction_id=instance.id, **payments_data)
+                try:
+                    Payment.objects.create(transaction_id=instance.id, **payments_data)
+                except Exception as e:
+                    logger.error(f"Error creating payment: {e}")
+                    raise serializers.ValidationError({"detail": "Error al crear el pago."})
         except Exception as e:
-            raise e
+            logger.error(f"Error updating sale: {e}")
+            raise serializers.ValidationError({"detail": "Error al actualizar la venta."})
 
         return instance

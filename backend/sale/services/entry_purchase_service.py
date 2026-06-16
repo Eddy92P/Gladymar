@@ -2,7 +2,9 @@
 Service to handle update of purchase items when an entry is done
 """
 from django.core.exceptions import ValidationError
+import logging
 
+logger = logging.getLogger(__name__)
 
 class UpdatePurchaseItem:
     def __init__(self, entry_item):
@@ -23,4 +25,5 @@ class UpdatePurchaseItem:
                 purchase_item.status = 'completado'
             purchase_item.save()
         except Exception as e:
+            logger.error(f"Error updating purchase item: {e}")
             raise e
