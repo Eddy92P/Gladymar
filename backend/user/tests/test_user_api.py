@@ -19,13 +19,13 @@ ME_URL = reverse('user:me')
 def create_user(**params):
     """Create and return a user with an email and password."""
     from core.models import Agency
-    
+
     agency = Agency.objects.create(
         name='Test Agency',
         location='Test Location',
         city='La Paz',
     )
-    
+
     defaults = {
         'first_name': 'Test',
         'last_name': 'User',
@@ -47,13 +47,13 @@ class PublicUserApiTests(TestCase):
     def test_create_user_success(self):
         """Test creating a user is successful."""
         from core.models import Agency
-        
+
         agency = Agency.objects.create(
             name='Test Agency',
             location='Test Location',
             city='La Paz',
         )
-        
+
         payload = {
             'email': 'test1@example.com',
             'password': 'testpass',
@@ -157,7 +157,10 @@ class PrivateUserApiTests(TestCase):
 
     def test_update_user_profile(self):
         """Test updating the user profile for authenticated user."""
-        payload = {'first_name': 'New', 'last_name': 'Name', 'password': 'newpassword'}
+        payload = {
+            'first_name': 'New',
+            'last_name': 'Name',
+            'password': 'newpassword'}
 
         res = self.client.patch(ME_URL, payload)
 

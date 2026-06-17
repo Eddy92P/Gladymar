@@ -2,13 +2,18 @@
 Serializers for warehouse app
 """
 
-import os
-from itertools import product
 from django.db import transaction
 from rest_framework import serializers
-from core.models import *
+from core.models import (
+    Agency, Batch, Category, Client, Entry, EntryItem,
+    Output, OutputItem, Payment, Product, ProductChannelPrice,
+    ProductStock, Purchase, PurchaseItem, Sale, SaleItem,
+    SellingChannel, Supplier, User, Warehouse,
+)
 from sale.services.entries_service import IncreaseProductStockService
-from sale.services.update_product_stock_service import UpdateProductStockService
+from sale.services.update_product_stock_service import (
+    UpdateProductStockService,
+)
 from sale.services.output_service import DecreaseProductStockService
 from sale.services.update_transaction_service import UpdateTransactionService
 from sale.services.entry_purchase_service import UpdatePurchaseItem
@@ -18,14 +23,15 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for User model"""
-    
+
     class Meta:
         model = User
         exclude = ['password']
         read_only_fields = ['id', 'created_at', 'updated_at']
-        
+
 
 class CategorySerializer(serializers.ModelSerializer):
     """Serializer for Category model"""
@@ -35,7 +41,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ['id', 'created_at', 'updated_at']
 
-        
+
 class BatchSerializer(serializers.ModelSerializer):
     """Serializer for Batch model"""
     category = CategorySerializer(read_only=True)
@@ -70,10 +76,17 @@ class ProductSerializer(serializers.ModelSerializer):
         image = data.get('image')
         if image:
             # Check file type
-            allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
+            allowed_types = [
+                'image/jpeg',
+                'image/jpg',
+                'image/png',
+                'image/gif']
             if image.content_type not in allowed_types:
                 raise serializers.ValidationError({
-                    'image': "Formato de archivo no soportado. Use JPG, PNG o GIF."
+                    'image': (
+                        "Formato de archivo no soportado. "
+                        "Use JPG, PNG o GIF."
+                    )
                 })
 
         return data
@@ -85,10 +98,10 @@ class ProductSerializer(serializers.ModelSerializer):
             # Delete the old image file if it exists
             instance.delete_image()
             validated_data['image'] = None
-        
+
         return super().update(instance, validated_data)
-    
-    
+
+
 class CatalogProductSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     agency = serializers.CharField()
@@ -100,15 +113,20 @@ class CatalogProductSerializer(serializers.Serializer):
     reserved_stock = serializers.IntegerField(required=False, allow_null=True)
     minimum_stock = serializers.IntegerField()
     maximum_stock = serializers.IntegerField()
-    minimum_sale_price = serializers.DecimalField(max_digits=10, decimal_places=2)
-    maximum_sale_price = serializers.DecimalField(max_digits=10, decimal_places=2)
-    purchase_item_id = serializers.IntegerField(required=False, allow_null=True)
+    minimum_sale_price = serializers.DecimalField(
+        max_digits=10, decimal_places=2)
+    maximum_sale_price = serializers.DecimalField(
+        max_digits=10, decimal_places=2)
+    purchase_item_id = serializers.IntegerField(
+        required=False, allow_null=True)
     sale_item_id = serializers.IntegerField(required=False, allow_null=True)
     status = serializers.CharField(required=False, allow_null=True)
 
+
 class NestedProductStockSerializer(serializers.ModelSerializer):
     """Nested Serializer for intermediate table for product and stock model."""
-    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), write_only=True)
+    product = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(), write_only=True)
     products = ProductSerializer(read_only=True, source='product')
     id = serializers.IntegerField(required=False, allow_null=True)
 
@@ -122,17 +140,24 @@ class NestedProductStockSerializer(serializers.ModelSerializer):
         read_only_fields = ['id']
 
     def validate(self, data):
-        if data.get('minimum_stock') is not None and data.get('maximum_stock') is not None:
+        if data.get('minimum_stock') is not None and data.get(
+                'maximum_stock') is not None:
             if data['minimum_stock'] > data['maximum_stock']:
                 raise serializers.ValidationError({
-                    'minimum_stock': "El stock mínimo no puede ser mayor al máximo."
+                    'minimum_stock': (
+                        "El stock mínimo no puede ser mayor al máximo."
+                    )
                 })
-        if data.get('minimum_sale_price') is not None and data.get('maximum_sale_price') is not None:
+        if data.get('minimum_sale_price') is not None and data.get(
+                'maximum_sale_price') is not None:
             if data['minimum_sale_price'] > data['maximum_sale_price']:
                 raise serializers.ValidationError({
-                    'minimum_sale_price': "El precio de venta mínimo no puede ser mayor al máximo."
+                    'minimum_sale_price': (
+                        "El precio de venta mínimo no puede "
+                        "ser mayor al máximo."
+                    )
                 })
-    
+
         return data
 
     def create(self, validated_data):
@@ -141,7 +166,8 @@ class NestedProductStockSerializer(serializers.ModelSerializer):
             return super().create(validated_data)
         except Exception as e:
             logger.error(f"Error creating product stock: {e}")
-            raise serializers.ValidationError({"detail": "Error al crear el stock del producto."})
+            raise serializers.ValidationError(
+                {"detail": "Error al crear el stock del producto."})
 
 
 class AgencySerializer(serializers.ModelSerializer):
@@ -161,11 +187,20 @@ class WarehouseSerializer(serializers.ModelSerializer):
         source='agency',
         write_only=True
     )
-    product_stock = NestedProductStockSerializer(many=True, required=False, source='product_stocks')
+    product_stock = NestedProductStockSerializer(
+        many=True, required=False, source='product_stocks')
 
     class Meta:
         model = Warehouse
-        fields = ['id', 'product_stock','agency', 'agency_id', 'name', 'location', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'product_stock',
+            'agency',
+            'agency_id',
+            'name',
+            'location',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     @transaction.atomic
@@ -175,11 +210,15 @@ class WarehouseSerializer(serializers.ModelSerializer):
             warehouse = Warehouse.objects.create(**validated_data)
 
             for product_stock_data in products_stock_data:
-                product_stock_data['available_stock'] = product_stock_data['stock']
-                ProductStock.objects.create(warehouse=warehouse, **product_stock_data)
+                product_stock_data['available_stock'] = (
+                    product_stock_data['stock']
+                )
+                ProductStock.objects.create(
+                    warehouse=warehouse, **product_stock_data)
         except Exception as e:
             logger.error(f"Error creating warehouse: {e}")
-            raise serializers.ValidationError({"detail": "Error al crear el warehouse."})
+            raise serializers.ValidationError(
+                {"detail": "Error al crear el warehouse."})
 
         return warehouse
 
@@ -194,7 +233,10 @@ class WarehouseSerializer(serializers.ModelSerializer):
                 existing_items = instance.product_stocks.all()
 
                 for item in existing_items:
-                    if item.id not in [item_data.get('id') for item_data in products_stock_data if item_data.get('id')]:
+                    if item.id not in [
+                            item_data.get('id')
+                            for item_data in products_stock_data
+                            if item_data.get('id')]:
                         item.delete()
                 for item_data in products_stock_data:
                     if item_data.get('id'):
@@ -205,45 +247,58 @@ class WarehouseSerializer(serializers.ModelSerializer):
                         item.save()
                     else:
                         item_data_copy = item_data.copy()
-                        item_data_copy['available_stock'] = item_data_copy['stock']
+                        item_data_copy['available_stock'] = (
+                            item_data_copy['stock']
+                        )
                         item_data_copy.pop('warehouse', None)
-                        ProductStock.objects.create(warehouse=instance, **item_data_copy)
+                        ProductStock.objects.create(
+                            warehouse=instance, **item_data_copy)
         except Exception as e:
             logger.error(f"Error updating warehouse: {e}")
-            raise serializers.ValidationError({"detail": "Error al actualizar el warehouse."})
+            raise serializers.ValidationError(
+                {"detail": "Error al actualizar el warehouse."})
 
         return instance
 
 
 class ProductStockSerializer(serializers.ModelSerializer):
     """Serializer for intermediate table for product and stock model."""
-    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), write_only=True)
+    product = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(), write_only=True)
     products = ProductSerializer(read_only=True, source='product')
-    warehouse = serializers.PrimaryKeyRelatedField(queryset=Warehouse.objects.all(), write_only=True)
+    warehouse = serializers.PrimaryKeyRelatedField(
+        queryset=Warehouse.objects.all(), write_only=True)
     warehouses = WarehouseSerializer(read_only=True, source='warehouse')
     id = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
         model = ProductStock
         fields = [
-            'id', 'product', 'products', 'warehouse', 'warehouses', 
+            'id', 'product', 'products', 'warehouse', 'warehouses',
             'stock', 'reserved_stock', 'available_stock', 'damaged_stock',
             'minimum_stock', 'maximum_stock'
         ]
         read_only_fields = ['id']
 
     def validate(self, data):
-        if data.get('minimum_stock') is not None and data.get('maximum_stock') is not None:
+        if data.get('minimum_stock') is not None and data.get(
+                'maximum_stock') is not None:
             if data['minimum_stock'] > data['maximum_stock']:
                 raise serializers.ValidationError({
-                    'minimum_stock': "El stock mínimo no puede ser mayor al máximo."
+                    'minimum_stock': (
+                        "El stock mínimo no puede ser mayor al máximo."
+                    )
                 })
-        if data.get('minimum_sale_price') is not None and data.get('maximum_sale_price') is not None:
+        if data.get('minimum_sale_price') is not None and data.get(
+                'maximum_sale_price') is not None:
             if data['minimum_sale_price'] > data['maximum_sale_price']:
                 raise serializers.ValidationError({
-                    'minimum_sale_price': "El precio de venta mínimo no puede ser mayor al máximo."
+                    'minimum_sale_price': (
+                        "El precio de venta mínimo no puede "
+                        "ser mayor al máximo."
+                    )
                 })
-                
+
         return data
 
     def create(self, validated_data):
@@ -252,36 +307,42 @@ class ProductStockSerializer(serializers.ModelSerializer):
             return super().create(validated_data)
         except Exception as e:
             logger.error(f"Error creating product stock: {e}")
-            raise serializers.ValidationError({"detail": "Error al crear el stock del producto."})
+            raise serializers.ValidationError(
+                {"detail": "Error al crear el stock del producto."})
 
 
 class IncrementDamagedStockSerializer(serializers.Serializer):
     """Serializer for incrementing damaged stock."""
     quantity = serializers.IntegerField(min_value=1)
-    
+
     def validate_quantity(self, value):
         """Validate that quantity is positive."""
         if value <= 0:
-            raise serializers.ValidationError("La cantidad debe ser mayor a 0.")
+            raise serializers.ValidationError(
+                "La cantidad debe ser mayor a 0.")
         return value
-    
+
     def validate(self, data):
         """Validate that quantity doesn't exceed available stock."""
         product_stock = self.context.get('product_stock')
         quantity = data.get('quantity')
-        
+
         if product_stock and quantity:
             if quantity > product_stock.available_stock:
                 raise serializers.ValidationError({
-                    'quantity': f"La cantidad ({quantity}) no puede ser mayor al stock disponible ({product_stock.available_stock})."
+                    'quantity': (
+                        f"La cantidad ({quantity}) no puede ser mayor "
+                        f"al stock disponible "
+                        f"({product_stock.available_stock})."
+                    )
                 })
-        
+
         return data
 
 
 class ProductMinimumSerializer(serializers.ModelSerializer):
-    """Serializer to get products only to read in sales, purchases and suppliers."""
-    
+    """Serializer for products in sales, purchases and suppliers."""
+
     class Meta:
         model = Product
         fields = ['id', 'name', 'code']
@@ -290,9 +351,10 @@ class ProductMinimumSerializer(serializers.ModelSerializer):
 
 class SupplierSerializer(serializers.ModelSerializer):
     """Serializer for Supplier model"""
-    products = ProductMinimumSerializer(many=True, read_only=True, source='product')
+    products = ProductMinimumSerializer(
+        many=True, read_only=True, source='product')
     product = serializers.PrimaryKeyRelatedField(
-        many=True, 
+        many=True,
         queryset=Product.objects.all(),
         write_only=True,
         required=False
@@ -317,7 +379,7 @@ class SupplierSerializer(serializers.ModelSerializer):
 
 class ClientSerializer(serializers.ModelSerializer):
     """Serializer for Client model"""
-    
+
     class Meta:
         model = Client
         fields = '__all__'
@@ -326,95 +388,114 @@ class ClientSerializer(serializers.ModelSerializer):
 
 class ProductChannelPriceSerializer(serializers.ModelSerializer):
     """Serializer for ProductChannelPrice model"""
-    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
-    selling_channel = serializers.PrimaryKeyRelatedField(queryset=SellingChannel.objects.all())
-    
+    product = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all())
+    selling_channel = serializers.PrimaryKeyRelatedField(
+        queryset=SellingChannel.objects.all())
+
     class Meta:
         model = ProductChannelPrice
         fields = [
-            'id', 'product', 'selling_channel', 'price', 
+            'id', 'product', 'selling_channel', 'price',
             'start_date', 'end_date'
         ]
         read_only_fields = ['id']
-        
+
     def validate_start_date(self, value):
         """Convert empty string to None for optional date field"""
         if value == '':
             return None
         return value
-    
+
     def validate_end_date(self, value):
         """Convert empty string to None for optional date field"""
         if value == '':
             return None
         return value
-        
+
     def validate(self, data):
         start_date = data.get('start_date')
         end_date = data.get('end_date')
-        
+
         if start_date and end_date and start_date > end_date:
             raise serializers.ValidationError({
-                'end_date': "La fecha de fin no puede ser anterior a la fecha de inicio."
+                'end_date': (
+                    "La fecha de fin no puede ser anterior "
+                    "a la fecha de inicio."
+                )
             })
-            
-        # Only validate duplicate product-channel assignment if selling_channel is provided
+
+        # Only validate duplicate product-channel assignment if selling_channel
+        # is provided
         selling_channel = data.get('selling_channel')
-        if selling_channel and ProductChannelPrice.objects.filter(product=data['product'], selling_channel=selling_channel).exists():
+        if selling_channel and ProductChannelPrice.objects.filter(
+                product=data['product'],
+                selling_channel=selling_channel).exists():
             raise serializers.ValidationError(
-                f"El producto {data['product'].id} ya está asignado a este selling channel."
+                f"El producto {data['product'].id} ya está asignado "
+                f"a este selling channel."
             )
-            
+
         return data
 
 
 class NestedProductChannelPriceSerializer(serializers.ModelSerializer):
     """Serializer for ProductChannelPrice model when used in nested context"""
-    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), write_only=True)
+    product = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(), write_only=True)
     products = ProductSerializer(read_only=True, source='product')
     id = serializers.IntegerField(required=False, allow_null=True)
-    
+
     class Meta:
         model = ProductChannelPrice
         fields = [
-            'id', 'product', 'products', 'price', 
+            'id', 'product', 'products', 'price',
             'start_date', 'end_date'
         ]
         read_only_fields = ['id']
-        
+
     def validate_start_date(self, value):
         """Convert empty string to None for optional date field"""
         if value == '':
             return None
         return value
-    
+
     def validate_end_date(self, value):
         """Convert empty string to None for optional date field"""
         if value == '':
             return None
         return value
-        
+
     def validate(self, data):
         start_date = data.get('start_date')
         end_date = data.get('end_date')
-        
+
         if start_date and end_date and start_date > end_date:
             raise serializers.ValidationError({
-                'end_date': "La fecha de fin no puede ser anterior a la fecha de inicio."
+                'end_date': (
+                    "La fecha de fin no puede ser anterior "
+                    "a la fecha de inicio."
+                )
             })
-            
+
         return data
-    
-    
+
+
 class SellingChannelSerializer(serializers.ModelSerializer):
     """Serializer for Selling Channel model."""
-    product_channel_price = NestedProductChannelPriceSerializer(many=True, required=False)
+    product_channel_price = NestedProductChannelPriceSerializer(
+        many=True, required=False)
 
     class Meta:
         model = SellingChannel
-        fields = ['id', 'product_channel_price', 'name', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'product_channel_price',
+            'name',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
-        
+
     @transaction.atomic
     def create(self, validated_data):
         products_channel_data = validated_data.pop('product_channel_price', [])
@@ -423,18 +504,27 @@ class SellingChannelSerializer(serializers.ModelSerializer):
 
             for product_channel_data in products_channel_data:
                 try:
-                    ProductChannelPrice.objects.create(selling_channel=selling_channel, **product_channel_data)
+                    ProductChannelPrice.objects.create(
+                        selling_channel=selling_channel,
+                        **product_channel_data)
                 except Exception as e:
-                    logger.error(f"Error creating product channel price: {e}")
-                    raise serializers.ValidationError({"detail": "Error al crear el precio del producto por canal."})
+                    logger.error(
+                        f"Error creating product channel price: {e}")
+                    raise serializers.ValidationError(
+                        {"detail": (
+                            "Error al crear el precio del producto "
+                            "por canal."
+                        )})
         except Exception as e:
             logger.error(f"Error creating selling channel: {e}")
-            raise serializers.ValidationError({"detail": "Error al crear el selling channel."})
-        
+            raise serializers.ValidationError(
+                {"detail": "Error al crear el selling channel."})
+
         return selling_channel
-    
+
     def update(self, instance, validated_data):
-        products_channel_data = validated_data.pop('product_channel_price', None)
+        products_channel_data = validated_data.pop(
+            'product_channel_price', None)
         try:
             for attr, value in validated_data.items():
                 setattr(instance, attr, value)
@@ -444,12 +534,20 @@ class SellingChannelSerializer(serializers.ModelSerializer):
                 existing_items = instance.product_channel_price.all()
 
                 for item in existing_items:
-                    if item.id not in [item_data.get('id') for item_data in products_channel_data if item_data.get('id')]:
+                    if item.id not in [
+                            item_data.get('id')
+                            for item_data in products_channel_data
+                            if item_data.get('id')]:
                         try:
                             item.delete()
                         except Exception as e:
-                            logger.error(f"Error deleting product channel price: {e}")
-                            raise serializers.ValidationError({"detail": "Error al eliminar el precio del producto por canal."})
+                            logger.error(
+                                f"Error deleting product channel: {e}")
+                            raise serializers.ValidationError(
+                                {"detail": (
+                                    "Error al eliminar el precio del "
+                                    "producto por canal."
+                                )})
                 for item_data in products_channel_data:
                     if item_data.get('id'):
                         item = existing_items.get(id=item_data['id'])
@@ -461,13 +559,20 @@ class SellingChannelSerializer(serializers.ModelSerializer):
                         item_data_copy = item_data.copy()
                         item_data_copy.pop('selling_channel', None)
                         try:
-                            ProductChannelPrice.objects.create(selling_channel=instance, **item_data_copy)
+                            ProductChannelPrice.objects.create(
+                                selling_channel=instance, **item_data_copy)
                         except Exception as e:
-                            logger.error(f"Error creating product channel price: {e}")
-                            raise serializers.ValidationError({"detail": "Error al crear el precio del producto por canal."})
+                            logger.error(
+                                f"Error creating product channel: {e}")
+                            raise serializers.ValidationError(
+                                {"detail": (
+                                    "Error al crear el precio del "
+                                    "producto por canal."
+                                )})
         except Exception as e:
             logger.error(f"Error updating selling channel: {e}")
-            raise serializers.ValidationError({"detail": "Error al actualizar el selling channel."})
+            raise serializers.ValidationError(
+                {"detail": "Error al actualizar el selling channel."})
 
         return instance
 
@@ -477,52 +582,70 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payment
-        fields = ['id', 'transaction_id', 'payment_method', 'transaction_type', 'amount', 'payment_date', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'transaction_id',
+            'payment_method',
+            'transaction_type',
+            'amount',
+            'payment_date',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
-        
+
     def validate(self, data):
         # For partial updates, get missing fields from the instance
         transaction_type = data.get('transaction_type')
         transaction_id = data.get('transaction_id')
         payment_date = data.get('payment_date')
         payment_amount = data.get('amount')
-        
+
         # Only validate if we have all required fields
         if transaction_type and transaction_id and payment_date:
             if transaction_type == 'compra':
                 transaction = Purchase.objects.get(id=transaction_id)
                 if payment_date < transaction.purchase_date:
                     raise serializers.ValidationError({
-                            "payment_date": "La fecha de pago no puede ser anterior a la fecha de compra."
+                        "payment_date": (
+                            "La fecha de pago no puede ser anterior "
+                            "a la fecha de compra."
+                        )
                     })
             elif transaction_type == 'venta':
                 transaction = Sale.objects.get(id=transaction_id)
                 if payment_date < transaction.sale_date:
                     raise serializers.ValidationError({
-                            "payment_date": "La fecha de pago no puede ser anterior a la fecha de venta."
+                        "payment_date": (
+                            "La fecha de pago no puede ser anterior "
+                            "a la fecha de venta."
+                        )
                     })
 
             if transaction.balance_due - payment_amount < 0:
-                 raise serializers.ValidationError({
-                        "amount": "El pago excede el saldo pendiente."
+                raise serializers.ValidationError({
+                    "amount": "El pago excede el saldo pendiente."
                 })
 
         return data
-    
+
     @transaction.atomic
     def create(self, validated_data):
         payment = super().create(validated_data)
         transaction_id = validated_data['transaction_id']
         payment_amount = validated_data['amount']
         transaction_type = validated_data['transaction_type']
-        UpdateTransactionService(transaction_id, payment_amount, transaction_type).update_transaction_balance_due()
-        
+        UpdateTransactionService(
+            transaction_id,
+            payment_amount,
+            transaction_type).update_transaction_balance_due()
+
         return payment
-    
+
 
 class EntryItemSerializer(serializers.ModelSerializer):
     """Serializer for EntryItem model"""
-    products_stock = ProductStockSerializer(read_only=True, source='product_stock')
+    products_stock = ProductStockSerializer(
+        read_only=True, source='product_stock')
     product_stock = serializers.PrimaryKeyRelatedField(
         write_only=True,
         queryset=ProductStock.objects.all()
@@ -535,23 +658,31 @@ class EntryItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EntryItem
-        fields = ['id', 'purchase_item', 'product_stock', 'products_stock', 'quantity']
+        fields = [
+            'id',
+            'purchase_item',
+            'product_stock',
+            'products_stock',
+            'quantity']
         read_only_fields = ['id']
-    
+
     def validate(self, data):
         """Validate the entire entry item"""
         quantity = data.get('quantity')
         purchase_item = data.get('purchase_item')
-        
+
         # Validate quantity against purchase item if it exists
         if purchase_item and quantity:
             if purchase_item.entered_stock + quantity > purchase_item.quantity:
                 raise serializers.ValidationError({
-                    'quantity': "La cantidad ingresada excede la cantidad comprada."
+                    'quantity': (
+                        "La cantidad ingresada excede la "
+                        "cantidad comprada."
+                    )
                 })
-        
+
         return data
-        
+
     def create(self, validated_data):
         entry_item = super().create(validated_data)
         if validated_data.get('purchase_item') is not None:
@@ -565,16 +696,29 @@ class EntrySerializer(serializers.ModelSerializer):
     """Serializer for Entry model"""
     warehouse_keeper = UserSerializer(read_only=True)
     suppliers = SupplierSerializer(read_only=True, source='supplier')
-    supplier = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Supplier.objects.all())
+    supplier = serializers.PrimaryKeyRelatedField(
+        write_only=True, queryset=Supplier.objects.all())
     entry_items = EntryItemSerializer(many=True)
-    purchase = serializers.PrimaryKeyRelatedField(write_only=True, queryset=Purchase.objects.all(), required=False)
+    purchase = serializers.PrimaryKeyRelatedField(
+        write_only=True, queryset=Purchase.objects.all(), required=False)
 
     class Meta:
         model = Entry
-        fields = ['id', 'warehouse_keeper', 'supplier', 'suppliers', 'entry_date', 'purchase', 'agency',
-                  'invoice_number', 'entry_items', 'note', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'warehouse_keeper',
+            'supplier',
+            'suppliers',
+            'entry_date',
+            'purchase',
+            'agency',
+            'invoice_number',
+            'entry_items',
+            'note',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
- 
+
     @transaction.atomic
     def create(self, validated_data):
         try:
@@ -585,7 +729,8 @@ class EntrySerializer(serializers.ModelSerializer):
                 EntryItemSerializer().create(item_data)
         except Exception as e:
             logger.error(f"Error creating entry: {e}")
-            raise serializers.ValidationError({"detail": "Error al crear la entrada."})
+            raise serializers.ValidationError(
+                {"detail": "Error al crear la entrada."})
         return entry
 
     @transaction.atomic
@@ -599,7 +744,10 @@ class EntrySerializer(serializers.ModelSerializer):
             if items_data is not None:
                 existing_items = instance.entry_items.all()
                 for item in existing_items:
-                    if item.id not in [item_data.get('id') for item_data in items_data if item_data.get('id')]:
+                    if item.id not in [
+                            item_data.get('id')
+                            for item_data in items_data
+                            if item_data.get('id')]:
                         item.delete()
 
                 for item_data in items_data:
@@ -610,24 +758,31 @@ class EntrySerializer(serializers.ModelSerializer):
                                 setattr(item, attr, value)
                         item.save()
                     else:
-                        EntryItem.objects.create(entry=instance, **item_data)
-                UpdateProductStockService(instance, {'entry_items': items_data}).update_entry_product_stock()
+                        EntryItem.objects.create(
+                            entry=instance, **item_data)
+                UpdateProductStockService(
+                    instance, {
+                        'entry_items': items_data,
+                    }).update_entry_product_stock()
         except Exception as e:
             logger.error(f"Error updating entry: {e}")
-            raise serializers.ValidationError({"detail": "Error al actualizar la entrada."})
+            raise serializers.ValidationError(
+                {"detail": "Error al actualizar la entrada."})
 
         return instance
 
 
 class PurchaseItemSerializer(serializers.ModelSerializer):
     """Serializer for Purchase Item model."""
-    products_stock = ProductStockSerializer(read_only=True, source='product_stock')
+    products_stock = ProductStockSerializer(
+        read_only=True, source='product_stock')
     product_stock = serializers.PrimaryKeyRelatedField(
         queryset=ProductStock.objects.all(),
         write_only=True,
     )
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
-    
+    status_display = serializers.CharField(
+        source='get_status_display', read_only=True)
+
     class Meta:
         model = PurchaseItem
         fields = ['product_stock', 'products_stock', 'quantity', 'unit_price',
@@ -637,10 +792,18 @@ class PurchaseItemSerializer(serializers.ModelSerializer):
 
 class NestedPaymentSerializer(serializers.ModelSerializer):
     """Serializer for Payment model when nested in Purchase."""
-    
+
     class Meta:
         model = Payment
-        fields = ['id', 'transaction_id', 'payment_method', 'transaction_type', 'amount', 'payment_date', 'created_at', 'updated_at']
+        fields = [
+            'id',
+            'transaction_id',
+            'payment_method',
+            'transaction_type',
+            'amount',
+            'payment_date',
+            'created_at',
+            'updated_at']
         read_only_fields = ['id', 'transaction_id', 'created_at', 'updated_at']
 
 
@@ -674,7 +837,7 @@ class PurchaseSerializer(serializers.ModelSerializer):
             'status',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
-    
+
     def to_representation(self, instance):
         """Custom representation to include payments in GET requests."""
         data = super().to_representation(instance)
@@ -685,13 +848,16 @@ class PurchaseSerializer(serializers.ModelSerializer):
         )
         data['payments'] = NestedPaymentSerializer(payments, many=True).data
         return data
-        
+
     def validate(self, data):
         if data.get('purchase_date') and data.get('payments'):
             if data['payments']['payment_date'] < data['purchase_date']:
                 raise serializers.ValidationError({
                     "payments": {
-                        "payment_date": "La fecha de pago no puede ser menor a la fecha de compra."
+                        "payment_date": (
+                            "La fecha de pago no puede ser menor "
+                            "a la fecha de compra."
+                        )
                     }
                 })
         return data
@@ -714,35 +880,48 @@ class PurchaseSerializer(serializers.ModelSerializer):
                 purchase = Purchase.objects.create(**validated_data)
             except Exception as e:
                 logger.error(f"Error creating purchase: {e}")
-                raise serializers.ValidationError({"detail": "Error al crear la compra."})
+                raise serializers.ValidationError(
+                    {"detail": "Error al crear la compra."})
             for item_data in items_data:
                 try:
                     PurchaseItem.objects.create(purchase=purchase, **item_data)
                 except Exception as e:
                     logger.error(f"Error creating purchase item: {e}")
-                    raise serializers.ValidationError({"detail": "Error al crear el item de compra."})
+                    raise serializers.ValidationError(
+                        {"detail": "Error al crear el item de compra."})
 
             try:
-                Payment.objects.create(transaction_id=purchase.id, **payment_data)
+                Payment.objects.create(
+                    transaction_id=purchase.id, **payment_data)
             except Exception as e:
                 logger.error(f"Error creating payment: {e}")
-                raise serializers.ValidationError({"detail": "Error al crear el pago."})
+                raise serializers.ValidationError(
+                    {"detail": "Error al crear el pago."})
         except Exception as e:
             logger.error(f"Error creating purchase: {e}")
-            raise serializers.ValidationError({"detail": "Error al crear la compra."})
+            raise serializers.ValidationError(
+                {"detail": "Error al crear la compra."})
 
         return purchase
 
 
 class OutputItemSerializer(serializers.ModelSerializer):
     """Serializer for OutputItem model"""
-    product_stock = serializers.PrimaryKeyRelatedField(write_only=True, queryset=ProductStock.objects.all())
-    products_stock = ProductStockSerializer(read_only=True, source='product_stock')
-    sale_item = serializers.PrimaryKeyRelatedField(write_only=True, required=False, queryset=SaleItem.objects.all())
+    product_stock = serializers.PrimaryKeyRelatedField(
+        write_only=True, queryset=ProductStock.objects.all())
+    products_stock = ProductStockSerializer(
+        read_only=True, source='product_stock')
+    sale_item = serializers.PrimaryKeyRelatedField(
+        write_only=True, required=False, queryset=SaleItem.objects.all())
 
     class Meta:
         model = OutputItem
-        fields = ['id', 'sale_item', 'product_stock', 'products_stock', 'quantity']
+        fields = [
+            'id',
+            'sale_item',
+            'product_stock',
+            'products_stock',
+            'quantity']
         read_only_fields = ['id']
 
     def validate(self, data):
@@ -755,7 +934,10 @@ class OutputItemSerializer(serializers.ModelSerializer):
         if sale_item and quantity:
             if sale_item.dispatched_stock + quantity > sale_item.quantity:
                 raise serializers.ValidationError({
-                    'quantity': "La cantidad despachada excede la cantidad vendida."
+                    'quantity': (
+                        "La cantidad despachada excede la "
+                        "cantidad vendida."
+                    )
                 })
         if product_stock:
             if product_stock.reserved_stock - quantity < 0:
@@ -772,9 +954,11 @@ class OutputItemSerializer(serializers.ModelSerializer):
             product_stock = validated_data['product_stock']
             if validated_data.get('sale_item') is not None:
                 UpdateSaleItem(output_item, product_stock).update_sale_item()
-            DecreaseProductStockService(output_item, product_stock).decrease_product_stock()
+            DecreaseProductStockService(
+                output_item, product_stock).decrease_product_stock()
             # Obtener el último invoice_number de todas las salidas
-            last_output = Output.objects.filter(invoice_number__gt=0).order_by('-invoice_number').first()
+            last_output = Output.objects.filter(
+                invoice_number__gt=0).order_by('-invoice_number').first()
             if last_output:
                 output_item.invoice_number = last_output.invoice_number + 1
             else:
@@ -783,16 +967,19 @@ class OutputItemSerializer(serializers.ModelSerializer):
             return output_item
         except Exception as e:
             logger.error(f"Error creating output item: {e}")
-            raise serializers.ValidationError({"detail": "Error al crear el item de salida."})
+            raise serializers.ValidationError(
+                {"detail": "Error al crear el item de salida."})
 
 
 class OutputSerializer(serializers.ModelSerializer):
     """Serializer for Output model"""
     warehouse_keeper = UserSerializer(read_only=True)
     clients = ClientSerializer(read_only=True, source='client')
-    client = serializers.PrimaryKeyRelatedField(queryset=Client.objects.all(), write_only=True)
+    client = serializers.PrimaryKeyRelatedField(
+        queryset=Client.objects.all(), write_only=True)
     output_items = OutputItemSerializer(many=True)
-    sale = serializers.PrimaryKeyRelatedField(queryset=Sale.objects.all(), write_only=True, required=False)
+    sale = serializers.PrimaryKeyRelatedField(
+        queryset=Sale.objects.all(), write_only=True, required=False)
 
     class Meta:
         model = Output
@@ -810,7 +997,8 @@ class OutputSerializer(serializers.ModelSerializer):
                 item_data['output'] = output
                 OutputItemSerializer().create(item_data)
             # Obtener el último invoice_number de todas las ventas
-            last_output = Output.objects.filter(invoice_number__gt=0).order_by('-invoice_number').first()
+            last_output = Output.objects.filter(
+                invoice_number__gt=0).order_by('-invoice_number').first()
             if last_output:
                 output.invoice_number = last_output.invoice_number + 1
             else:
@@ -819,7 +1007,8 @@ class OutputSerializer(serializers.ModelSerializer):
 
         except Exception as e:
             logger.error(f"Error creating output: {e}")
-            raise serializers.ValidationError({"detail": "Error al crear la salida."})
+            raise serializers.ValidationError(
+                {"detail": "Error al crear la salida."})
 
         return output
 
@@ -834,7 +1023,10 @@ class OutputSerializer(serializers.ModelSerializer):
             if items_data is not None:
                 existing_items = instance.output_items.all()
                 for item in existing_items:
-                    if item.id not in [item_data.get('id') for item_data in items_data if item_data.get('id')]:
+                    if item.id not in [
+                            item_data.get('id')
+                            for item_data in items_data
+                            if item_data.get('id')]:
                         item.delete()
                 for item_data in items_data:
                     if item_data.get('id'):
@@ -845,51 +1037,74 @@ class OutputSerializer(serializers.ModelSerializer):
                         item.save()
                     else:
                         try:
-                            OutputItem.objects.create(output=instance, **item_data)
+                            OutputItem.objects.create(
+                                output=instance, **item_data)
                         except Exception as e:
-                            logger.error(f"Error creating output item: {e}")
-                            raise serializers.ValidationError({"detail": "Error al crear el item de salida."})
-                UpdateProductStockService(instance, {'output_items': items_data}).update_output_product_stock()
+                            logger.error(
+                                f"Error creating output item: {e}")
+                            raise serializers.ValidationError(
+                                {"detail": (
+                                    "Error al crear el item de salida."
+                                )})
+                UpdateProductStockService(
+                    instance, {
+                        'output_items': items_data,
+                    }).update_output_product_stock()
         except Exception as e:
             logger.error(f"Error updating output: {e}")
-            raise serializers.ValidationError({"detail": "Error al actualizar la salida."})
+            raise serializers.ValidationError(
+                {"detail": "Error al actualizar la salida."})
 
         return instance
 
 
 class SaleItemSerializer(serializers.ModelSerializer):
     """Serializer for Sale Item model."""
-    products_stock = ProductStockSerializer(read_only=True, source='product_stock')
+    products_stock = ProductStockSerializer(
+        read_only=True, source='product_stock')
     product_stock = serializers.PrimaryKeyRelatedField(
         queryset=ProductStock.objects.all(),
         write_only=True,
     )
     id = serializers.IntegerField(required=False, allow_null=True)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    status_display = serializers.CharField(
+        source='get_status_display', read_only=True)
 
     class Meta:
         model = SaleItem
         fields = ['id', 'product_stock', 'products_stock', 'quantity',
-                  'unit_price', 'sub_total_price', 'discount', 'total_price', 
+                  'unit_price', 'sub_total_price', 'discount', 'total_price',
                   'status_display', 'dispatched_stock']
 
     def validate(self, data):
-        if data.get('product_stock') is not None and data.get('quantity') is not None:
+        if data.get('product_stock') is not None and data.get(
+                'quantity') is not None:
             if data['product_stock'].available_stock - data['quantity'] < 0:
                 raise serializers.ValidationError({
-                    'quantity': "No se puede vender una cantidad mayor al stock actual."
+                    'quantity': (
+                        "No se puede vender una cantidad mayor "
+                        "al stock actual."
+                    )
                 })
-        if data.get('product_stock') is not None and data.get('unit_price') is not None:
-            if data['unit_price'] < data['product_stock'].product.minimum_sale_price or data['unit_price'] > data['product_stock'].product.maximum_sale_price:
+        if data.get('product_stock') is not None and data.get(
+                'unit_price') is not None:
+            min_price = data['product_stock'].product.minimum_sale_price
+            max_price = data['product_stock'].product.maximum_sale_price
+            if (data['unit_price'] < min_price
+                    or data['unit_price'] > max_price):
                 raise serializers.ValidationError({
-                    'unit_price': "El precio no puede estar fuera de los rangos de venta."
+                    'unit_price': (
+                        "El precio no puede estar fuera de "
+                        "los rangos de venta."
+                    )
                 })
         return data
 
 
 class SaleSerializer(serializers.ModelSerializer):
     """Serializer for Sale model."""
-    selling_channels = SellingChannelSerializer(read_only=True, source='selling_channel')
+    selling_channels = SellingChannelSerializer(
+        read_only=True, source='selling_channel')
     selling_channel = serializers.PrimaryKeyRelatedField(
         queryset=SellingChannel.objects.all(),
         write_only=True,
@@ -946,7 +1161,10 @@ class SaleSerializer(serializers.ModelSerializer):
             if data['payments']['payment_date'] < data['sale_date']:
                 raise serializers.ValidationError({
                     "payments": {
-                        "payment_date": "La fecha de pago no puede ser menor a la fecha de venta."
+                        "payment_date": (
+                            "La fecha de pago no puede ser menor "
+                            "a la fecha de venta."
+                        )
                     }
                 })
         return data
@@ -954,9 +1172,13 @@ class SaleSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         try:
-            last_sale = Sale.objects.filter(pre_invoice_number__gt=0, status='proforma').order_by('-pre_invoice_number').first()
+            last_sale = Sale.objects.filter(
+                pre_invoice_number__gt=0,
+                status='proforma').order_by('-pre_invoice_number').first()
             if last_sale:
-                validated_data['pre_invoice_number'] = last_sale.pre_invoice_number + 1
+                validated_data['pre_invoice_number'] = (
+                    last_sale.pre_invoice_number + 1
+                )
             else:
                 validated_data['pre_invoice_number'] = 1
             items_data = validated_data.pop('sale_items', [])
@@ -966,23 +1188,30 @@ class SaleSerializer(serializers.ModelSerializer):
                     SaleItem.objects.create(sale=sale, **item_data)
                 except Exception as e:
                     logger.error(f"Error creating sale item: {e}")
-                    raise serializers.ValidationError({"detail": "Error al crear el item de venta."})
+                    raise serializers.ValidationError(
+                        {"detail": "Error al crear el item de venta."})
         except Exception as e:
             logger.error(f"Error creating sale: {e}")
-            raise serializers.ValidationError({"detail": "Error al crear la venta."})
+            raise serializers.ValidationError(
+                {"detail": "Error al crear la venta."})
 
         return sale
-    
+
     @transaction.atomic
     def update(self, instance, validated_data):
         items_data = validated_data.pop('sale_items', None)
         payments_data = validated_data.pop('payments', None)
-        try: 
-            if validated_data.get('status') == 'realizado' and instance.invoice_number == 0:
+        try:
+            if validated_data.get(
+                    'status') == 'realizado' and instance.invoice_number == 0:
                 # Obtener el último invoice_number de todas las ventas
-                last_sale = Sale.objects.filter(invoice_number__gt=0, status='realizado').order_by('-invoice_number').first()
+                last_sale = Sale.objects.filter(
+                    invoice_number__gt=0,
+                    status='realizado').order_by('-invoice_number').first()
                 if last_sale:
-                    validated_data['invoice_number'] = last_sale.invoice_number + 1
+                    validated_data['invoice_number'] = (
+                        last_sale.invoice_number + 1
+                    )
                 else:
                     # Si no hay ventas previas, empezar desde 1
                     validated_data['invoice_number'] = 1
@@ -993,51 +1222,68 @@ class SaleSerializer(serializers.ModelSerializer):
             if items_data is not None:
                 existing_items = instance.sale_items.all()
                 for item in existing_items:
-                    if item.id not in [item_data.get('id') for item_data in items_data if item_data.get('id')]:
+                    if item.id not in [
+                            item_data.get('id')
+                            for item_data in items_data
+                            if item_data.get('id')]:
                         item.delete()
-                
+
                 for item_data in items_data:
                     if item_data.get('id'):
                         item = existing_items.get(id=item_data['id'])
                         for attr, value in item_data.items():
-                                if attr != 'id':
-                                    setattr(item, attr, value)
+                            if attr != 'id':
+                                setattr(item, attr, value)
                         item.save()
                     else:
                         try:
                             SaleItem.objects.create(sale=instance, **item_data)
                         except Exception as e:
                             logger.error(f"Error creating sale item: {e}")
-                            raise serializers.ValidationError({"detail": "Error al crear el item de venta."})
-                    
-                    # Actualizar stock para productos existentes y nuevos cuando el status es 'realizado'
+                            raise serializers.ValidationError(
+                                {"detail": "Error al crear el item de venta."})
+
+                    # Actualizar stock para productos existentes y nuevos
+                    # cuando el status es 'realizado'
                     if validated_data.get('status') == 'realizado':
-                        item_data['product_stock'].reserved_stock = F('reserved_stock') + item_data['quantity']
-                        item_data['product_stock'].available_stock = F('available_stock') - item_data['quantity']
+                        item_data['product_stock'].reserved_stock = F(
+                            'reserved_stock') + item_data['quantity']
+                        item_data['product_stock'].available_stock = F(
+                            'available_stock') - item_data['quantity']
                         try:
                             item_data['product_stock'].save()
                         except Exception as e:
                             logger.error(f"Error saving product stock: {e}")
-                            raise serializers.ValidationError({"detail": "Error al actualizar el stock del producto."})
-                        
+                            raise serializers.ValidationError(
+                                {"detail": (
+                                    "Error al actualizar el "
+                                    "stock del producto."
+                                )})
+
             if payments_data is not None:
                 payment_amount = payments_data['amount']
                 purchase_total_amount = instance.balance_due
                 if purchase_total_amount - payment_amount < 0:
                     raise serializers.ValidationError({
                         "payments": {
-                            "amount": "El pago no puede ser mayor al costo total."
+                            "amount": (
+                                "El pago no puede ser mayor "
+                                "al costo total."
+                            )
                         }
                     })
                 instance.balance_due -= payment_amount
                 instance.save()
                 try:
-                    Payment.objects.create(transaction_id=instance.id, **payments_data)
+                    Payment.objects.create(
+                        transaction_id=instance.id, **payments_data)
                 except Exception as e:
                     logger.error(f"Error creating payment: {e}")
-                    raise serializers.ValidationError({"detail": "Error al crear el pago."})
+                    raise serializers.ValidationError(
+                        {"detail": "Error al crear el pago."})
         except Exception as e:
             logger.error(f"Error updating sale: {e}")
-            raise serializers.ValidationError({"detail": "Error al actualizar la venta."})
+            raise serializers.ValidationError(
+                {"detail": "Error al actualizar la venta."})
 
         return instance

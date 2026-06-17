@@ -9,17 +9,18 @@ import uuid
 
 CATEGORY_URL = reverse('sale:category-list')
 
+
 def create_user(**params):
     """Create and return a sample user."""
     from core.models import Agency
-    
+
     unique_suffix = str(uuid.uuid4())[:4]
     agency = Agency.objects.create(
         name=f'Test Agency {unique_suffix}',
         location=f'Test Location {unique_suffix}',
         city='La Paz',
     )
-    
+
     defaults = {
         'first_name': 'Test',
         'last_name': 'User',
@@ -31,6 +32,7 @@ def create_user(**params):
     }
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
+
 
 def create_warehouse(**params):
     """Create a sample warehouse."""
@@ -46,18 +48,20 @@ def create_warehouse(**params):
         'location': 'Sample Location',
     }
     defaults.update(params)
-    
+
     return Warehouse.objects.create(**defaults)
+
 
 def create_category(**params):
     """Create a sample category."""
-    
+
     defaults = {
         'name': f'Sample Category {str(uuid.uuid4())[:8]}',
     }
     defaults.update(params)
-    
+
     return Category.objects.create(**defaults)
+
 
 def detail_url(category_id):
     """Return category detail URL."""
@@ -66,19 +70,19 @@ def detail_url(category_id):
 
 class PublicCategoryApiTests(TestCase):
     """Test API requests for unauthenticated users."""
-    
+
     def setUp(self):
         self.client = APIClient()
-        
+
     def test_auth_required(self):
         """Test that authentication is required for accessing the endpoint."""
         res = self.client.get(CATEGORY_URL)
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
-        
-        
+
+
 class PrivatCategoryApiTests(TestCase):
     """Test API requests for authenticated users."""
-    
+
     def setUp(self):
         self.client = APIClient()
         self.user = create_user(
@@ -86,7 +90,7 @@ class PrivatCategoryApiTests(TestCase):
             password='testpass',
         )
         self.client.force_authenticate(self.user)
-        
+
     def test_retrieve_categories(self):
         """Test retrieving a list of categories."""
         create_category()
@@ -97,10 +101,10 @@ class PrivatCategoryApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data['rows'], serializer.data)
         self.assertEqual(res.data['total'], 2)
-        
+
     def test_create_category(self):
         """Test creating a category."""
-        warehouse = create_warehouse()
+        create_warehouse()
         payload = {
             'name': 'Test category',
         }
@@ -109,7 +113,7 @@ class PrivatCategoryApiTests(TestCase):
         category = Category.objects.get(id=res.data['id'])
 
         self.assertEqual(category.name, payload['name'])
-            
+
     def test_partial_update_category(self):
         """Test partial update of a category."""
         category = create_category(name='Original Name')
@@ -123,7 +127,7 @@ class PrivatCategoryApiTests(TestCase):
     def test_full_update_category(self):
         """Test full update of a category."""
         category = create_category(name='Original Name')
-        warehouse = create_warehouse()
+        create_warehouse()
         payload = {'name': 'New Name'}
         url = detail_url(category.id)
         res = self.client.put(url, payload)

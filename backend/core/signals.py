@@ -3,6 +3,7 @@ from django.dispatch import receiver
 from django.contrib.auth.models import Permission
 from .models import User
 
+
 @receiver(post_save, sender=User)
 def assign_permission_to_all_users(sender, instance, created, **kwargs):
     if not created:

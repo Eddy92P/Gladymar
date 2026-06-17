@@ -1,23 +1,25 @@
 from unittest import TestCase
 from sale.services.entry_purchase_service import UpdatePurchaseItem
-from core.models import *
-
-from django.utils import timezone
 from django.core.exceptions import ValidationError
+from core.models import (
+    Agency, Batch, Category, Entry, EntryItem,
+    Product, ProductStock, Purchase, PurchaseItem, Supplier, Warehouse,
+)
 from django.contrib.auth import get_user_model
 import uuid
+
 
 def create_user(**params):
     """Create and return a sample user."""
     from core.models import Agency
-    
+
     unique_suffix = str(uuid.uuid4())[:4]
     agency = Agency.objects.create(
         name=f'Test Agency {unique_suffix}',
         location=f'Test Location {unique_suffix}',
         city='La Paz',
     )
-    
+
     defaults = {
         'first_name': 'Test',
         'last_name': 'User',
@@ -30,6 +32,7 @@ def create_user(**params):
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
 
+
 def create_agency(**params):
     """Create and return a sample agency."""
     unique_suffix = str(uuid.uuid4())[:8]
@@ -41,9 +44,10 @@ def create_agency(**params):
     defaults.update(params)
     return Agency.objects.create(**defaults)
 
+
 def create_warehouse(**params):
     unique_suffix = str(uuid.uuid4())[:8]
-    defaults={
+    defaults = {
         'agency': create_agency(),
         'name': f'Warehouse {unique_suffix}',
         'location': 'Test location',
@@ -52,9 +56,10 @@ def create_warehouse(**params):
 
     return Warehouse.objects.create(**defaults)
 
+
 def create_supplier(**params):
     unique_suffix = str(uuid.uuid4())[:8]
-    defaults={
+    defaults = {
         'name': f'Supplier {unique_suffix}',
         'phone': '78885521',
         'nit': f'123456789{unique_suffix}',
@@ -62,8 +67,9 @@ def create_supplier(**params):
         'address': 'Test Address 123',
     }
     defaults.update(params)
-    
+
     return Supplier.objects.create(**defaults)
+
 
 def create_category(**params):
     """Create and return a sample category."""
@@ -75,6 +81,7 @@ def create_category(**params):
     category = Category.objects.create(**defaults)
     return category
 
+
 def create_batch(**params):
     """Create and return a sample batch."""
     unique_suffix = str(uuid.uuid4())[:8]
@@ -85,6 +92,7 @@ def create_batch(**params):
     defaults.update(params)
     batch = Batch.objects.create(**defaults)
     return batch
+
 
 def create_product(**params):
     """Create and return a sample product."""
@@ -103,6 +111,7 @@ def create_product(**params):
 
     return Product.objects.create(**defaults)
 
+
 def create_product_stock(**params):
     defaults = {
         'warehouse': create_warehouse(),
@@ -116,7 +125,8 @@ def create_product_stock(**params):
     defaults.update(params)
 
     return ProductStock.objects.create(**defaults)
-    
+
+
 def create_entry(**params):
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
@@ -130,6 +140,7 @@ def create_entry(**params):
     defaults.update(params)
 
     return Entry.objects.create(**defaults)
+
 
 def create_purchase(**params):
     unique_suffix = str(uuid.uuid4())[:8]
@@ -152,9 +163,10 @@ def create_purchase(**params):
 
 class TestUpdatePurchaseItem(TestCase):
     """Tests for update purchase items when an entry is done."""
+
     def setUp(self):
         self.purchase_item = self.create_test_purchase_item()
-        
+
     def create_test_purchase_item(self, **kwargs):
         defaults = {
             'purchase': create_purchase(),
@@ -167,7 +179,7 @@ class TestUpdatePurchaseItem(TestCase):
         defaults.update(kwargs)
 
         return PurchaseItem.objects.create(**defaults)
-        
+
     def test_update_purchase_item(self):
         """Test update purchase item"""
         entry_item = EntryItem.objects.create(
@@ -176,13 +188,13 @@ class TestUpdatePurchaseItem(TestCase):
             product_stock=create_product_stock(),
             quantity=10,
         )
-        
+
         service = UpdatePurchaseItem(entry_item)
         service.update_purchase_item()
-        
+
         self.purchase_item.refresh_from_db()
         self.assertEqual(self.purchase_item.entered_stock, 10)
-        
+
     def test_entered_stock_exceeds_quantity(self):
         """Test entered stock exceeds quantity selled."""
         entry_item = EntryItem.objects.create(
@@ -197,5 +209,6 @@ class TestUpdatePurchaseItem(TestCase):
         with self.assertRaises(ValidationError) as context:
             service.update_purchase_item()
 
-        self.assertIn("La cantidad ingresada excede la cantidad comprada.", str(context.exception))
-        
+        self.assertIn(
+            "La cantidad ingresada excede la cantidad comprada.", str(
+                context.exception))

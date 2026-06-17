@@ -3,15 +3,20 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from core.models import *
+from core.models import (
+    Agency, Batch, Category, Payment, Product, ProductStock,
+    Purchase, PurchaseItem, Supplier, Warehouse,
+)
 from sale.serializers import PurchaseSerializer
 import uuid
 from datetime import date
 
 PURCHASE_URL = reverse('sale:purchase-list')
 
+
 def detail_url(purchase_id):
     return reverse('sale:purchase-detail', args=[purchase_id])
+
 
 def create_user(**params):
     """Create and return a sample User."""
@@ -28,6 +33,7 @@ def create_user(**params):
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
 
+
 def create_agency(**params):
     """Create and return a sample Agency."""
     unique_suffix = str(uuid.uuid4())[:4]
@@ -38,6 +44,7 @@ def create_agency(**params):
     }
     defaults.update(params)
     return Agency.objects.create(**defaults)
+
 
 def create_warehouse(**params):
     """Create and return a sample Warehouse."""
@@ -50,6 +57,7 @@ def create_warehouse(**params):
     defaults.update(params)
     return Warehouse.objects.create(**defaults)
 
+
 def create_category(**params):
     """Create and return a sample Category."""
     unique_suffix = str(uuid.uuid4())[:4]
@@ -58,6 +66,7 @@ def create_category(**params):
     }
     defaults.update(params)
     return Category.objects.create(**defaults)
+
 
 def create_batch(**params):
     """Create and return a sample Batch."""
@@ -68,6 +77,7 @@ def create_batch(**params):
     }
     defaults.update(params)
     return Batch.objects.create(**defaults)
+
 
 def create_product(**params):
     """Create and return a sample Product."""
@@ -84,6 +94,7 @@ def create_product(**params):
     defaults.update(params)
     return Product.objects.create(**defaults)
 
+
 def create_product_stock(**params):
     defaults = {
         'product': create_product(),
@@ -96,6 +107,7 @@ def create_product_stock(**params):
     }
     defaults.update(params)
     return ProductStock.objects.create(**defaults)
+
 
 def create_supplier(**params):
     """Create and return a sample Supplier."""
@@ -119,6 +131,7 @@ def create_supplier(**params):
 
     return supplier
 
+
 def create_purchase(**params):
     """Create and return a sample Purchase."""
     unique_suffix = str(uuid.uuid4())[:4]
@@ -133,10 +146,10 @@ def create_purchase(**params):
         'balance_due': 0.00,
     }
     defaults.update(params)
-    
+
     purchase_items_data = defaults.pop('purchase_items', None)
     purchase = Purchase.objects.create(**defaults)
-    
+
     if purchase_items_data:
         for item_data in purchase_items_data:
             PurchaseItem.objects.create(purchase=purchase, **item_data)
@@ -152,11 +165,13 @@ def create_purchase(**params):
 
     return purchase
 
+
 def create_payment(**params):
     # Generate unique transaction_id to avoid constraint violations
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
-        'transaction_id': int(unique_suffix, 16) % 10000,  # Generate unique transaction_id
+        # Generate unique transaction_id
+        'transaction_id': int(unique_suffix, 16) % 10000,
         'payment_method': 'efectivo',
         'transaction_type': 'compra',
         'amount': 50.00,
@@ -169,6 +184,7 @@ def create_payment(**params):
 
 class PublicPurchaseApiTests(TestCase):
     """Tests for an user when is unauthenticated."""
+
     def setUp(self):
         self.client = APIClient()
 
@@ -180,6 +196,7 @@ class PublicPurchaseApiTests(TestCase):
 
 class PrivatePurchaseApiTests(TestCase):
     """Test for an user is authorized."""
+
     def setUp(self):
         self.client = APIClient()
         self.user = create_user(

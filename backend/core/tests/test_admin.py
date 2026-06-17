@@ -13,7 +13,7 @@ class AdminSiteTests(TestCase):
     def setUp(self):
         """Create a superuser and client."""
         from core.models import Agency
-        
+
         self.client = Client()
 
         self.admin_user = get_user_model().objects.create_superuser(
@@ -26,14 +26,14 @@ class AdminSiteTests(TestCase):
             address='Admin Address',
         )
         self.client.force_login(self.admin_user)
-        
+
         # Create agency for regular user
         user_agency = Agency.objects.create(
             name='User Agency',
             location='User Location',
             city='LP',
         )
-        
+
         self.user = get_user_model().objects.create_user(
             email='user@example.com',
             password='userpass123',

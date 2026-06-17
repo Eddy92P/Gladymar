@@ -1,13 +1,19 @@
 """
 Tests for update product stock when an entry is updated.
 """
-from core.models import *
-from sale.services.update_product_stock_service import UpdateProductStockService
+from core.models import (
+    Agency, Batch, Category, Client, Entry, EntryItem,
+    Output, OutputItem, Product, ProductStock, Supplier, Warehouse,
+)
+from sale.services.update_product_stock_service import (
+    UpdateProductStockService,
+)
 from unittest import TestCase
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 import uuid
+
 
 def create_agency(**params):
     """Create and return a sample agency."""
@@ -19,6 +25,7 @@ def create_agency(**params):
     }
     defaults.update(params)
     return Agency.objects.create(**defaults)
+
 
 def create_user(**params):
     """Create and return a sample user."""
@@ -35,9 +42,10 @@ def create_user(**params):
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
 
+
 def create_warehouse(**params):
     unique_suffix = str(uuid.uuid4())[:8]
-    defaults={
+    defaults = {
         'agency': create_agency(),
         'name': f'Warehouse {unique_suffix}',
         'location': 'Test location',
@@ -46,19 +54,20 @@ def create_warehouse(**params):
 
     return Warehouse.objects.create(**defaults)
 
+
 class TestUpdateProductStockService(TestCase):
-    
+
     def setUp(self):
         self.product_stock = self.create_test_product_stock()
-        
+
     def create_test_product(self, **kwargs):
         unique_suffix = str(uuid.uuid4())[:8]
         category = Category.objects.create(
-            name = f'Test Category{unique_suffix}',
+            name=f'Test Category{unique_suffix}',
         )
         batch = Batch.objects.create(
-            category = category,
-            name = f'Test Batch{unique_suffix}',
+            category=category,
+            name=f'Test Batch{unique_suffix}',
         )
         defaults = {
             'name': f'Test Product{unique_suffix}',
@@ -70,9 +79,9 @@ class TestUpdateProductStockService(TestCase):
         defaults.update(kwargs)
 
         return Product.objects.create(**defaults)
-    
+
     def create_test_product_stock(self, **params):
-        defaults={
+        defaults = {
             'product': self.create_test_product(),
             'warehouse': create_warehouse(),
             'stock': 50,
@@ -84,7 +93,7 @@ class TestUpdateProductStockService(TestCase):
         defaults.update(params)
 
         return ProductStock.objects.create(**defaults)
-    
+
     def test_update_entry_product_stock(self):
         """Test for update an entry and update product stock"""
         unique_suffix = str(uuid.uuid4())[:8]
@@ -125,9 +134,9 @@ class TestUpdateProductStockService(TestCase):
 
         self.product_stock.refresh_from_db()
         self.assertEqual(self.product_stock.stock, 55)
-        
+
     def test_update_entry_product_stock_decrease(self):
-        """Test for update an entry with decreased quantity and update product stock"""
+        """Test update entry with decreased quantity updates product stock."""
         unique_suffix = str(uuid.uuid4())[:8]
         supplier = Supplier.objects.create(
             name=f'Test Supplier 2{unique_suffix}',
@@ -166,7 +175,7 @@ class TestUpdateProductStockService(TestCase):
 
         self.product_stock.refresh_from_db()
         self.assertEqual(self.product_stock.stock, 45)
-        
+
     def test_update_entry_product_stock_exceeds_maximum(self):
         """Test for update an entry that would exceed maximum stock"""
         unique_suffix = str(uuid.uuid4())[:8]
@@ -207,11 +216,13 @@ class TestUpdateProductStockService(TestCase):
         with self.assertRaises(ValidationError) as context:
             service.update_entry_product_stock()
 
-        self.assertIn("El nuevo stock no puede ser mayor al máximo permitido", str(context.exception))
-        
+        self.assertIn(
+            "El nuevo stock no puede ser mayor al máximo permitido", str(
+                context.exception))
+
     def test_update_output_product_increase(self):
         """
-        Test for update an output with an higher quantity and update product stock.
+        Test update output with higher quantity updates product stock.
         """
         unique_suffix = str(uuid.uuid4())[:8]
         client = Client.objects.create(
@@ -243,16 +254,16 @@ class TestUpdateProductStockService(TestCase):
                 }
             ]
         }
-        
+
         service = UpdateProductStockService(output, validated_data)
         service.update_output_product_stock()
-        
+
         self.product_stock.refresh_from_db()
         self.assertEqual(self.product_stock.stock, 45)
-        
+
     def test_update_output_product_decrease(self):
         """
-        Test for update an output with a lower quantity and update product stock.
+        Test update output with lower quantity updates product stock.
         """
         unique_suffix = str(uuid.uuid4())[:8]
         client = Client.objects.create(
@@ -284,16 +295,16 @@ class TestUpdateProductStockService(TestCase):
                 }
             ]
         }
-        
+
         service = UpdateProductStockService(output, validated_data)
         service.update_output_product_stock()
-        
+
         self.product_stock.refresh_from_db()
         self.assertEqual(self.product_stock.stock, 55)
-        
+
     def test_update_output_product_exceeds_minimum_stock(self):
         """
-        Test for update an output and a exception is raised if exceeds minimum stock.
+        Test update output raises exception if exceeds minimum stock.
         """
         unique_suffix = str(uuid.uuid4())[:8]
         client = Client.objects.create(
@@ -330,4 +341,6 @@ class TestUpdateProductStockService(TestCase):
         with self.assertRaises(ValidationError) as context:
             service.update_output_product_stock()
 
-        self.assertIn('El nuevo stock no puede ser menor al mínimo permitido.', str(context.exception))
+        self.assertIn(
+            'El nuevo stock no puede ser menor al mínimo permitido.', str(
+                context.exception))

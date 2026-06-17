@@ -13,7 +13,16 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = ('email', 'password', 'first_name', 'last_name', 'ci', 'phone', 'address', 'agency', 'permissions')
+        fields = (
+            'email',
+            'password',
+            'first_name',
+            'last_name',
+            'ci',
+            'phone',
+            'address',
+            'agency',
+            'permissions')
         extra_kwargs = {'password': {'write_only': True, 'min_length': 5}}
 
     def create(self, validated_data):
@@ -34,9 +43,13 @@ class UserSerializer(serializers.ModelSerializer):
     def get_permissions(self, obj):
         """Get user permissions."""
         # Get both user-specific permissions and group permissions
-        user_permissions = list(obj.user_permissions.all().values_list('codename', flat=True))
-        group_permissions = list(obj.groups.all().values_list('permissions__codename', flat=True))
-        
+        user_permissions = list(
+            obj.user_permissions.all().values_list(
+                'codename', flat=True))
+        group_permissions = list(
+            obj.groups.all().values_list(
+                'permissions__codename', flat=True))
+
         # Combine and remove duplicates
         all_permissions = list(set(user_permissions + group_permissions))
         return all_permissions
@@ -64,7 +77,7 @@ class AuthTokenSerializer(serializers.Serializer):
 
         attrs['user'] = user
         return attrs
-    
+
 
 class LoginSerializer(serializers.Serializer):
     """Serializer for the user login."""

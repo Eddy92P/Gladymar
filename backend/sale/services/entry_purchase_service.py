@@ -6,18 +6,21 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class UpdatePurchaseItem:
     def __init__(self, entry_item):
         self.entry_item = entry_item
-        
+
     def update_purchase_item(self):
         """
         Update purchase item
         """
         try:
             purchase_item = self.entry_item.purchase_item
-            if purchase_item.entered_stock + self.entry_item.quantity > purchase_item.quantity:
-                raise ValidationError("La cantidad ingresada excede la cantidad comprada.")
+            if (purchase_item.entered_stock + self.entry_item.quantity
+                    > purchase_item.quantity):
+                raise ValidationError(
+                    "La cantidad ingresada excede la cantidad comprada.")
             purchase_item.entered_stock += self.entry_item.quantity
             if purchase_item.entered_stock < purchase_item.quantity:
                 purchase_item.status = 'parcial'

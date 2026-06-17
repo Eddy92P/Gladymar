@@ -3,23 +3,25 @@ Tests for update transaction service.
 """
 from sale.services.update_transaction_service import UpdateTransactionService
 
-from core.models import Agency, Warehouse, Category, Batch, Product, Purchase, Supplier, Payment, Sale, Client, SellingChannel
+from core.models import (
+    Agency, Batch, Category, Client, Payment, Product,
+    Purchase, Sale, SellingChannel, Supplier,
+)
 from django.contrib.auth import get_user_model
 from unittest import TestCase
 from django.core.exceptions import ValidationError
 import uuid
 
+
 def create_user(**params):
     """Create and return a sample user."""
-    from core.models import Agency
-    
     unique_suffix = str(uuid.uuid4())[:4]
     agency = Agency.objects.create(
         name=f'Test Agency {unique_suffix}',
         location=f'Test Location {unique_suffix}',
         city='La Paz',
     )
-    
+
     defaults = {
         'first_name': 'Test',
         'last_name': 'User',
@@ -32,6 +34,7 @@ def create_user(**params):
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
 
+
 def create_client(**params):
     unique_suffix = str(uuid.uuid4())[:4]
     defaults = {
@@ -43,8 +46,9 @@ def create_client(**params):
         'client_type': 'showroom'
     }
     defaults.update(params)
-    
+
     return Client.objects.create(**defaults)
+
 
 def create_selling_channel(**params):
     defaults = {
@@ -57,15 +61,15 @@ def create_selling_channel(**params):
 class UpdateTransactionServiceTest(TestCase):
     def setUp(self):
         self.product = self.create_test_product()
-        
+
     def create_test_product(self, **kwargs):
         unique_suffix = str(uuid.uuid4())[:8]
         category = Category.objects.create(
-            name = f'Test Category{unique_suffix}',
+            name=f'Test Category{unique_suffix}',
         )
         batch = Batch.objects.create(
-            category = category,
-            name = f'Test Batch{unique_suffix}',
+            category=category,
+            name=f'Test Batch{unique_suffix}',
         )
         defaults = {
             'name': f'Test Product{unique_suffix}',
@@ -77,15 +81,15 @@ class UpdateTransactionServiceTest(TestCase):
         defaults.update(kwargs)
 
         return Product.objects.create(**defaults)
-    
+
     def test_update_purchase_balance_due(self):
-        """Test for update balance due when a payment is done for a purchase."""
+        """Test balance due updated when payment done for a purchase."""
         unique_suffix = str(uuid.uuid4())[:8]
         agency = create_user().agency
         purchase = Purchase.objects.create(
             agency=agency,
             buyer=create_user(),
-            supplier = Supplier.objects.create(
+            supplier=Supplier.objects.create(
                 name=f'Test Supplier{unique_suffix}',
                 phone='12345678',
                 nit=f'NIT-{unique_suffix}',
@@ -98,7 +102,7 @@ class UpdateTransactionServiceTest(TestCase):
             total=100,
             balance_due=100,
         )
-        
+
         payment = Payment.objects.create(
             transaction_id=purchase.id,
             payment_method='efectivo',
@@ -106,21 +110,22 @@ class UpdateTransactionServiceTest(TestCase):
             amount=50,
             payment_date='2025-05-06',
         )
-        
-        service = UpdateTransactionService(purchase.id, payment.amount, payment.transaction_type)
+
+        service = UpdateTransactionService(
+            purchase.id, payment.amount, payment.transaction_type)
         service.update_transaction_balance_due()
-        
+
         purchase.refresh_from_db()
         self.assertEqual(purchase.balance_due, 50)
-        
+
     def test_update_purchase_balance_due_payment_exceeds(self):
-        """Test for update balance due when a payment is done for a purchase but the payment exceeds the balance."""
+        """Test balance due when purchase payment exceeds balance."""
         unique_suffix = str(uuid.uuid4())[:8]
         agency = create_user().agency
         purchase = Purchase.objects.create(
             agency=agency,
             buyer=create_user(),
-            supplier = Supplier.objects.create(
+            supplier=Supplier.objects.create(
                 name=f'Test Supplier{unique_suffix}',
                 phone='12345678',
                 nit=f'NIT-{unique_suffix}',
@@ -133,7 +138,7 @@ class UpdateTransactionServiceTest(TestCase):
             total=100,
             balance_due=100,
         )
-        
+
         payment = Payment.objects.create(
             transaction_id=purchase.id,
             payment_method='efectivo',
@@ -141,21 +146,24 @@ class UpdateTransactionServiceTest(TestCase):
             amount=150,
             payment_date='2025-05-06',
         )
-        
-        service = UpdateTransactionService(purchase.id, payment.amount, payment.transaction_type)
+
+        service = UpdateTransactionService(
+            purchase.id, payment.amount, payment.transaction_type)
         with self.assertRaises(ValidationError) as context:
             service.update_transaction_balance_due()
 
-        self.assertIn("El pago excede el saldo pendiente.", str(context.exception))
-        
+        self.assertIn(
+            "El pago excede el saldo pendiente.", str(
+                context.exception))
+
     def test_update_purchase_balance_due_done(self):
-        """Test for update balance due when a payment is done for all the amount for a purchase."""
+        """Test balance due zeroed when full payment done for purchase."""
         unique_suffix = str(uuid.uuid4())[:8]
         agency = create_user().agency
         purchase = Purchase.objects.create(
             agency=agency,
             buyer=create_user(),
-            supplier = Supplier.objects.create(
+            supplier=Supplier.objects.create(
                 name=f'Test Supplier{unique_suffix}',
                 phone='12345678',
                 nit=f'NIT-{unique_suffix}',
@@ -168,7 +176,7 @@ class UpdateTransactionServiceTest(TestCase):
             total=100,
             balance_due=100,
         )
-        
+
         payment = Payment.objects.create(
             transaction_id=purchase.id,
             payment_method='efectivo',
@@ -176,13 +184,14 @@ class UpdateTransactionServiceTest(TestCase):
             amount=100,
             payment_date='2025-05-06',
         )
-        
-        service = UpdateTransactionService(purchase.id, payment.amount, payment.transaction_type)
+
+        service = UpdateTransactionService(
+            purchase.id, payment.amount, payment.transaction_type)
         service.update_transaction_balance_due()
-        
+
         purchase.refresh_from_db()
         self.assertEqual(purchase.balance_due, 0)
-        
+
     def test_update_sale_balance_due(self):
         """Test for update balance due when a payment is done for a sale."""
         agency = create_user().agency
@@ -204,15 +213,16 @@ class UpdateTransactionServiceTest(TestCase):
             amount=50,
             payment_date='2025-05-06',
         )
-        
-        service = UpdateTransactionService(sale.id, payment.amount, payment.transaction_type)
+
+        service = UpdateTransactionService(
+            sale.id, payment.amount, payment.transaction_type)
         service.update_transaction_balance_due()
-        
+
         sale.refresh_from_db()
         self.assertEqual(sale.balance_due, 50)
-        
-    def test_update_purchase_balance_due_payment_exceeds(self):
-        """Test for update balance due when a payment is done for a sale but the payment exceeds the balance."""
+
+    def test_update_sale_balance_due_payment_exceeds(self):
+        """Test update balance due when sale payment exceeds balance."""
         agency = create_user().agency
         sale = Sale.objects.create(
             agency=agency,
@@ -232,15 +242,18 @@ class UpdateTransactionServiceTest(TestCase):
             amount=150,
             payment_date='2025-05-06',
         )
-        
-        service = UpdateTransactionService(sale.id, payment.amount, payment.transaction_type)
+
+        service = UpdateTransactionService(
+            sale.id, payment.amount, payment.transaction_type)
         with self.assertRaises(ValidationError) as context:
             service.update_transaction_balance_due()
 
-        self.assertIn("El pago excede el saldo pendiente.", str(context.exception))
-        
+        self.assertIn(
+            "El pago excede el saldo pendiente.", str(
+                context.exception))
+
     def test_update_sale_balance_due_done(self):
-        """Test for update balance due when a payment is done for all the amount for a sale."""
+        """Test balance due zeroed when full payment done for sale."""
         agency = create_user().agency
         sale = Sale.objects.create(
             agency=agency,
@@ -260,9 +273,10 @@ class UpdateTransactionServiceTest(TestCase):
             amount=100,
             payment_date='2025-05-06',
         )
-        
-        service = UpdateTransactionService(sale.id, payment.amount, payment.transaction_type)
+
+        service = UpdateTransactionService(
+            sale.id, payment.amount, payment.transaction_type)
         service.update_transaction_balance_due()
-        
+
         sale.refresh_from_db()
         self.assertEqual(sale.balance_due, 0)

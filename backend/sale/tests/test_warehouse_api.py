@@ -13,14 +13,14 @@ WAREHOUSE_URL = reverse('sale:warehouse-list')
 def create_user(**params):
     """Create and return a sample user."""
     from core.models import Agency
-    
+
     unique_suffix = str(uuid.uuid4())[:4]
     agency = Agency.objects.create(
         name=f'Test Agency {unique_suffix}',
         location=f'Test Location {unique_suffix}',
         city='La Paz',
     )
-    
+
     defaults = {
         'first_name': 'Test',
         'last_name': 'User',
@@ -32,6 +32,7 @@ def create_user(**params):
     }
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
+
 
 def create_warehouse(**params):
     """Create and return a sample warehouse."""
@@ -47,8 +48,9 @@ def create_warehouse(**params):
         'location': f'Sample Location {unique_suffix}',
     }
     defaults.update(params)
-    
+
     return Warehouse.objects.create(**defaults)
+
 
 def detail_url(warehouse_id):
     """Return warehouse detail URL."""
@@ -57,10 +59,10 @@ def detail_url(warehouse_id):
 
 class PublicWarehouseApiTests(TestCase):
     """Test API requests for unauthenticated users."""
-    
+
     def setUp(self):
         self.client = APIClient()
-        
+
     def test_auth_required(self):
         """Test that authentication is required for accessing the endpoint."""
         res = self.client.get(WAREHOUSE_URL)
@@ -70,7 +72,7 @@ class PublicWarehouseApiTests(TestCase):
 
 class PrivateWarehouseApiTests(TestCase):
     """Test API requests for authenticated users."""
-    
+
     def setUp(self):
         self.client = APIClient()
         self.user = create_user(
@@ -78,19 +80,19 @@ class PrivateWarehouseApiTests(TestCase):
             password='testpass',
         )
         self.client.force_authenticate(self.user)
-        
+
     def test_retrieve_warehouses(self):
         """Test retrieving a list of warehouses."""
         create_warehouse()
         create_warehouse()
-        
+
         res = self.client.get(WAREHOUSE_URL)
-        
+
         warehouses = Warehouse.objects.all().order_by('-id')
         serializer = WarehouseSerializer(warehouses, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data['rows'], serializer.data)
-        
+
     def test_create_warehouse(self):
         """Test creating a warehouse."""
         payload = {
@@ -110,23 +112,27 @@ class PrivateWarehouseApiTests(TestCase):
                 self.assertEqual(warehouse.agency.id, value)
             else:
                 self.assertEqual(getattr(warehouse, key), value)
-            
+
     def test_partial_update_warehouse(self):
         """Test partial update of a warehouse."""
-        warehouse = create_warehouse(name='Original Name', location='Original Location')
+        warehouse = create_warehouse(
+            name='Original Name',
+            location='Original Location')
         payload = {'name': 'New Name'}
         url = detail_url(warehouse.id)
         res = self.client.patch(url, payload)
         warehouse.refresh_from_db()
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(warehouse.name, payload['name'])
-        
+
     def test_full_update_warehouse(self):
         """Test full update of a warehouse."""
-        warehouse = create_warehouse(name='Original Name', location='Original Location')
+        warehouse = create_warehouse(
+            name='Original Name',
+            location='Original Location')
         payload = {
             'agency_id': warehouse.agency.id,
-            'name': 'New Name', 
+            'name': 'New Name',
             'location': 'New Location',
         }
         url = detail_url(warehouse.id)

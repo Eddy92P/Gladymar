@@ -13,17 +13,18 @@ import shutil
 
 PRODUCT_URL = reverse('sale:product-list')
 
+
 def create_user(**params):
     """Create and return a sample user."""
     from core.models import Agency
-    
+
     unique_suffix = str(uuid.uuid4())[:4]
     agency = Agency.objects.create(
         name=f'Test Agency {unique_suffix}',
         location=f'Test Location {unique_suffix}',
         city='La Paz',
     )
-    
+
     defaults = {
         'first_name': 'Test',
         'last_name': 'User',
@@ -35,6 +36,7 @@ def create_user(**params):
     }
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
+
 
 def create_warehouse(**params):
     """Create and return a sample warehouse."""
@@ -52,6 +54,7 @@ def create_warehouse(**params):
     warehouse = Warehouse.objects.create(**defaults)
     return warehouse
 
+
 def create_category(**params):
     """Create and return a sample category."""
     unique_suffix = str(uuid.uuid4())[:8]
@@ -61,6 +64,7 @@ def create_category(**params):
     defaults.update(params)
     category = Category.objects.create(**defaults)
     return category
+
 
 def create_batch(**params):
     """Create and return a sample batch."""
@@ -72,6 +76,7 @@ def create_batch(**params):
     defaults.update(params)
     batch = Batch.objects.create(**defaults)
     return batch
+
 
 def create_supplier(**params):
     """Create and return a sample supplier."""
@@ -87,6 +92,7 @@ def create_supplier(**params):
     supplier = Supplier.objects.create(**defaults)
     return supplier
 
+
 def create_product(**params):
     """Create and return a sample product."""
     unique_suffix = str(uuid.uuid4())[:8]
@@ -101,15 +107,16 @@ def create_product(**params):
         'maximum_sale_price': 100,
     }
     defaults.update(params)
-    
+
     # Handle supplier separately since it's a ManyToManyField
     supplier = defaults.pop('supplier', None)
     if supplier is None:
         supplier = create_supplier()
-    
+
     product = Product.objects.create(**defaults)
     product.suppliers.add(supplier)
     return product
+
 
 def create_test_image(name='test_image.jpg', content=None):
     """Create a test image file for testing."""
@@ -117,15 +124,24 @@ def create_test_image(name='test_image.jpg', content=None):
         # Default to a minimal valid JPEG
         content = (
             b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00'
-            b'\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t\x08'
+            b'\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05'
+            b'\x08\x07\x07\x07\t\t\x08'
             b'\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a\x1f\x1e'
-            b'\x1d\x1a\x1c\x1c $.\' ",#\x1c\x1c(7),01444\x1f\'9=82<.342\xff\xc0\x00\x11\x08\x00\x01\x00\x01\x01\x01\x11\x00\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x14\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xff\xc4\x00\x14\x10\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xda\x00\x0c\x03\x01\x00\x02\x11\x03\x11\x00\x3f\x00\xaa\xff\xd9'
+            b'\x1d\x1a\x1c\x1c $.\' ",#\x1c\x1c(7),01444\x1f\'9=82<.342'
+            b'\xff\xc0\x00\x11\x08\x00\x01\x00\x01\x01\x01\x11\x00'
+            b'\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x14\x00\x01\x00'
+            b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+            b'\x00\x08\xff\xc4\x00\x14\x10\x01\x00\x00\x00\x00\x00'
+            b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xda'
+            b'\x00\x0c\x03\x01\x00\x02\x11\x03\x11\x00\x3f\x00\xaa'
+            b'\xff\xd9'
         )
     return SimpleUploadedFile(
         name=name,
         content=content,
         content_type='image/jpeg'
     )
+
 
 def detail_url(product_id):
     """Return the URL for a product detail view."""
@@ -141,6 +157,7 @@ def cleanup_test_media():
 
 class PublicProductApiTests(TestCase):
     """Test API requests for unauthenticated users."""
+
     def setUp(self):
         self.client = APIClient()
 
@@ -153,8 +170,10 @@ class PublicProductApiTests(TestCase):
         res = self.client.get(PRODUCT_URL)
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
+
 class PrivateProductApiTests(TestCase):
     """Test API requests for authenticated users."""
+
     def setUp(self):
         self.client = APIClient()
         self.user = create_user(
@@ -166,7 +185,7 @@ class PrivateProductApiTests(TestCase):
     def tearDown(self):
         """Clean up after each test."""
         cleanup_test_media()
-        
+
     def test_retrieve_products(self):
         """Test retrieving a list of products."""
         create_product()
@@ -180,21 +199,29 @@ class PrivateProductApiTests(TestCase):
     def test_create_product_with_image(self):
         """Test creating a product with an uploaded image."""
         batch = create_batch()
-        
+
         # Create a valid test image file (minimal JPEG)
         # This is a minimal valid JPEG file content
         image_content = (
             b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00'
-            b'\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t\x08'
+            b'\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05'
+            b'\x08\x07\x07\x07\t\t\x08'
             b'\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a\x1f\x1e'
-            b'\x1d\x1a\x1c\x1c $.\' ",#\x1c\x1c(7),01444\x1f\'9=82<.342\xff\xc0\x00\x11\x08\x00\x01\x00\x01\x01\x01\x11\x00\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x14\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xff\xc4\x00\x14\x10\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xda\x00\x0c\x03\x01\x00\x02\x11\x03\x11\x00\x3f\x00\xaa\xff\xd9'
+            b'\x1d\x1a\x1c\x1c $.\' ",#\x1c\x1c(7),01444\x1f\'9=82<.342'
+            b'\xff\xc0\x00\x11\x08\x00\x01\x00\x01\x01\x01\x11\x00'
+            b'\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x14\x00\x01\x00'
+            b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+            b'\x00\x08\xff\xc4\x00\x14\x10\x01\x00\x00\x00\x00\x00'
+            b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xda'
+            b'\x00\x0c\x03\x01\x00\x02\x11\x03\x11\x00\x3f\x00\xaa'
+            b'\xff\xd9'
         )
         image = SimpleUploadedFile(
             name='test_image.jpg',
             content=image_content,
             content_type='image/jpeg'
         )
-        
+
         # Use unique values to avoid conflicts
         unique_suffix = str(uuid.uuid4())[:8]
         supplier = create_supplier()
@@ -209,15 +236,15 @@ class PrivateProductApiTests(TestCase):
             'maximum_sale_price': 200.00,
             'supplier': [supplier.id],
         }
-        
+
         res = self.client.post(PRODUCT_URL, payload, format='multipart')
-        
+
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         product = Product.objects.get(id=res.data['id'])
         self.assertEqual(product.name, payload['name'])
         self.assertTrue(product.image)
         self.assertIn('test_image', product.image.name)
-        
+
         # Clean up the uploaded file
         if product.image:
             if os.path.exists(product.image.path):
@@ -239,9 +266,9 @@ class PrivateProductApiTests(TestCase):
             'maximum_sale_price': 150.00,
             'supplier': [supplier.id],
         }
-        
+
         res = self.client.post(PRODUCT_URL, payload)
-        
+
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         product = Product.objects.get(id=res.data['id'])
         self.assertEqual(product.name, payload['name'])
@@ -253,25 +280,33 @@ class PrivateProductApiTests(TestCase):
 
         image_content = (
             b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00'
-            b'\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t\x08'
+            b'\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05'
+            b'\x08\x07\x07\x07\t\t\x08'
             b'\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a\x1f\x1e'
-            b'\x1d\x1a\x1c\x1c $.\' ",#\x1c\x1c(7),01444\x1f\'9=82<.342\xff\xc0\x00\x11\x08\x00\x01\x00\x01\x01\x01\x11\x00\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x14\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xff\xc4\x00\x14\x10\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xda\x00\x0c\x03\x01\x00\x02\x11\x03\x11\x00\x3f\x00\xaa\xff\xd9'
+            b'\x1d\x1a\x1c\x1c $.\' ",#\x1c\x1c(7),01444\x1f\'9=82<.342'
+            b'\xff\xc0\x00\x11\x08\x00\x01\x00\x01\x01\x01\x11\x00'
+            b'\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x14\x00\x01\x00'
+            b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+            b'\x00\x08\xff\xc4\x00\x14\x10\x01\x00\x00\x00\x00\x00'
+            b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xda'
+            b'\x00\x0c\x03\x01\x00\x02\x11\x03\x11\x00\x3f\x00\xaa'
+            b'\xff\xd9'
         )
         new_image = SimpleUploadedFile(
             name='updated_image.jpg',
             content=image_content,
             content_type='image/jpeg'
         )
-        
+
         payload = {'image': new_image}
         url = detail_url(product.id)
         res = self.client.patch(url, payload, format='multipart')
-        
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         product.refresh_from_db()
         self.assertTrue(product.image)
         self.assertIn('updated_image', product.image.name)
-        
+
         # Clean up the uploaded file
         if product.image:
             if os.path.exists(product.image.path):
@@ -282,24 +317,32 @@ class PrivateProductApiTests(TestCase):
 
         image_content = (
             b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00'
-            b'\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t\x08'
+            b'\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05'
+            b'\x08\x07\x07\x07\t\t\x08'
             b'\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a\x1f\x1e'
-            b'\x1d\x1a\x1c\x1c $.\' ",#\x1c\x1c(7),01444\x1f\'9=82<.342\xff\xc0\x00\x11\x08\x00\x01\x00\x01\x01\x01\x11\x00\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x14\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xff\xc4\x00\x14\x10\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xda\x00\x0c\x03\x01\x00\x02\x11\x03\x11\x00\x3f\x00\xaa\xff\xd9'
+            b'\x1d\x1a\x1c\x1c $.\' ",#\x1c\x1c(7),01444\x1f\'9=82<.342'
+            b'\xff\xc0\x00\x11\x08\x00\x01\x00\x01\x01\x01\x11\x00'
+            b'\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x14\x00\x01\x00'
+            b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+            b'\x00\x08\xff\xc4\x00\x14\x10\x01\x00\x00\x00\x00\x00'
+            b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xda'
+            b'\x00\x0c\x03\x01\x00\x02\x11\x03\x11\x00\x3f\x00\xaa'
+            b'\xff\xd9'
         )
         image = SimpleUploadedFile(
             name='original_image.jpg',
             content=image_content,
             content_type='image/jpeg'
         )
-        
+
         product = create_product(image=image)
         self.assertTrue(product.image)
-        
+
         # Remove the image - use JSON format to set image to null
         payload = {'image': None}
         url = detail_url(product.id)
         res = self.client.patch(url, payload, format='json')
-        
+
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         product.refresh_from_db()
         self.assertFalse(product.image)
@@ -307,7 +350,7 @@ class PrivateProductApiTests(TestCase):
     def test_invalid_image_format(self):
         """Test uploading an invalid image format."""
         batch = create_batch()
-        
+
         # Create a file that's not an image
         invalid_content = b'this is not an image file'
         invalid_file = SimpleUploadedFile(
@@ -326,29 +369,39 @@ class PrivateProductApiTests(TestCase):
             'image': invalid_file,
             'supplier': [supplier.id],
         }
-        
+
         res = self.client.post(PRODUCT_URL, payload, format='multipart')
 
-        self.assertIn(res.status_code, [status.HTTP_400_BAD_REQUEST, status.HTTP_422_UNPROCESSABLE_ENTITY])
-        
+        self.assertIn(res.status_code,
+                      [status.HTTP_400_BAD_REQUEST,
+                       status.HTTP_422_UNPROCESSABLE_ENTITY])
+
     def test_partial_update_product(self):
         """Test partial update of a product."""
         product = create_product(name='Old Name')
         payload = {'name': 'Updated Name'}
         url = detail_url(product.id)
         res = self.client.patch(url, payload)
-        
+
         product.refresh_from_db()
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(product.name, payload['name'])
-        
+
     def test_full_update_product(self):
         """Test full update of a product."""
         image_content = (
             b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00'
-            b'\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t\x08'
+            b'\xff\xdb\x00C\x00\x08\x06\x06\x07\x06\x05'
+            b'\x08\x07\x07\x07\t\t\x08'
             b'\n\x0c\x14\r\x0c\x0b\x0b\x0c\x19\x12\x13\x0f\x14\x1d\x1a\x1f\x1e'
-            b'\x1d\x1a\x1c\x1c $.\' ",#\x1c\x1c(7),01444\x1f\'9=82<.342\xff\xc0\x00\x11\x08\x00\x01\x00\x01\x01\x01\x11\x00\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x14\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\xff\xc4\x00\x14\x10\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xda\x00\x0c\x03\x01\x00\x02\x11\x03\x11\x00\x3f\x00\xaa\xff\xd9'
+            b'\x1d\x1a\x1c\x1c $.\' ",#\x1c\x1c(7),01444\x1f\'9=82<.342'
+            b'\xff\xc0\x00\x11\x08\x00\x01\x00\x01\x01\x01\x11\x00'
+            b'\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x14\x00\x01\x00'
+            b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+            b'\x00\x08\xff\xc4\x00\x14\x10\x01\x00\x00\x00\x00\x00'
+            b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xff\xda'
+            b'\x00\x0c\x03\x01\x00\x02\x11\x03\x11\x00\x3f\x00\xaa'
+            b'\xff\xd9'
         )
         new_image = SimpleUploadedFile(
             name='updated_image.jpg',
@@ -372,11 +425,11 @@ class PrivateProductApiTests(TestCase):
         }
         url = detail_url(product.id)
         res = self.client.put(url, payload, format='multipart')
-        
+
         product.refresh_from_db()
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(product.name, payload['name'])
-        
+
     def test_not_delete_product(self):
         """Test that a product cannot be deleted via API."""
         product = create_product()

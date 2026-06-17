@@ -3,27 +3,33 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from core.models import *
+from core.models import (
+    Agency, Batch, Category, Product, ProductChannelPrice,
+    SellingChannel, Warehouse,
+)
 from sale.serializers import ProductChannelPriceSerializer
 import uuid
-from datetime import datetime
 
 PRODUCT_CHANNEL_URL = reverse('sale:productchannelprice-list')
 
+
 def detail_url(product_channel_id):
-    return reverse('sale:productchannelprice-detail', args=[product_channel_id])
+    return reverse(
+        'sale:productchannelprice-detail',
+        args=[product_channel_id])
+
 
 def create_user(**params):
     """Create and return a sample User."""
     from core.models import Agency
-    
+
     unique_suffix = str(uuid.uuid4())[:4]
     agency = Agency.objects.create(
         name=f'Test Agency {unique_suffix}',
         location=f'Test Location {unique_suffix}',
         city='La Paz',
     )
-    
+
     defaults = {
         'first_name': 'Test',
         'last_name': 'User',
@@ -36,6 +42,7 @@ def create_user(**params):
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
 
+
 def create_agency(**params):
     """Create and return a sample Agency."""
     unique_suffix = str(uuid.uuid4())[:4]
@@ -46,6 +53,7 @@ def create_agency(**params):
     }
     defaults.update(params)
     return Agency.objects.create(**defaults)
+
 
 def create_warehouse(**params):
     """Create and return a sample Warehouse."""
@@ -58,6 +66,7 @@ def create_warehouse(**params):
     defaults.update(params)
     return Warehouse.objects.create(**defaults)
 
+
 def create_category(**params):
     """Create and return a sample Category."""
     unique_suffix = str(uuid.uuid4())[:4]
@@ -66,6 +75,7 @@ def create_category(**params):
     }
     defaults.update(params)
     return Category.objects.create(**defaults)
+
 
 def create_batch(**params):
     """Create and return a sample Batch."""
@@ -76,6 +86,7 @@ def create_batch(**params):
     }
     defaults.update(params)
     return Batch.objects.create(**defaults)
+
 
 def create_product(**params):
     """Create and return a sample Product."""
@@ -92,12 +103,14 @@ def create_product(**params):
     defaults.update(params)
     return Product.objects.create(**defaults)
 
+
 def create_selling_channel(**params):
     defaults = {
         'name': 'Test Selling Channel',
     }
     defaults.update(params)
     return SellingChannel.objects.create(**defaults)
+
 
 def create_product_channel(**params):
     defaults = {
@@ -111,6 +124,7 @@ def create_product_channel(**params):
 
 class PublicProductChannelApiTests(TestCase):
     """Test API requests for unauthorized users."""
+
     def setUp(self):
         self.client = APIClient()
 
@@ -119,9 +133,10 @@ class PublicProductChannelApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
-        
+
 class PrivateProductChannelApiTests(TestCase):
     """Test API requests for authorized users."""
+
     def setUp(self):
         self.client = APIClient()
         self.user = create_user()
@@ -152,7 +167,9 @@ class PrivateProductChannelApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(payload['product'], product_channel.product.id)
-        self.assertEqual(payload['selling_channel'], product_channel.selling_channel.id)
+        self.assertEqual(
+            payload['selling_channel'],
+            product_channel.selling_channel.id)
         self.assertEqual(payload['price'], product_channel.price)
 
     def test_partial_update_product_channel(self):

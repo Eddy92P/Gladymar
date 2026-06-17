@@ -1,11 +1,17 @@
-from zoneinfo import available_timezones
 from django.test import TestCase
-from core.models import *
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from core.models import (
+    Agency, Batch, Category, Client, Entry, EntryItem,
+    Output, OutputItem, Product, ProductStock, Purchase, PurchaseItem,
+    Sale, SaleItem, Seller, SellingChannel, Setting, Supplier,
+    User, Warehouse,
+)
+
 
 class ModelTest(TestCase):
     """Test models."""
+
     def test_create_user_with_email_succesful(self):
         """Test creating a user with an email is successful"""
         email = 'test@example.com'
@@ -25,10 +31,10 @@ class ModelTest(TestCase):
             address='Test Address',
             agency=agency,
         )
-        
+
         self.assertEqual(user.email, email)
         self.assertTrue(user.check_password(password))
-        
+
     def test_new_user_email_normalized(self):
         """Test the email for a new user is normalized"""
         sample_emails = [
@@ -44,7 +50,7 @@ class ModelTest(TestCase):
         )
         for i, (email, expected) in enumerate(sample_emails):
             user = get_user_model().objects.create_user(
-                email, 
+                email,
                 'sample123',
                 first_name='Test',
                 last_name='User',
@@ -54,12 +60,12 @@ class ModelTest(TestCase):
                 agency=agency,
             )
             self.assertEqual(user.email, expected)
-    
+
     def test_new_user_without_email_raises_error(self):
         """Test that creating a user without an email raises a ValueError"""
         with self.assertRaises(ValueError):
             get_user_model().objects.create_user(
-                '', 
+                '',
                 'sample123',
                 first_name='Test',
                 last_name='User',
@@ -67,7 +73,7 @@ class ModelTest(TestCase):
                 phone='12345678',
                 address='Test Address',
             )
-            
+
     def test_create_superuser(self):
         """Test creating a superuser"""
         agency = Agency.objects.create(
@@ -81,7 +87,7 @@ class ModelTest(TestCase):
             agency=agency,
         )
         self.assertTrue(user.is_superuser)
-    
+
     def test_create_seller(self):
         """Test creating a seller"""
         agency = Agency.objects.create(
@@ -102,7 +108,7 @@ class ModelTest(TestCase):
         seller = Seller.objects.create(user=user, commission=10)
         self.assertEqual(seller.user, user)
         self.assertEqual(seller.commission, 10)
-        
+
     def test_create_setting(self):
         """Test creating a setting"""
         setting = Setting.objects.create(
@@ -111,7 +117,7 @@ class ModelTest(TestCase):
         )
         self.assertEqual(setting.name, 'Test Setting')
         self.assertEqual(setting.value, 'Test Value')
-        
+
     def test_create_supplier(self):
         """Test creating a supplier"""
         supplier = Supplier.objects.create(
@@ -135,7 +141,7 @@ class ModelTest(TestCase):
         self.assertEqual(selling_channel.name, 'Test Selling Channel')
         self.assertIsNotNone(selling_channel.created_at)
         self.assertIsNotNone(selling_channel.updated_at)
-        
+
     def test_create_agency(self):
         """Test creating an agency"""
         setting = Agency.objects.create(
@@ -146,7 +152,7 @@ class ModelTest(TestCase):
         self.assertEqual(setting.name, 'Test Setting')
         self.assertEqual(setting.location, 'Test Value')
         self.assertEqual(setting.city, 'LP')
-        
+
     def test_create_client(self):
         """Test creating a Client."""
         client = Client.objects.create(
@@ -161,8 +167,8 @@ class ModelTest(TestCase):
         self.assertEqual(client.nit, '1234567890')
         self.assertEqual(client.email, 'test@example.com')
         self.assertEqual(client.address, 'Test Address')
-        
-    def test_create_agency(self):
+
+    def test_create_agency_with_location(self):
         """Test creating an Agency."""
         agency = Agency.objects.create(
             name='Test Agency',
@@ -172,7 +178,7 @@ class ModelTest(TestCase):
         self.assertEqual(agency.name, 'Test Agency')
         self.assertEqual(agency.location, 'Test Agency Location')
         self.assertEqual(agency.city, 'La Paz')
-        
+
     def test_create_warehouse(self):
         """Test creating a Warehouse."""
         warehouse = Warehouse.objects.create(
@@ -226,7 +232,7 @@ class ModelTest(TestCase):
         self.assertEqual(product.description, 'Test Description')
         self.assertEqual(product.minimum_sale_price, 10)
         self.assertEqual(product.maximum_sale_price, 20)
-        
+
     def test_create_product_with_invalid_stock(self):
         """Test creating a Product Stock with invalid stock."""
         with self.assertRaises(ValidationError):
@@ -260,7 +266,7 @@ class ModelTest(TestCase):
                 minimum_stock=70,
                 maximum_stock=60,
             ),
-            
+
     def test_create_product_with_invalid_sale_price(self):
         """Test creating a Product with invalid sale price."""
         with self.assertRaises(ValidationError):
@@ -277,7 +283,7 @@ class ModelTest(TestCase):
                 minimum_sale_price=20,
                 maximum_sale_price=10,
             )
-    
+
     def test_create_entry(self):
         """Test creating a Entry."""
         agency = Agency.objects.create(
@@ -310,7 +316,7 @@ class ModelTest(TestCase):
         )
         self.assertEqual(entry.entry_date, '2025-01-01')
         self.assertEqual(entry.invoice_number, '1234567890')
-        
+
     def test_create_entry_item(self):
         """Test creating a EntryItem."""
         agency = Agency.objects.create(
@@ -375,7 +381,7 @@ class ModelTest(TestCase):
             quantity=10,
         )
         self.assertEqual(entry_item.quantity, 10)
-        
+
     def test_create_output(self):
         """Test creating a Output."""
         agency = Agency.objects.create(
@@ -405,7 +411,7 @@ class ModelTest(TestCase):
             output_date='2025-01-01',
         )
         self.assertEqual(output.output_date, '2025-01-01')
-        
+
     def test_create_output_item(self):
         """Test creating a OutputItem."""
         agency = Agency.objects.create(
@@ -468,7 +474,7 @@ class ModelTest(TestCase):
             quantity=10,
         )
         self.assertEqual(output_item.quantity, 10)
-        
+
     def test_create_purchase(self):
         """Test creating a Purchase."""
         agency = Agency.objects.create(
@@ -485,7 +491,7 @@ class ModelTest(TestCase):
                 email='test@example.com',
                 address='Test Address',
             ),
-            purchase_type= 'contado',
+            purchase_type='contado',
             buyer=User.objects.create(
                 email='test13@example.com',
                 password='testpass41234',
@@ -504,7 +510,7 @@ class ModelTest(TestCase):
         )
         self.assertEqual(purchase.total, 100)
         self.assertEqual(purchase.status, 'pending')
-        
+
     def test_create_purchase_item(self):
         """Test creating a Purchase Item."""
         agency = Agency.objects.create(
@@ -522,7 +528,7 @@ class ModelTest(TestCase):
                     email='test32@example.com',
                     address='Test Address',
                 ),
-                purchase_type= 'contado',
+                purchase_type='contado',
                 buyer=User.objects.create(
                     email='test111@example.com',
                     password='testpass1123',
@@ -576,7 +582,7 @@ class ModelTest(TestCase):
         self.assertEqual(purchase_item.quantity, 10)
         self.assertEqual(purchase_item.unit_price, 10)
         self.assertEqual(purchase_item.total_price, 100)
-        
+
     def test_create_sale(self):
         """Test creating a Sale."""
         agency = Agency.objects.create(
@@ -612,7 +618,7 @@ class ModelTest(TestCase):
         )
         self.assertEqual(sale.total, 100)
         self.assertEqual(sale.status, 'pending')
-        
+
     def test_create_sale_item(self):
         """Test creating a SaleItem."""
         agency = Agency.objects.create(

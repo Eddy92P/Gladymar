@@ -3,14 +3,19 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from core.models import *
+from core.models import (
+    Agency, Batch, Category, Client, Product, ProductStock,
+    Sale, SaleItem, SellingChannel, Warehouse,
+)
 import uuid
 from datetime import datetime
 
 SALE_URL = reverse('sale:sale-list')
 
+
 def detail_url(sale_id):
     return reverse('sale:sale-detail', args=[sale_id])
+
 
 def create_user(**params):
     """Create and return a sample User."""
@@ -27,6 +32,7 @@ def create_user(**params):
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
 
+
 def create_client(**params):
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
@@ -40,6 +46,7 @@ def create_client(**params):
 
     return Client.objects.create(**defaults)
 
+
 def create_agency(**params):
     """Create and return a sample Agency."""
     unique_suffix = str(uuid.uuid4())[:4]
@@ -50,6 +57,7 @@ def create_agency(**params):
     }
     defaults.update(params)
     return Agency.objects.create(**defaults)
+
 
 def create_warehouse(**params):
     """Create and return a sample Warehouse."""
@@ -62,6 +70,7 @@ def create_warehouse(**params):
     defaults.update(params)
     return Warehouse.objects.create(**defaults)
 
+
 def create_category(**params):
     """Create and return a sample Category."""
     unique_suffix = str(uuid.uuid4())[:4]
@@ -70,6 +79,7 @@ def create_category(**params):
     }
     defaults.update(params)
     return Category.objects.create(**defaults)
+
 
 def create_batch(**params):
     """Create and return a sample Batch."""
@@ -80,6 +90,7 @@ def create_batch(**params):
     }
     defaults.update(params)
     return Batch.objects.create(**defaults)
+
 
 def create_product(**params):
     """Create and return a sample Product."""
@@ -96,6 +107,7 @@ def create_product(**params):
     defaults.update(params)
     return Product.objects.create(**defaults)
 
+
 def create_product_stock(**params):
     """Create and return a sample ProductStock."""
     defaults = {
@@ -110,12 +122,14 @@ def create_product_stock(**params):
     defaults.update(params)
     return ProductStock.objects.create(**defaults)
 
+
 def create_selling_channel(**params):
     defaults = {
         'name': 'Test selling channel',
     }
     defaults.update(params)
     return SellingChannel.objects.create(**defaults)
+
 
 def create_sale(**params):
     """Create and return a sample Sale."""
@@ -130,7 +144,7 @@ def create_sale(**params):
         'sale_type': 'contado',
         'sale_date': '2024-01-01',
     }
-    
+
     defaults.update(params)
     sale_items_data = defaults.pop('sale_items', [])
     sale = Sale.objects.create(**defaults)
@@ -147,12 +161,13 @@ def create_sale(**params):
             total_price=10.00,
             dispatched_stock=5,
         )
-    
+
     return sale
 
 
 class PublicSaleApiTests(TestCase):
     """Test API for unauthorized users."""
+
     def setUp(self):
         self.client = APIClient()
 
@@ -161,9 +176,10 @@ class PublicSaleApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
-        
+
 class PrivateSaleApiTests(TestCase):
     """Test API request for authorized users."""
+
     def setUp(self):
         self.client = APIClient()
         self.user = create_user(
@@ -188,8 +204,10 @@ class PrivateSaleApiTests(TestCase):
         self.assertIn(sale2.id, sale_ids)
 
         # Verify the structure of our sales in the response
-        sale1_data = next(sale for sale in res.data['rows'] if sale['id'] == sale1.id)
-        sale2_data = next(sale for sale in res.data['rows'] if sale['id'] == sale2.id)
+        sale1_data = next(
+            sale for sale in res.data['rows'] if sale['id'] == sale1.id)
+        sale2_data = next(
+            sale for sale in res.data['rows'] if sale['id'] == sale2.id)
 
         self.assertEqual(float(sale1_data['total']), float(sale1.total))
         self.assertEqual(float(sale2_data['total']), float(sale2.total))
@@ -226,8 +244,12 @@ class PrivateSaleApiTests(TestCase):
         self.assertEqual(payload['selling_channel'], sale.selling_channel.id)
         self.assertEqual(payload['total'], sale.total)
         for sale_item in sale.sale_items.all():
-            self.assertEqual(payload['sale_items'][0]['product_stock'], sale_item.product_stock.id)
-            self.assertEqual(payload['sale_items'][0]['quantity'], sale_item.quantity)
+            self.assertEqual(
+                payload['sale_items'][0]['product_stock'],
+                sale_item.product_stock.id)
+            self.assertEqual(
+                payload['sale_items'][0]['quantity'],
+                sale_item.quantity)
 
     def test_partial_update_sale(self):
         """Test for partial update a sale."""
@@ -275,7 +297,11 @@ class PrivateSaleApiTests(TestCase):
         self.assertEqual(payload['balance_due'], sale.balance_due)
         self.assertEqual(payload['status'], sale.status)
         self.assertEqual(payload['sale_type'], sale.sale_type)
-        self.assertEqual(datetime.strptime(payload['sale_date'], '%Y-%m-%d').date(), sale.sale_date)
+        self.assertEqual(
+            datetime.strptime(
+                payload['sale_date'],
+                '%Y-%m-%d').date(),
+            sale.sale_date)
         sale_items = list(sale.sale_items.all())
         self.assertEqual(len(payload['sale_items']), len(sale_items))
         for i, payload_item in enumerate(payload['sale_items']):

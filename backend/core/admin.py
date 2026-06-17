@@ -5,23 +5,42 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
 
-from core.models import *
+from core.models import (
+    User, Agency, Client, Warehouse, Category, Product,
+    Supplier, SellingChannel, Purchase, Entry, Output, Sale, Payment,
+)
 
 
 class UserAdmin(BaseUserAdmin):
     """Define the admin pages for users."""
     ordering = ['id']
-    list_display = ['email', 'first_name', 'last_name', 'user_type', 'is_active']
+    list_display = [
+        'email',
+        'first_name',
+        'last_name',
+        'user_type',
+        'is_active']
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         (_('Personal info'), {
-            'fields': ('first_name', 'last_name', 'ci', 'phone', 'address', 'user_type', 'agency')
+            'fields': (
+                'first_name', 'last_name', 'ci',
+                'phone', 'address', 'user_type', 'agency',
+            )
         }),
         (
             _('Permissions'),
-            {'fields': ('is_active', 'is_staff', 'is_superuser', 'user_permissions')}
+            {
+                'fields': (
+                    'is_active', 'is_staff',
+                    'is_superuser', 'user_permissions',
+                )
+            }
         ),
-        (_('Important dates'), {'fields': ('last_login', 'created_at', 'updated_at')}),
+        (
+            _('Important dates'),
+            {'fields': ('last_login', 'created_at', 'updated_at')},
+        ),
     )
     readonly_fields = ['last_login', 'created_at', 'updated_at']
     add_fieldsets = (

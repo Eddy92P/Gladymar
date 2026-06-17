@@ -64,7 +64,7 @@ class LoginView(APIView):
 
         return response
 
-    
+
 class LogoutView(APIView):
     """Logout a user from the system."""
     permission_classes = [permissions.IsAuthenticated]
@@ -98,8 +98,8 @@ class LogoutView(APIView):
         )
 
         return response
-    
-    
+
+
 class RefreshView(APIView):
     permission_classes = [permissions.AllowAny]
 

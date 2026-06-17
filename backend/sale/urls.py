@@ -27,18 +27,60 @@ router.register('payments', views.PaymentViewSet)
 app_name = 'sale'
 
 urlpatterns = [
-    path('', include(router.urls)),
-    path("catalog/", views.CatalogView.as_view(), name="catalog"),
-    path('proforma-pdf/<int:id>/', views.InvoicePdfView.as_view(), name='proforma-pdf'),
-    path('output-pdf/<int:id>/', views.OutputInvoicePdfView.as_view(), name='output-pdf'),
-    path('buy-report-pdf/', views.BuyReportPdfView.as_view(), name='buy-report-pdf'),
-    path('sell-report-pdf/', views.SellReportPdfView.as_view(), name='sell-report-pdf'),
-    path('entry-report-pdf/', views.EntryReportPdfView.as_view(), name='entry-report-pdf'),
-    path('output-report-pdf/', views.OutputReportPdfView.as_view(), name='output-report-pdf'),
-    path('buy-report-excel/', views.BuyReportExcelView.as_view(), name='buy-report-excel'),
-    path('sale-report-excel/', views.SaleReportExcelView.as_view(), name='sale-report-excel'),
-    path('entry-report-excel/', views.EntryReportExcelView.as_view(), name='entry-report-excel'),
-    path('output-report-excel/', views.OutputReportExcelView.as_view(), name='output-report-excel'),
-    path('inventory-report-pdf/', views.InventoryReportPdfView.as_view(), name='inventory-report-pdf'),
-    path('inventory-report-excel/', views.InventoryReportExcelView.as_view(), name='inventory-report-excel'),
+    path(
+        '',
+        include(
+            router.urls)),
+    path(
+        "catalog/",
+        views.CatalogView.as_view(),
+        name="catalog"),
+    path(
+        'proforma-pdf/<int:id>/',
+        views.InvoicePdfView.as_view(),
+        name='proforma-pdf'),
+    path(
+        'output-pdf/<int:id>/',
+        views.OutputInvoicePdfView.as_view(),
+        name='output-pdf'),
+    path(
+        'buy-report-pdf/',
+        views.BuyReportPdfView.as_view(),
+        name='buy-report-pdf'),
+    path(
+        'sell-report-pdf/',
+        views.SellReportPdfView.as_view(),
+        name='sell-report-pdf'),
+    path(
+        'entry-report-pdf/',
+        views.EntryReportPdfView.as_view(),
+        name='entry-report-pdf'),
+    path(
+        'output-report-pdf/',
+        views.OutputReportPdfView.as_view(),
+        name='output-report-pdf'),
+    path(
+        'buy-report-excel/',
+        views.BuyReportExcelView.as_view(),
+        name='buy-report-excel'),
+    path(
+        'sale-report-excel/',
+        views.SaleReportExcelView.as_view(),
+        name='sale-report-excel'),
+    path(
+        'entry-report-excel/',
+        views.EntryReportExcelView.as_view(),
+        name='entry-report-excel'),
+    path(
+        'output-report-excel/',
+        views.OutputReportExcelView.as_view(),
+        name='output-report-excel'),
+    path(
+        'inventory-report-pdf/',
+        views.InventoryReportPdfView.as_view(),
+        name='inventory-report-pdf'),
+    path(
+        'inventory-report-excel/',
+        views.InventoryReportExcelView.as_view(),
+        name='inventory-report-excel'),
 ]

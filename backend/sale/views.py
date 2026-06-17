@@ -3,7 +3,6 @@ Views for warehouse API.
 """
 from rest_framework import viewsets, filters
 from rest_framework.decorators import action
-from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
@@ -16,10 +15,33 @@ from django.db.models import Subquery
 from datetime import datetime
 from django_filters.rest_framework import DjangoFilterBackend
 from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.styles import Font, PatternFill, Alignment
 
-from .serializers import *
-from core.models import *
+from core.models import (
+    Agency, Batch, Category, Client, Entry, EntryItem,
+    Output, OutputItem, Payment, Product, ProductChannelPrice,
+    ProductStock, Purchase, PurchaseItem, Sale, SaleItem,
+    SellingChannel, Supplier, Warehouse,
+)
+from .serializers import (
+    AgencySerializer,
+    BatchSerializer,
+    CatalogProductSerializer,
+    CategorySerializer,
+    ClientSerializer,
+    EntrySerializer,
+    IncrementDamagedStockSerializer,
+    OutputSerializer,
+    PaymentSerializer,
+    ProductChannelPriceSerializer,
+    ProductSerializer,
+    ProductStockSerializer,
+    PurchaseSerializer,
+    SaleSerializer,
+    SellingChannelSerializer,
+    SupplierSerializer,
+    WarehouseSerializer,
+)
 
 
 class PersonalizedPagination(LimitOffsetPagination):
@@ -43,11 +65,14 @@ class CatalogView(APIView):
         search = request.query_params.get("search", "").strip()
 
         if selling_channel_id:
-            prices = ProductChannelPrice.objects.filter(selling_channel=selling_channel_id)
-            products_stock = ProductStock.objects.filter(product__in=Subquery(prices.values('product'))).select_related('product')
+            prices = ProductChannelPrice.objects.filter(
+                selling_channel=selling_channel_id)
+            products_stock = ProductStock.objects.filter(product__in=Subquery(
+                prices.values('product'))).select_related('product')
             product_price = {
                 pp.product_id: pp
-                for pp in ProductChannelPrice.objects.filter(selling_channel=selling_channel_id)
+                for pp in ProductChannelPrice.objects.filter(
+                    selling_channel=selling_channel_id)
             }
 
             for product_stock in products_stock:
@@ -58,7 +83,10 @@ class CatalogView(APIView):
                     continue
 
                 # Apply search filter
-                if search and not (search.lower() in product.name.lower() or search.lower() in product.code.lower()):
+                if search and not (
+                    search.lower() in product_stock.product.name.lower()
+                    or search.lower() in product_stock.product.code.lower()
+                ):
                     continue
 
                 data.append({
@@ -71,18 +99,24 @@ class CatalogView(APIView):
                     "stock": product_stock.available_stock,
                     "minimum_stock": product_stock.minimum_stock,
                     "maximum_stock": product_stock.maximum_stock,
-                    "name": product_stock.product.name,
-                    "minimum_sale_price": product_stock.product.minimum_sale_price,
-                    "maximum_sale_price": product_stock.product.maximum_sale_price,
+                    "minimum_sale_price": (
+                        product_stock.product.minimum_sale_price
+                    ),
+                    "maximum_sale_price": (
+                        product_stock.product.maximum_sale_price
+                    ),
                 })
         elif agency_id and sale_id:
-            sale_items = SaleItem.objects.filter(sale=sale_id, sale__agency=agency_id).exclude(status='completado').prefetch_related('product_stock')
+            sale_items = SaleItem.objects.filter(
+                sale=sale_id, sale__agency=agency_id).exclude(
+                status='completado').prefetch_related('product_stock')
 
             for sale_item in sale_items:
                 product = sale_item.product_stock.product
-                
+
                 # Apply search filter
-                if search and not (search.lower() in product.name.lower() or search.lower() in product.code.lower()):
+                if search and not (search.lower() in product.name.lower(
+                ) or search.lower() in product.code.lower()):
                     continue
 
                 data.append({
@@ -102,19 +136,24 @@ class CatalogView(APIView):
                     "status": sale_item.status,
                 })
         elif agency_id and purchase_id:
-            purchase_items = PurchaseItem.objects.filter(purchase=purchase_id, purchase__agency=agency_id).exclude(status='completado').prefetch_related('product_stock')
+            purchase_items = PurchaseItem.objects.filter(
+                purchase=purchase_id, purchase__agency=agency_id).exclude(
+                status='completado').prefetch_related('product_stock')
 
             for purchase_item in purchase_items:
                 product = purchase_item.product_stock.product
-                
+
                 # Apply search filter
-                if search and not (search.lower() in product.name.lower() or search.lower() in product.code.lower()):
+                if search and not (search.lower() in product.name.lower(
+                ) or search.lower() in product.code.lower()):
                     continue
 
                 data.append({
                     "purchase_item_id": purchase_item.id,
                     "id": purchase_item.product_stock.id,
-                    "agency": purchase_item.product_stock.warehouse.agency.name,
+                    "agency": (
+                        purchase_item.product_stock.warehouse.agency.name
+                    ),
                     "warehouse": purchase_item.product_stock.warehouse.name,
                     "name": product.name,
                     "code": product.code,
@@ -127,11 +166,15 @@ class CatalogView(APIView):
                     "status": purchase_item.status,
                 })
         elif agency_id:
-            products = ProductStock.objects.filter(warehouse__agency=agency_id).select_related('product')
+            products = ProductStock.objects.filter(
+                warehouse__agency=agency_id).select_related('product')
 
             for product in products:
                 # Apply search filter
-                if search and not (search.lower() in product.product.name.lower() or search.lower() in product.product.code.lower()):
+                if search and not (
+                    search.lower() in product.product.name.lower()
+                    or search.lower() in product.product.code.lower()
+                ):
                     continue
 
                 data.append({
@@ -152,7 +195,10 @@ class CatalogView(APIView):
 
             for product in products:
                 # Apply search filter
-                if search and not (search.lower() in product.product.name.lower() or search.lower() in product.product.code.lower()):
+                if search and not (
+                    search.lower() in product.product.name.lower()
+                    or search.lower() in product.product.code.lower()
+                ):
                     continue
 
                 data.append({
@@ -185,19 +231,21 @@ class AgencyViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve agencies ordered by id."""
         return self.queryset.order_by('-id')
-    
+
     @action(detail=False, methods=['get'])
     def choices(self, request):
         """Get city choices."""
         choices = [
-            {'value': choice[0], 'label': choice[1]} 
+            {'value': choice[0], 'label': choice[1]}
             for choice in Agency.CITY_CHOICES
         ]
         return Response(choices)
-    
+
     @action(detail=False, methods=["get"], url_path="all")
     def all_agencies(self, request):
-        queryset = self.filter_queryset(self.get_queryset()).values("id", "name")
+        queryset = self.filter_queryset(
+            self.get_queryset()).values(
+            "id", "name")
         return Response(list(queryset))
 
 
@@ -229,10 +277,12 @@ class CategoryViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve categories ordered by id."""
         return self.queryset.order_by('-id')
-    
+
     @action(detail=False, methods=["get"], url_path="all")
     def all_categories(self, request):
-        queryset = self.filter_queryset(self.get_queryset()).values("id", "name")
+        queryset = self.filter_queryset(
+            self.get_queryset()).values(
+            "id", "name")
         return Response(list(queryset))
 
 
@@ -249,10 +299,12 @@ class BatchViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve batches ordered by id."""
         return self.queryset.order_by('-id')
-    
+
     @action(detail=False, methods=["get"], url_path="all")
     def all_categories(self, request):
-        queryset = self.filter_queryset(self.get_queryset()).values("id", "name")
+        queryset = self.filter_queryset(
+            self.get_queryset()).values(
+            "id", "name")
         return Response(list(queryset))
 
 
@@ -269,22 +321,23 @@ class ProductViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve products ordered by id."""
         return self.queryset.order_by('-id')
-    
+
     def update(self, request, *args, **kwargs):
         """Custom update method to handle image deletion."""
         instance = self.get_object()
-        
-        # Check if image should be deleted (not present in request data or explicitly set to null/empty)
+
+        # Check if image should be deleted (not present in request data or
+        # explicitly set to null/empty)
         should_delete_image = (
-            'image' not in request.data or 
-            request.data.get('image') is None or 
+            'image' not in request.data or
+            request.data.get('image') is None or
             request.data.get('image') == ''
         )
-        
+
         if should_delete_image and instance.image:
             # Delete the old image file from storage
             instance.delete_image()
-        
+
         return super().update(request, *args, **kwargs)
 
 
@@ -301,7 +354,7 @@ class ProductStockViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve product stocks ordered by id."""
         return self.queryset.order_by('-id')
-    
+
     @action(detail=True, methods=['post'], url_path='increment-damaged-stock')
     def increment_damaged_stock(self, request, pk=None):
         """Increment damaged stock by a given quantity."""
@@ -310,18 +363,23 @@ class ProductStockViewSet(viewsets.ModelViewSet):
             data=request.data,
             context={'product_stock': product_stock}
         )
-        
+
         if serializer.is_valid():
             quantity = serializer.validated_data['quantity']
             product_stock.damaged_stock += quantity
             product_stock.available_stock -= quantity
-            product_stock.save(update_fields=['damaged_stock', 'available_stock'])
-            
+            product_stock.save(
+                update_fields=[
+                    'damaged_stock',
+                    'available_stock'])
+
             return Response({
-                'message': f'Stock dañado incrementado en {quantity} unidades.',
+                'message': (
+                    f'Stock dañado incrementado en {quantity} unidades.'
+                ),
                 'damaged_stock': product_stock.damaged_stock
             })
-        
+
         return Response(serializer.errors, status=400)
 
 
@@ -332,7 +390,7 @@ class ClientViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
-    search_fields = ['id', 'name', 'phone', 'email','nit']
+    search_fields = ['id', 'name', 'phone', 'email', 'nit']
     filterset_fields = ['client_type']
     pagination_class = PersonalizedPagination
 
@@ -344,14 +402,16 @@ class ClientViewSet(viewsets.ModelViewSet):
     def choices(self, request):
         """Get client type choices."""
         choices = [
-            {'value': choice[0], 'label': choice[1]} 
+            {'value': choice[0], 'label': choice[1]}
             for choice in Client.CLIENT_TYPE_CHOICES
         ]
         return Response(choices)
-    
+
     @action(detail=False, methods=["get"], url_path="all")
     def all_clients(self, request):
-        queryset = self.filter_queryset(self.get_queryset()).values("id", "name")
+        queryset = self.filter_queryset(
+            self.get_queryset()).values(
+            "id", "name")
         return Response(list(queryset))
 
 
@@ -368,10 +428,12 @@ class SupplierViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve suppliers ordered by id."""
         return self.queryset.order_by('-id')
-    
+
     @action(detail=False, methods=["get"], url_path="all")
     def all_suppliers(self, request):
-        queryset = self.filter_queryset(self.get_queryset()).values("id", "name")
+        queryset = self.filter_queryset(
+            self.get_queryset()).values(
+            "id", "name")
         return Response(list(queryset))
 
 
@@ -382,10 +444,14 @@ class EntryViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
-    search_fields = ['id', 'invoice_number',
-                     'warehouse_keeper__first_name', 'warehouse_keeper__last_name', 'supplier__name']
+    search_fields = [
+        'id',
+        'invoice_number',
+        'warehouse_keeper__first_name',
+        'warehouse_keeper__last_name',
+        'supplier__name']
     pagination_class = PersonalizedPagination
-    
+
     def perform_create(self, serializer):
         serializer.save(warehouse_keeper=self.request.user)
 
@@ -401,10 +467,13 @@ class OutputViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
-    search_fields = ['id',
-                     'warehouse_keeper__first_name', 'warehouse_keeper__last_name', 'client__name']
+    search_fields = [
+        'id',
+        'warehouse_keeper__first_name',
+        'warehouse_keeper__last_name',
+        'client__name']
     pagination_class = PersonalizedPagination
-    
+
     def perform_create(self, serializer):
         serializer.save(warehouse_keeper=self.request.user)
 
@@ -441,7 +510,7 @@ class SellingChannelViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve selling channels ordered by id."""
         return self.queryset.order_by('-id')
-    
+
     @action(detail=False, methods=["get"], url_path="all")
     def all_selling_channels(self, request):
         queryset = self.filter_queryset(self.get_queryset())
@@ -456,7 +525,12 @@ class PurchaseViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
-    search_fields = ['id', 'buyer__first_name', 'buyer__last_name', 'supplier__name', 'invoice_number']
+    search_fields = [
+        'id',
+        'buyer__first_name',
+        'buyer__last_name',
+        'supplier__name',
+        'invoice_number']
     filterset_fields = ['purchase_type', 'status', 'purchase_date']
     pagination_class = PersonalizedPagination
 
@@ -481,7 +555,12 @@ class SaleViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter, DjangoFilterBackend]
-    search_fields = ['id', 'client__name', 'selling_channel__name', 'seller__first_name', 'seller__last_name']
+    search_fields = [
+        'id',
+        'client__name',
+        'selling_channel__name',
+        'seller__first_name',
+        'seller__last_name']
     filterset_fields = ['sale_type', 'status', 'sale_date']
     pagination_class = PersonalizedPagination
 
@@ -513,9 +592,10 @@ class PaymentViewSet(viewsets.ModelViewSet):
         """Retrieve payments ordered by id."""
         return self.queryset.order_by('-id')
 
-    
+
 class InvoicePdfView(View):
     """Generate Proforma PDF."""
+
     def get(self, request, *args, **kwargs):
         sale_id = self.kwargs.get('id')
         try:
@@ -532,17 +612,23 @@ class InvoicePdfView(View):
             'isSale': isSale,
         }
         html_string = render_to_string('invoice.html', context)
-        html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+        html = HTML(
+            string=html_string,
+            base_url=request.build_absolute_uri('/'))
 
         pdf_file = html.write_pdf()
 
         response = HttpResponse(pdf_file, content_type='application/pdf')
-        response['Content-Disposition'] = f'inline; filename="comprobante_de_venta_{sale_id}.pdf"'
+        response['Content-Disposition'] = (
+            f'inline; filename="comprobante_de_venta_{sale_id}.pdf"'
+        )
 
         return response
-    
+
+
 class OutputInvoicePdfView(View):
     """Generate Output PDF."""
+
     def get(self, request, *args, **kwargs):
         output_id = self.kwargs.get('id')
         try:
@@ -558,18 +644,23 @@ class OutputInvoicePdfView(View):
             'isOutputDone': isOutputDone,
         }
         html_string = render_to_string('output_invoice.html', context)
-        html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+        html = HTML(
+            string=html_string,
+            base_url=request.build_absolute_uri('/'))
 
         pdf_file = html.write_pdf()
 
         response = HttpResponse(pdf_file, content_type='application/pdf')
-        response['Content-Disposition'] = f'inline; filename="comprobante_de_salida_{output_id}.pdf"'
+        response['Content-Disposition'] = (
+            f'inline; filename="comprobante_de_salida_{output_id}.pdf"'
+        )
 
         return response
 
 
 class BuyReportPdfView(View):
     """Generate Buy Report PDF."""
+
     def get(self, request, *args, **kwargs):
         start_date_str = request.GET.get("start_date")
         end_date_str = request.GET.get("end_date")
@@ -577,7 +668,9 @@ class BuyReportPdfView(View):
         start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
         end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
         try:
-            purchase_items = PurchaseItem.objects.filter(purchase__purchase_date__range=(start_date, end_date)).select_related("purchase").order_by("purchase__id")
+            purchase_items = PurchaseItem.objects.filter(
+                purchase__purchase_date__range=(start_date, end_date)
+            ).select_related("purchase").order_by("purchase__id")
         except PurchaseItem.DoesNotExist:
             raise Http404("Compras no encontradas.")
 
@@ -589,18 +682,24 @@ class BuyReportPdfView(View):
             'today': today,
         }
         html_string = render_to_string('buy_report.html', context)
-        html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+        html = HTML(
+            string=html_string,
+            base_url=request.build_absolute_uri('/'))
 
         pdf_file = html.write_pdf()
 
         response = HttpResponse(pdf_file, content_type='application/pdf')
-        response['Content-Disposition'] = f'inline; filename="reporte_de_compras_{start_date}_a_{end_date}.pdf"'
+        response['Content-Disposition'] = (
+            f'inline; filename="reporte_de_compras_{start_date}'
+            f'_a_{end_date}.pdf"'
+        )
 
         return response
 
-    
+
 class SellReportPdfView(View):
     """Generate Sell Report PDF."""
+
     def get(self, request, *args, **kwargs):
         start_date_str = request.GET.get("start_date")
         end_date_str = request.GET.get("end_date")
@@ -608,7 +707,9 @@ class SellReportPdfView(View):
         end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
         today = datetime.now().date()
         try:
-            sale_items = SaleItem.objects.filter(sale__sale_date__range=(start_date, end_date)).select_related("sale").order_by("sale__id")
+            sale_items = SaleItem.objects.filter(
+                sale__sale_date__range=(start_date, end_date)
+            ).select_related("sale").order_by("sale__id")
         except SaleItem.DoesNotExist:
             raise Http404("Ventas no encontradas.")
 
@@ -620,18 +721,24 @@ class SellReportPdfView(View):
             'today': today,
         }
         html_string = render_to_string('sell_report.html', context)
-        html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+        html = HTML(
+            string=html_string,
+            base_url=request.build_absolute_uri('/'))
 
         pdf_file = html.write_pdf()
 
         response = HttpResponse(pdf_file, content_type='application/pdf')
-        response['Content-Disposition'] = f'inline; filename="reporte_de_ventas_{start_date}_a_{end_date}.pdf"'
+        response['Content-Disposition'] = (
+            f'inline; filename="reporte_de_ventas_{start_date}'
+            f'_a_{end_date}.pdf"'
+        )
 
         return response
 
 
 class EntryReportPdfView(View):
     """Generate Entry Report PDF."""
+
     def get(self, request, *args, **kwargs):
         start_date_str = request.GET.get("start_date")
         end_date_str = request.GET.get("end_date")
@@ -639,7 +746,9 @@ class EntryReportPdfView(View):
         end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
         today = datetime.now().date()
         try:
-            entry_items = EntryItem.objects.filter(entry__entry_date__range=(start_date, end_date)).select_related("entry").order_by("entry__id")
+            entry_items = EntryItem.objects.filter(
+                entry__entry_date__range=(start_date, end_date)
+            ).select_related("entry").order_by("entry__id")
         except EntryItem.DoesNotExist:
             raise Http404("Entradas no encontradas.")
 
@@ -651,18 +760,24 @@ class EntryReportPdfView(View):
             'today': today,
         }
         html_string = render_to_string('entry_report.html', context)
-        html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+        html = HTML(
+            string=html_string,
+            base_url=request.build_absolute_uri('/'))
 
         pdf_file = html.write_pdf()
 
         response = HttpResponse(pdf_file, content_type='application/pdf')
-        response['Content-Disposition'] = f'inline; filename="reporte_de_entradas_{start_date}_a_{end_date}.pdf"'
+        response['Content-Disposition'] = (
+            f'inline; filename="reporte_de_entradas_{start_date}'
+            f'_a_{end_date}.pdf"'
+        )
 
         return response
 
 
 class OutputReportPdfView(View):
     """Generate Output Report PDF."""
+
     def get(self, request, *args, **kwargs):
         start_date_str = request.GET.get("start_date")
         end_date_str = request.GET.get("end_date")
@@ -670,7 +785,9 @@ class OutputReportPdfView(View):
         end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
         today = datetime.now().date()
         try:
-            outputs_items = OutputItem.objects.filter(output__output_date__range=(start_date, end_date)).select_related("output").order_by("output__id")
+            outputs_items = OutputItem.objects.filter(
+                output__output_date__range=(start_date, end_date)
+            ).select_related("output").order_by("output__id")
         except Output.DoesNotExist:
             raise Http404("Salidas no encontradas.")
 
@@ -682,22 +799,29 @@ class OutputReportPdfView(View):
             'today': today,
         }
         html_string = render_to_string('output_report.html', context)
-        html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+        html = HTML(
+            string=html_string,
+            base_url=request.build_absolute_uri('/'))
 
         pdf_file = html.write_pdf()
 
         response = HttpResponse(pdf_file, content_type='application/pdf')
-        response['Content-Disposition'] = f'inline; filename="reporte_de_salidas_{start_date}_a_{end_date}.pdf"'
+        response['Content-Disposition'] = (
+            f'inline; filename="reporte_de_salidas_{start_date}'
+            f'_a_{end_date}.pdf"'
+        )
 
         return response
 
 
 class InventoryReportPdfView(View):
     """Generate Inventory Report PDF."""
+
     def get(self, request, *args, **kwargs):
         today = datetime.now().date()
         try:
-            products_stock = ProductStock.objects.all().select_related("product").order_by("product__id")
+            products_stock = ProductStock.objects.all().select_related(
+                "product").order_by("product__id")
         except ProductStock.DoesNotExist:
             raise Http404("No hay productos en el inventario.")
 
@@ -708,17 +832,22 @@ class InventoryReportPdfView(View):
         }
 
         html_string = render_to_string('inventory_report.html', context)
-        html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+        html = HTML(
+            string=html_string,
+            base_url=request.build_absolute_uri('/'))
 
         pdf_file = html.write_pdf()
 
         response = HttpResponse(pdf_file, content_type='application/pdf')
-        response['Content-Disposition'] = f'inline; filename="reporte_de_inventario.pdf"'
+        response['Content-Disposition'] = (
+            'inline; filename="reporte_de_inventario.pdf"'
+        )
         return response
 
 
 class BuyReportExcelView(APIView):
     """Generate Excel Report."""
+
     def get(self, request):
         header_font = Font(
             bold=True,
@@ -740,34 +869,39 @@ class BuyReportExcelView(APIView):
         start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
         end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
         try:
-            purchase_items = PurchaseItem.objects.filter(purchase__purchase_date__range=(start_date, end_date)).select_related("purchase").order_by("purchase__id")
+            purchase_items = PurchaseItem.objects.filter(
+                purchase__purchase_date__range=(start_date, end_date)
+            ).select_related("purchase").order_by("purchase__id")
         except PurchaseItem.DoesNotExist:
             raise Http404("Compras no encontradas.")
         wb = Workbook()
         ws = wb.active
         start_date_formatted = start_date.strftime("%d-%m-%y")
         end_date_formatted = end_date.strftime("%d-%m-%y")
-        ws.title = f"Compras {start_date_formatted} - {end_date_formatted}"[:31]
-        ws.append(["REPORTE DE COMPRAS DEL " + start_date_formatted + " AL " + end_date_formatted])
+        ws.title = f"Compras {start_date_formatted} - {end_date_formatted}"[
+            :31]
+        ws.append(["REPORTE DE COMPRAS DEL " +
+                  start_date_formatted + " AL " + end_date_formatted])
         headers = (["AGENCIA",
                    "COMPRADOR",
-                   "PROVEEDOR",
-                   "TIPO DE COMPRA",
-                   "FECHA DE COMPRA",
-                   "N° DE FACTURA",
-                   "TOTAL",
-                   "SALDO PENDIENTE",
-                   "PRODUCTO",
-                   "CANTIDAD",
-                   "PRECIO UNITARIO",
-                   "SUB TOTAL",
-                   "ESTADO (INGRESO ALMACEN)",
-                   ])
+                    "PROVEEDOR",
+                    "TIPO DE COMPRA",
+                    "FECHA DE COMPRA",
+                    "N° DE FACTURA",
+                    "TOTAL",
+                    "SALDO PENDIENTE",
+                    "PRODUCTO",
+                    "CANTIDAD",
+                    "PRECIO UNITARIO",
+                    "SUB TOTAL",
+                    "ESTADO (INGRESO ALMACEN)",
+                    ])
         # Unir todas las celdas de la fila 1 (título) y centrarlo
         num_columns = len(headers)
         ws.merge_cells(f'A1:{chr(64 + num_columns)}1')
         title_cell = ws.cell(row=1, column=1)
-        title_cell.alignment = Alignment(horizontal="center", vertical="center")
+        title_cell.alignment = Alignment(
+            horizontal="center", vertical="center")
         title_cell.font = Font(bold=True, size=14)
         ws.append(headers)
         for col_num in range(1, len(headers) + 1):
@@ -796,7 +930,8 @@ class BuyReportExcelView(APIView):
         for purchase_item in purchase_items:
             ws.append([
                 purchase_item.purchase.agency.name,
-                purchase_item.purchase.buyer.first_name + " " + purchase_item.purchase.buyer.last_name,
+                (purchase_item.purchase.buyer.first_name
+                 + " " + purchase_item.purchase.buyer.last_name),
                 purchase_item.purchase.supplier.name,
                 purchase_item.purchase.purchase_type,
                 purchase_item.purchase.purchase_date,
@@ -809,11 +944,16 @@ class BuyReportExcelView(APIView):
                 purchase_item.total_price,
                 purchase_item.status,
             ])
-            
+
         response = HttpResponse(
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            content_type=(
+                'application/vnd.openxmlformats-officedocument'
+                '.spreadsheetml.sheet'
+            ))
+        response['Content-Disposition'] = (
+            f'inline; filename="reporte_de_compras_{start_date_str}'
+            f'_a_{end_date_str}.xlsx"'
         )
-        response['Content-Disposition'] = f'inline; filename="reporte_de_compras_{start_date_str}_a_{end_date_str}.xlsx"'
 
         wb.save(response)
         return response
@@ -821,6 +961,7 @@ class BuyReportExcelView(APIView):
 
 class SaleReportExcelView(APIView):
     """Generate Excel Report."""
+
     def get(self, request):
         header_font = Font(
             bold=True,
@@ -842,7 +983,9 @@ class SaleReportExcelView(APIView):
         start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
         end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
         try:
-            sale_items = SaleItem.objects.filter(sale__sale_date__range=(start_date, end_date)).select_related("sale").order_by("sale__id")
+            sale_items = SaleItem.objects.filter(
+                sale__sale_date__range=(start_date, end_date)
+            ).select_related("sale").order_by("sale__id")
         except SaleItem.DoesNotExist:
             raise Http404("Ventas no encontradas.")
         wb = Workbook()
@@ -850,29 +993,31 @@ class SaleReportExcelView(APIView):
         start_date_formatted = start_date.strftime("%d-%m-%y")
         end_date_formatted = end_date.strftime("%d-%m-%y")
         ws.title = f"Ventas {start_date_formatted} - {end_date_formatted}"[:31]
-        ws.append(["REPORTE DE VENTAS DEL " + start_date_formatted + " AL " + end_date_formatted])
+        ws.append(["REPORTE DE VENTAS DEL " +
+                  start_date_formatted + " AL " + end_date_formatted])
         headers = (["AGENCIA",
                    "VENDEDOR",
-                   "CLIENTE",
-                   "CANAL DE VENTA",
-                   "TIPO DE VENTA",
-                   "FECHA DE VENTA",
-                   "N° DE FACTURA",
-                   "TOTAL",
-                   "SALDO PENDIENTE",   
-                   "PRODUCTO",
-                   "CANTIDAD",
-                   "PRECIO UNITARIO",
-                   "SUB TOTAL",
-                   "DESCUENTO %",
-                   "TOTAL ITEM",
-                   "ESTADO (ENTREGA AL CLIENTE)",
-                   ])
+                    "CLIENTE",
+                    "CANAL DE VENTA",
+                    "TIPO DE VENTA",
+                    "FECHA DE VENTA",
+                    "N° DE FACTURA",
+                    "TOTAL",
+                    "SALDO PENDIENTE",
+                    "PRODUCTO",
+                    "CANTIDAD",
+                    "PRECIO UNITARIO",
+                    "SUB TOTAL",
+                    "DESCUENTO %",
+                    "TOTAL ITEM",
+                    "ESTADO (ENTREGA AL CLIENTE)",
+                    ])
         # Unir todas las celdas de la fila 1 (título) y centrarlo
         num_columns = len(headers)
         ws.merge_cells(f'A1:{chr(64 + num_columns)}1')
         title_cell = ws.cell(row=1, column=1)
-        title_cell.alignment = Alignment(horizontal="center", vertical="center")
+        title_cell.alignment = Alignment(
+            horizontal="center", vertical="center")
         title_cell.font = Font(bold=True, size=14)
         ws.append(headers)
         for col_num in range(1, len(headers) + 1):
@@ -881,22 +1026,22 @@ class SaleReportExcelView(APIView):
             cell.fill = header_fill
             cell.alignment = header_alignment
         column_widths = [
-            20, # AGENCIA
-            25, # VENDEDOR
-            25, # CLIENTE
-            20, # CANAL DE VENTA
-            18, # TIPO DE VENTA
-            18, # FECHA DE VENTA    
-            15, # N° DE FACTURA
-            18, # TOTAL
-            30, # SALDO PENDIENTE
-            25, # PRODUCTO
-            18, # CANTIDAD
-            18, # PRECIO UNITARIO
-            15, # SUB TOTAL
-            20, # DESCUENTO %
-            15, # TOTAL ITEM
-            30, # ESTADO (ENTREGA AL CLIENTE)
+            20,  # AGENCIA
+            25,  # VENDEDOR
+            25,  # CLIENTE
+            20,  # CANAL DE VENTA
+            18,  # TIPO DE VENTA
+            18,  # FECHA DE VENTA
+            15,  # N° DE FACTURA
+            18,  # TOTAL
+            30,  # SALDO PENDIENTE
+            25,  # PRODUCTO
+            18,  # CANTIDAD
+            18,  # PRECIO UNITARIO
+            15,  # SUB TOTAL
+            20,  # DESCUENTO %
+            15,  # TOTAL ITEM
+            30,  # ESTADO (ENTREGA AL CLIENTE)
         ]
         for i, width in enumerate(column_widths, start=1):
             ws.column_dimensions[chr(64 + i)].width = width
@@ -904,14 +1049,17 @@ class SaleReportExcelView(APIView):
         previous_sale_id = None
         for sale_item in sale_items:
             current_sale_id = sale_item.sale.id
-            # Agregar fila en blanco si cambió el sale_id (excepto en la primera iteración)
-            if previous_sale_id is not None and current_sale_id != previous_sale_id:
+            # Agregar fila en blanco si cambió el sale_id (excepto en la
+            # primera iteración)
+            if (previous_sale_id is not None
+                    and current_sale_id != previous_sale_id):
                 ws.append([])
             previous_sale_id = current_sale_id
-            
+
             ws.append([
                 sale_item.sale.agency.name,
-                sale_item.sale.seller.first_name + " " + sale_item.sale.seller.last_name,
+                (sale_item.sale.seller.first_name
+                 + " " + sale_item.sale.seller.last_name),
                 sale_item.sale.client.name,
                 sale_item.sale.selling_channel.name,
                 sale_item.sale.sale_type,
@@ -927,18 +1075,24 @@ class SaleReportExcelView(APIView):
                 sale_item.total_price,
                 sale_item.status,
             ])
-            
+
         response = HttpResponse(
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            content_type=(
+                'application/vnd.openxmlformats-officedocument'
+                '.spreadsheetml.sheet'
+            ))
+        response['Content-Disposition'] = (
+            f'inline; filename="reporte_de_ventas_{start_date_str}'
+            f'_a_{end_date_str}.xlsx"'
         )
-        response['Content-Disposition'] = f'inline; filename="reporte_de_ventas_{start_date_str}_a_{end_date_str}.xlsx"'
 
         wb.save(response)
         return response
-    
+
 
 class EntryReportExcelView(APIView):
     """Generate Excel Report."""
+
     def get(self, request):
         header_font = Font(
             bold=True,
@@ -960,28 +1114,33 @@ class EntryReportExcelView(APIView):
         start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
         end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
         try:
-            entry_items = EntryItem.objects.filter(entry__entry_date__range=(start_date, end_date)).select_related("entry").order_by("entry__id")
+            entry_items = EntryItem.objects.filter(
+                entry__entry_date__range=(start_date, end_date)
+            ).select_related("entry").order_by("entry__id")
         except EntryItem.DoesNotExist:
             raise Http404("Entradas no encontradas.")
         wb = Workbook()
         ws = wb.active
         start_date_formatted = start_date.strftime("%d-%m-%y")
         end_date_formatted = end_date.strftime("%d-%m-%y")
-        ws.title = f"Entradas {start_date_formatted} - {end_date_formatted}"[:31]
-        ws.append(["REPORTE DE ENTRADAS DEL " + start_date_formatted + " AL " + end_date_formatted])
+        ws.title = f"Entradas {start_date_formatted} - {end_date_formatted}"[
+            :31]
+        ws.append(["REPORTE DE ENTRADAS DEL " +
+                  start_date_formatted + " AL " + end_date_formatted])
         headers = (["AGENCIA",
                    "ALMACENERO",
-                   "PROVEEDOR",
-                   "FECHA DE ENTRADA",
-                   "N° DE RECIBO",
-                   "PRODUCTO",
-                   "CANTIDAD",
-                   ])
+                    "PROVEEDOR",
+                    "FECHA DE ENTRADA",
+                    "N° DE RECIBO",
+                    "PRODUCTO",
+                    "CANTIDAD",
+                    ])
         # Unir todas las celdas de la fila 1 (título) y centrarlo
         num_columns = len(headers)
         ws.merge_cells(f'A1:{chr(64 + num_columns)}1')
         title_cell = ws.cell(row=1, column=1)
-        title_cell.alignment = Alignment(horizontal="center", vertical="center")
+        title_cell.alignment = Alignment(
+            horizontal="center", vertical="center")
         title_cell.font = Font(bold=True, size=14)
         ws.append(headers)
         for col_num in range(1, len(headers) + 1):
@@ -990,39 +1149,48 @@ class EntryReportExcelView(APIView):
             cell.fill = header_fill
             cell.alignment = header_alignment
         column_widths = [
-            20, # AGENCIA
-            25, # ALMACENERO
-            25, # PROVEEDOR
-            20, # FECHA DE ENTRADA
-            18, # N° DE RECIBO
-            25, # PRODUCTO
-            15, # CANTIDAD
+            20,  # AGENCIA
+            25,  # ALMACENERO
+            25,  # PROVEEDOR
+            20,  # FECHA DE ENTRADA
+            18,  # N° DE RECIBO
+            25,  # PRODUCTO
+            15,  # CANTIDAD
         ]
         for i, width in enumerate(column_widths, start=1):
             ws.column_dimensions[chr(64 + i)].width = width
 
         for entry_item in entry_items:
-            ws.append([
-                entry_item.entry.agency.name,
-                entry_item.entry.warehouse_keeper.first_name + " " + entry_item.entry.warehouse_keeper.last_name,
-                entry_item.entry.supplier.name,
-                entry_item.entry.entry_date,
-                entry_item.entry.invoice_number,
-                entry_item.product_stock.product.name,
-                entry_item.quantity,
-            ])
-            
+            ws.append(
+                [
+                    entry_item.entry.agency.name,
+                    entry_item.entry.warehouse_keeper.first_name +
+                    " " +
+                    entry_item.entry.warehouse_keeper.last_name,
+                    entry_item.entry.supplier.name,
+                    entry_item.entry.entry_date,
+                    entry_item.entry.invoice_number,
+                    entry_item.product_stock.product.name,
+                    entry_item.quantity,
+                ])
+
         response = HttpResponse(
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            content_type=(
+                'application/vnd.openxmlformats-officedocument'
+                '.spreadsheetml.sheet'
+            ))
+        response['Content-Disposition'] = (
+            f'inline; filename="reporte_de_entradas_{start_date_str}'
+            f'_a_{end_date_str}.xlsx"'
         )
-        response['Content-Disposition'] = f'inline; filename="reporte_de_entradas_{start_date_str}_a_{end_date_str}.xlsx"'
 
         wb.save(response)
         return response
-    
-    
+
+
 class OutputReportExcelView(APIView):
     """Generate Excel Report."""
+
     def get(self, request):
         header_font = Font(
             bold=True,
@@ -1044,28 +1212,33 @@ class OutputReportExcelView(APIView):
         start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
         end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
         try:
-            output_items = OutputItem.objects.filter(output__output_date__range=(start_date, end_date)).select_related("output").order_by("output__id")
+            output_items = OutputItem.objects.filter(
+                output__output_date__range=(start_date, end_date)
+            ).select_related("output").order_by("output__id")
         except OutputItem.DoesNotExist:
             raise Http404("Salidas no encontradas.")
         wb = Workbook()
         ws = wb.active
         start_date_formatted = start_date.strftime("%d-%m-%y")
         end_date_formatted = end_date.strftime("%d-%m-%y")
-        ws.title = f"Salidas {start_date_formatted} - {end_date_formatted}"[:31]
-        ws.append(["REPORTE DE SALIDAS DEL " + start_date_formatted + " AL " + end_date_formatted])
+        ws.title = f"Salidas {start_date_formatted} - {end_date_formatted}"[
+            :31]
+        ws.append(["REPORTE DE SALIDAS DEL " +
+                  start_date_formatted + " AL " + end_date_formatted])
         headers = (["AGENCIA",
                    "ALMACENERO",
-                   "CLIENTE",
-                   "FECHA DE SALIDA",
-                   "N° DE RECIBO",
-                   "PRODUCTO",
-                   "CANTIDAD",
-                   ])
+                    "CLIENTE",
+                    "FECHA DE SALIDA",
+                    "N° DE RECIBO",
+                    "PRODUCTO",
+                    "CANTIDAD",
+                    ])
         # Unir todas las celdas de la fila 1 (título) y centrarlo
         num_columns = len(headers)
         ws.merge_cells(f'A1:{chr(64 + num_columns)}1')
         title_cell = ws.cell(row=1, column=1)
-        title_cell.alignment = Alignment(horizontal="center", vertical="center")
+        title_cell.alignment = Alignment(
+            horizontal="center", vertical="center")
         title_cell.font = Font(bold=True, size=14)
         ws.append(headers)
         for col_num in range(1, len(headers) + 1):
@@ -1074,39 +1247,48 @@ class OutputReportExcelView(APIView):
             cell.fill = header_fill
             cell.alignment = header_alignment
         column_widths = [
-            20, # AGENCIA
-            25, # ALMACENERO
-            25, # CLIENTE
-            20, # FECHA DE ENTRADA
-            18, # N° DE RECIBO
-            25, # PRODUCTO
-            15, # CANTIDAD
+            20,  # AGENCIA
+            25,  # ALMACENERO
+            25,  # CLIENTE
+            20,  # FECHA DE ENTRADA
+            18,  # N° DE RECIBO
+            25,  # PRODUCTO
+            15,  # CANTIDAD
         ]
         for i, width in enumerate(column_widths, start=1):
             ws.column_dimensions[chr(64 + i)].width = width
 
         for output_item in output_items:
-            ws.append([
-                output_item.output.agency.name,
-                output_item.output.warehouse_keeper.first_name + " " + output_item.output.warehouse_keeper.last_name,
-                output_item.output.client.name,
-                output_item.output.output_date,
-                output_item.output.invoice_number,
-                output_item.product_stock.product.name,
-                output_item.quantity,
-            ])
-            
+            ws.append(
+                [
+                    output_item.output.agency.name,
+                    output_item.output.warehouse_keeper.first_name +
+                    " " +
+                    output_item.output.warehouse_keeper.last_name,
+                    output_item.output.client.name,
+                    output_item.output.output_date,
+                    output_item.output.invoice_number,
+                    output_item.product_stock.product.name,
+                    output_item.quantity,
+                ])
+
         response = HttpResponse(
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            content_type=(
+                'application/vnd.openxmlformats-officedocument'
+                '.spreadsheetml.sheet'
+            ))
+        response['Content-Disposition'] = (
+            f'inline; filename="reporte_de_salidas_{start_date_str}'
+            f'_a_{end_date_str}.xlsx"'
         )
-        response['Content-Disposition'] = f'inline; filename="reporte_de_salidas_{start_date_str}_a_{end_date_str}.xlsx"'
 
         wb.save(response)
         return response
-    
-    
+
+
 class InventoryReportExcelView(APIView):
     """Generate Excel Report."""
+
     def get(self, request):
         header_font = Font(
             bold=True,
@@ -1122,28 +1304,30 @@ class InventoryReportExcelView(APIView):
             vertical="center"
         )
         try:
-            products_stock = ProductStock.objects.all().select_related("product").order_by("product__id")
+            products_stock = ProductStock.objects.all().select_related(
+                "product").order_by("product__id")
         except ProductStock.DoesNotExist:
             raise Http404("No hay productos en el inventario.")
         wb = Workbook()
         ws = wb.active
 
-        ws.title = f"Reporte de Inventario"[:31]
+        ws.title = "Reporte de Inventario"[:31]
         ws.append(["REPORTE DE INVENTARIO"])
         headers = (["AGENCIA",
                    "ALMACEN",
-                   "PRODUCTO",
-                   "CODIGO",
-                   "CANTIDAD TOTAL",
-                   "CANTIDAD RESERVADA",
-                   "CANTIDAD DISPONIBLE PARA VENTA",
-                   "CANTIDAD DAÑADA"  
-                   ])
+                    "PRODUCTO",
+                    "CODIGO",
+                    "CANTIDAD TOTAL",
+                    "CANTIDAD RESERVADA",
+                    "CANTIDAD DISPONIBLE PARA VENTA",
+                    "CANTIDAD DAÑADA"
+                    ])
         # Unir todas las celdas de la fila 1 (título) y centrarlo
         num_columns = len(headers)
         ws.merge_cells(f'A1:{chr(64 + num_columns)}1')
         title_cell = ws.cell(row=1, column=1)
-        title_cell.alignment = Alignment(horizontal="center", vertical="center")
+        title_cell.alignment = Alignment(
+            horizontal="center", vertical="center")
         title_cell.font = Font(bold=True, size=14)
         ws.append(headers)
         for col_num in range(1, len(headers) + 1):
@@ -1152,14 +1336,14 @@ class InventoryReportExcelView(APIView):
             cell.fill = header_fill
             cell.alignment = header_alignment
         column_widths = [
-            25, # AGENCIA
-            25, # ALMACEN
-            25, # PRODUCTO
-            20, # CODIGO
-            20, # CANTIDAD TOTAL
-            25, # CANTIDAD RESERVADA
-            35, # CANTIDAD DISPONIBLE PARA VENTA
-            25, # CANTIDAD DAÑADA
+            25,  # AGENCIA
+            25,  # ALMACEN
+            25,  # PRODUCTO
+            20,  # CODIGO
+            20,  # CANTIDAD TOTAL
+            25,  # CANTIDAD RESERVADA
+            35,  # CANTIDAD DISPONIBLE PARA VENTA
+            25,  # CANTIDAD DAÑADA
         ]
         for i, width in enumerate(column_widths, start=1):
             ws.column_dimensions[chr(64 + i)].width = width
@@ -1175,11 +1359,15 @@ class InventoryReportExcelView(APIView):
                 product_stock.available_stock,
                 product_stock.damaged_stock,
             ])
-            
+
         response = HttpResponse(
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            content_type=(
+                'application/vnd.openxmlformats-officedocument'
+                '.spreadsheetml.sheet'
+            ))
+        response['Content-Disposition'] = (
+            'inline; filename="reporte_de_inventario.xlsx"'
         )
-        response['Content-Disposition'] = f'inline; filename="reporte_de_inventario.xlsx"'
 
         wb.save(response)
         return response

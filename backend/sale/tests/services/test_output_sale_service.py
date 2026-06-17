@@ -1,22 +1,25 @@
 from unittest import TestCase
-from sale.services.output_sale_service import UpdateSaleItem
-from core.models import *
-
 from django.core.exceptions import ValidationError
+from sale.services.output_sale_service import UpdateSaleItem
+from core.models import (
+    Agency, Batch, Category, Client, Output, OutputItem,
+    Product, ProductStock, Sale, SaleItem, SellingChannel, Warehouse,
+)
 from django.contrib.auth import get_user_model
 import uuid
+
 
 def create_user(**params):
     """Create and return a sample user."""
     from core.models import Agency
-    
+
     unique_suffix = str(uuid.uuid4())[:4]
     agency = Agency.objects.create(
         name=f'Test Agency {unique_suffix}',
         location=f'Test Location {unique_suffix}',
         city='La Paz',
     )
-    
+
     defaults = {
         'first_name': 'Test',
         'last_name': 'User',
@@ -29,6 +32,7 @@ def create_user(**params):
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
 
+
 def create_agency(**params):
     """Create and return a sample agency."""
     unique_suffix = str(uuid.uuid4())[:8]
@@ -40,9 +44,10 @@ def create_agency(**params):
     defaults.update(params)
     return Agency.objects.create(**defaults)
 
+
 def create_warehouse(**params):
     unique_suffix = str(uuid.uuid4())[:8]
-    defaults={
+    defaults = {
         'agency': create_agency(),
         'name': f'Warehouse {unique_suffix}',
         'location': 'Test location',
@@ -51,9 +56,10 @@ def create_warehouse(**params):
 
     return Warehouse.objects.create(**defaults)
 
+
 def create_client(**params):
     unique_suffix = str(uuid.uuid4())[:8]
-    defaults={
+    defaults = {
         'name': f'Client {unique_suffix}',
         'phone': '78885521',
         'nit': f'123456789{unique_suffix}',
@@ -63,6 +69,7 @@ def create_client(**params):
     defaults.update(params)
 
     return Client.objects.create(**defaults)
+
 
 def create_category(**params):
     """Create and return a sample category."""
@@ -74,6 +81,7 @@ def create_category(**params):
     category = Category.objects.create(**defaults)
     return category
 
+
 def create_batch(**params):
     """Create and return a sample batch."""
     unique_suffix = str(uuid.uuid4())[:8]
@@ -84,6 +92,7 @@ def create_batch(**params):
     defaults.update(params)
     batch = Batch.objects.create(**defaults)
     return batch
+
 
 def create_product(**params):
     """Create and return a sample product."""
@@ -102,6 +111,7 @@ def create_product(**params):
 
     return Product.objects.create(**defaults)
 
+
 def create_product_stock(**params):
     defaults = {
         'warehouse': create_warehouse(),
@@ -116,6 +126,7 @@ def create_product_stock(**params):
 
     return ProductStock.objects.create(**defaults)
 
+
 def create_selling_channel(**params):
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
@@ -124,7 +135,8 @@ def create_selling_channel(**params):
     defaults.update(params)
 
     return SellingChannel.objects.create(**defaults)
-    
+
+
 def create_output(**params):
     defaults = {
         'agency': create_agency(),
@@ -135,6 +147,7 @@ def create_output(**params):
     defaults.update(params)
 
     return Output.objects.create(**defaults)
+
 
 def create_sale(**params):
     defaults = {
@@ -157,9 +170,10 @@ def create_sale(**params):
 
 class TestUpdateSaleItem(TestCase):
     """Tests for update sale items when an output is done."""
+
     def setUp(self):
         self.sale_item = self.create_test_sale_item()
-        
+
     def create_test_sale_item(self, **kwargs):
         defaults = {
             'sale': create_sale(),
@@ -185,13 +199,13 @@ class TestUpdateSaleItem(TestCase):
             quantity=10,
         )
         product_stock = create_product_stock()
-        
+
         service = UpdateSaleItem(output_item, product_stock)
         service.update_sale_item()
-        
+
         self.sale_item.refresh_from_db()
         self.assertEqual(self.sale_item.dispatched_stock, 10)
-        
+
     def test_dispatched_stock_exceeds_quantity(self):
         """Test entered stock exceeds quantity selled."""
         output_item = OutputItem.objects.create(
@@ -207,4 +221,6 @@ class TestUpdateSaleItem(TestCase):
         with self.assertRaises(ValidationError) as context:
             service.update_sale_item()
 
-        self.assertIn("La cantidad despachada excede la cantidad vendida.", str(context.exception))
+        self.assertIn(
+            "La cantidad despachada excede la cantidad vendida.", str(
+                context.exception))

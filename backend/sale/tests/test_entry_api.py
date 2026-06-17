@@ -4,23 +4,27 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from core.models import Batch, Category, ProductStock, Warehouse, Product, Entry, Supplier, EntryItem, Agency
+from core.models import (
+    Agency, Batch, Category, Entry, EntryItem,
+    Product, ProductStock, Supplier, Warehouse,
+)
 from sale.serializers import EntrySerializer
 import uuid
 
 ENTRY_URL = reverse('sale:entry-list')
 
+
 def create_user(**params):
     """Create and return a sample user."""
     from core.models import Agency
-    
+
     unique_suffix = str(uuid.uuid4())[:4]
     agency = Agency.objects.create(
         name=f'Test Agency {unique_suffix}',
         location=f'Test Location {unique_suffix}',
         city='La Paz',
     )
-    
+
     defaults = {
         'first_name': 'Test',
         'last_name': 'User',
@@ -33,6 +37,7 @@ def create_user(**params):
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
 
+
 def create_agency(**params):
     """Create and return a sample agency."""
     unique_suffix = str(uuid.uuid4())[:8]
@@ -44,6 +49,7 @@ def create_agency(**params):
     defaults.update(params)
 
     return Agency.objects.create(**defaults)
+
 
 def create_warehouse(**params):
     """Create and return a sample warehouse."""
@@ -61,6 +67,7 @@ def create_warehouse(**params):
     warehouse = Warehouse.objects.create(**defaults)
     return warehouse
 
+
 def create_category(**params):
     """Create and return a sample category."""
     unique_suffix = str(uuid.uuid4())[:8]
@@ -70,6 +77,7 @@ def create_category(**params):
     defaults.update(params)
     category = Category.objects.create(**defaults)
     return category
+
 
 def create_batch(**params):
     """Create and return a sample batch."""
@@ -81,6 +89,7 @@ def create_batch(**params):
     defaults.update(params)
     batch = Batch.objects.create(**defaults)
     return batch
+
 
 def create_product(**params):
     """Create and return a sample product."""
@@ -97,6 +106,7 @@ def create_product(**params):
     product = Product.objects.create(**defaults)
     return product
 
+
 def create_product_stock(**params):
     defaults = {
         'product': create_product(),
@@ -109,6 +119,7 @@ def create_product_stock(**params):
     }
     defaults.update(params)
     return ProductStock.objects.create(**defaults)
+
 
 def create_supplier(**params):
     """Create and return a sample supplier."""
@@ -124,6 +135,7 @@ def create_supplier(**params):
     supplier = Supplier.objects.create(**defaults)
     return supplier
 
+
 def create_entry(**params):
     """Create and return a sample entry."""
     unique_suffix = str(uuid.uuid4())[:8]
@@ -137,9 +149,9 @@ def create_entry(**params):
     defaults.update(params)
 
     entry_items_data = defaults.pop('entry_items', None)
-    
+
     entry = Entry.objects.create(**defaults)
-    
+
     if entry_items_data:
         for item_data in entry_items_data:
             EntryItem.objects.create(entry=entry, **item_data)
@@ -149,8 +161,9 @@ def create_entry(**params):
             product_stock=create_product_stock(),
             quantity=10,
         )
-    
+
     return entry
+
 
 def detail_url(entry_id):
     """Return the URL for a entry detail view."""
@@ -159,6 +172,7 @@ def detail_url(entry_id):
 
 class PublicEntryApiTests(TestCase):
     """Test API requests for unauthenticated users."""
+
     def setUp(self):
         self.client = APIClient()
 
@@ -170,6 +184,7 @@ class PublicEntryApiTests(TestCase):
 
 class PrivateEntryApiTests(TestCase):
     """Test API requests for authenticated users."""
+
     def setUp(self):
         self.client = APIClient()
         self.user = create_user(password='testpass123')
@@ -216,7 +231,7 @@ class PrivateEntryApiTests(TestCase):
         entry.refresh_from_db()
         self.assertEqual(entry.invoice_number, payload['invoice_number'])
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        
+
     def test_full_update_entry(self):
         """Test full update of an entry"""
         entry = create_entry(invoice_number='1234567890')
@@ -239,9 +254,13 @@ class PrivateEntryApiTests(TestCase):
         self.assertEqual(entry.invoice_number, payload['invoice_number'])
         self.assertEqual(res.status_code, status.HTTP_200_OK)
 
-        self.assertEqual(entry.entry_items.count(), len(payload['entry_items']))
+        self.assertEqual(
+            entry.entry_items.count(), len(
+                payload['entry_items']))
 
         for i, payload_item in enumerate(payload['entry_items']):
             db_item = entry.entry_items.all()[i]
-            self.assertEqual(db_item.product_stock.id, payload_item['product_stock'])
+            self.assertEqual(
+                db_item.product_stock.id,
+                payload_item['product_stock'])
             self.assertEqual(db_item.quantity, payload_item['quantity'])

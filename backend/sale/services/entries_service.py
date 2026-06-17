@@ -6,6 +6,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class IncreaseProductStockService:
     def __init__(self, entry_item):
         self.entry_item = entry_item
