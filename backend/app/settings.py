@@ -238,6 +238,7 @@ REST_FRAMEWORK = {
         'rest_framework.parsers.MultiPartParser',
         'rest_framework.parsers.FormParser',
     ],
+    'EXCEPTION_HANDLER': 'app.utils.custom_exception_handler',
 }
 
 SIMPLE_JWT = {
@@ -263,10 +264,6 @@ SPECTACULAR_SETTINGS = {
             }
         }
     },
-}
-
-REST_FRAMEWORK = {
-    'EXCEPTION_HANDLER': 'app.utils.custom_exception_handler',
 }
 
 LOGGING = {
