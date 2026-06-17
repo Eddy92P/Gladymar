@@ -151,7 +151,7 @@ class ModelTest(TestCase):
         )
         self.assertEqual(setting.name, 'Test Setting')
         self.assertEqual(setting.location, 'Test Value')
-        self.assertEqual(setting.city, 'LP')
+        self.assertEqual(setting.city, 'La Paz')
 
     def test_create_client(self):
         """Test creating a Client."""
