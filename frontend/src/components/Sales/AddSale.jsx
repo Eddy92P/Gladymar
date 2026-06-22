@@ -1289,6 +1289,7 @@ export const AddSale = () => {
 																		}
 																		required
 																		fullWidth
+																		disabled={isSale}
 																	/>
 																</TableCell>
 																<TableCell>
@@ -1341,6 +1342,7 @@ export const AddSale = () => {
 																		}
 																		required
 																		fullWidth
+																		disabled={isSale}
 																	/>
 																</TableCell>
 																<TableCell>
@@ -1422,6 +1424,7 @@ export const AddSale = () => {
 																		}
 																		required
 																		fullWidth
+																		disabled={isSale}
 																	/>
 																</TableCell>
 
@@ -1691,7 +1694,7 @@ export const AddSale = () => {
 							>
 								{buttonText}
 							</Button>
-							<Button
+							{!isSale && <Button
 								variant="contained"
 								style={{
 									textTransform: 'none',
@@ -1703,7 +1706,7 @@ export const AddSale = () => {
 								disabled={!sellingChannel}
 							>
 								Buscar Productos
-							</Button>
+							</Button>}
 							{isForm && (
 								<Typography
 									ml={3}
