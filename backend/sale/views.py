@@ -566,7 +566,9 @@ class PurchaseViewSet(viewsets.ModelViewSet):
         status = self.request.query_params.get('status')
 
         if status:
-            queryset = queryset.filter(status=status).prefetch_related('purchase_items').order_by('-id')
+            queryset = queryset.filter(
+                status=status).prefetch_related(
+                    'purchase_items').order_by('-id')
 
         return self.queryset.prefetch_related('purchase_items').order_by('-id')
 
@@ -624,7 +626,9 @@ class InvoicePdfView(View):
     def get(self, request, *args, **kwargs):
         sale_id = self.kwargs.get('id')
         try:
-            sale = Sale.objects.select_related('seller').prefetch_related('sale_items').get(id=sale_id)
+            sale = Sale.objects.select_related(
+                'seller').prefetch_related(
+                    'sale_items').get(id=sale_id)
         except Sale.DoesNotExist:
             raise Http404("Venta no encontrada.")
 

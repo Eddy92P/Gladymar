@@ -3,7 +3,15 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from core.models import Batch, Category, Warehouse, Product, Supplier, Agency, MeasureUnit
+from core.models import (
+    Batch,
+    Category,
+    Warehouse,
+    Product,
+    Supplier,
+    Agency,
+    MeasureUnit,
+)
 from sale.serializers import ProductSerializer
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.conf import settings

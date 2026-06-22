@@ -3,7 +3,8 @@ from sale.services.entry_purchase_service import UpdatePurchaseItem
 from django.core.exceptions import ValidationError
 from core.models import (
     Agency, Batch, Category, Entry, EntryItem,
-    MeasureUnit, Product, ProductStock, Purchase, PurchaseItem, Supplier, Warehouse,
+    MeasureUnit, Product, ProductStock, Purchase,
+    PurchaseItem, Supplier, Warehouse,
 )
 from django.contrib.auth import get_user_model
 import uuid

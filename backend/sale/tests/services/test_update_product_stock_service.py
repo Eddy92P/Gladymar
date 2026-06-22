@@ -3,7 +3,8 @@ Tests for update product stock when an entry is updated.
 """
 from core.models import (
     Agency, Batch, Category, Client, Entry, EntryItem,
-    MeasureUnit, Output, OutputItem, Product, ProductStock, Supplier, Warehouse,
+    MeasureUnit, Output, OutputItem, Product,
+    ProductStock, Supplier, Warehouse,
 )
 from sale.services.update_product_stock_service import (
     UpdateProductStockService,

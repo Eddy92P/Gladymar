@@ -82,10 +82,11 @@ class ProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['id', 'batch', 'batch_id', 'measure_unit',
-            'measure_unit_id', 'name', 'code', 'line',
-            'description', 'image', 'minimum_sale_price',
-            'maximum_sale_price', 'created_at', 'updated_at'
+        fields = [
+            'id', 'batch', 'batch_id', 'measure_unit', 'measure_unit_id',
+            'name', 'code', 'line', 'description', 'image',
+            'minimum_sale_price', 'maximum_sale_price',
+            'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
@@ -802,10 +803,14 @@ class PurchaseItemSerializer(serializers.ModelSerializer):
         source='get_status_display', read_only=True)
     remaining_quantity = serializers.SerializerMethodField(
         method_name='get_remaining_quantity')
+
     class Meta:
         model = PurchaseItem
-        fields = ['product_stock', 'products_stock', 'quantity', 'unit_price',
-                  'total_price', 'status', 'status_display', 'entered_stock', 'remaining_quantity']
+        fields = [
+            'product_stock', 'products_stock', 'quantity', 'unit_price',
+            'total_price', 'status', 'status_display', 'entered_stock',
+            'remaining_quantity',
+        ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def get_remaining_quantity(self, obj):
