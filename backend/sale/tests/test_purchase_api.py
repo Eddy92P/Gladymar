@@ -4,7 +4,7 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
 from core.models import (
-    Agency, Batch, Category, Payment, Product, ProductStock,
+    Agency, Batch, Category, MeasureUnit, Payment, Product, ProductStock,
     Purchase, PurchaseItem, Supplier, Warehouse,
 )
 from sale.serializers import PurchaseSerializer
@@ -79,6 +79,16 @@ def create_batch(**params):
     return Batch.objects.create(**defaults)
 
 
+def create_measure_unit(**params):
+    """Create and return a sample measure unit."""
+    unique_suffix = str(uuid.uuid4())[:4]
+    defaults = {
+        'name': f'Unit{unique_suffix}',
+    }
+    defaults.update(params)
+    return MeasureUnit.objects.create(**defaults)
+
+
 def create_product(**params):
     """Create and return a sample Product."""
     unique_suffix = str(uuid.uuid4())[:4]
@@ -86,7 +96,8 @@ def create_product(**params):
         'batch': create_batch(),
         'name': f'TestProduct{unique_suffix}',
         'code': f'CODE{unique_suffix}',
-        'unit_of_measurement': 'UN',
+        'measure_unit': create_measure_unit(),
+        'line': 'Test Line',
         'description': 'Test product description',
         'minimum_sale_price': 10.00,
         'maximum_sale_price': 50.00,

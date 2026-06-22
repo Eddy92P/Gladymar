@@ -1,17 +1,17 @@
 @page {
-  size: legal landscape;
+  size: A4;
   margin: 2cm;
   margin-bottom: 2.5cm;
   @bottom-right {
     content: "Página " counter(page) " de " counter(pages);
-    font-size: 9px;
+    font-size: 7px;
     color: #666;
   }
 }
 
 body {
   font-family: DejaVu Sans, sans-serif;
-  font-size: 10px;
+  font-size: 7px;
 }
 
 body::before {
@@ -62,7 +62,7 @@ td {
   text-align: center;
   word-wrap: break-word;
   overflow-wrap: break-word;
-  font-size: 9px;
+  font-size: 7px;
   page-break-inside: avoid;
 }
 
@@ -72,7 +72,7 @@ th {
   text-align: center;
   word-wrap: break-word;
   overflow-wrap: break-word;
-  font-size: 9px;
+  font-size: 7px;
   font-weight: bold;
   background-color: #b8b8b8;
   page-break-inside: avoid;
@@ -80,7 +80,7 @@ th {
 
 .total-row {
   font-weight: bold;
-  font-size: 12px;
+  font-size: 9px;
 }
 
 .total-label {

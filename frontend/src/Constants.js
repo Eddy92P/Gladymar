@@ -22,6 +22,8 @@ const apiUrl = {
 	API_URL_ALL_CATEGORIES: '/api/sale/categories/all',
 	API_URL_BATCHES: '/api/sale/batches/',
 	API_URL_ALL_BATCHES: '/api/sale/batches/all',
+	API_URL_MEASURE_UNITS: '/api/sale/measure-units/',
+	API_URL_ALL_MEASURE_UNITS: '/api/sale/measure-units/all',
 	API_URL_PRODUCTS: '/api/sale/products/',
 	API_URL_PRODUCT_STOCKS: '/api/sale/product-stocks/',
 	API_URL_SUPPLIERS: '/api/sale/suppliers/',

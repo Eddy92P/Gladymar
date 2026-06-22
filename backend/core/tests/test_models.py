@@ -5,8 +5,15 @@ from core.models import (
     Agency, Batch, Category, Client, Entry, EntryItem,
     Output, OutputItem, Product, ProductStock, Purchase, PurchaseItem,
     Sale, SaleItem, Seller, SellingChannel, Setting, Supplier,
-    User, Warehouse,
+    User, Warehouse, MeasureUnit
 )
+
+
+def create_measure_unit(**params):
+    """Create and return a sample measure unit."""
+    defaults = {'name': 'Test Unit'}
+    defaults.update(params)
+    return MeasureUnit.objects.create(**defaults)
 
 
 class ModelTest(TestCase):
@@ -221,14 +228,15 @@ class ModelTest(TestCase):
             ),
             name='Test Product',
             code='1234567890',
-            unit_of_measurement='Test Unit',
+            measure_unit=create_measure_unit(),
+            line='Test Line',
             description='Test Description',
             minimum_sale_price=10,
             maximum_sale_price=20,
         )
         self.assertEqual(product.name, 'Test Product')
         self.assertEqual(product.code, '1234567890')
-        self.assertEqual(product.unit_of_measurement, 'Test Unit')
+        self.assertEqual(product.measure_unit.name, 'Test Unit')
         self.assertEqual(product.description, 'Test Description')
         self.assertEqual(product.minimum_sale_price, 10)
         self.assertEqual(product.maximum_sale_price, 20)
@@ -246,7 +254,8 @@ class ModelTest(TestCase):
                     ),
                     name='Test Product',
                     code='1234567890',
-                    unit_of_measurement='Test Unit',
+                    measure_unit=create_measure_unit(),
+            line='Test Line',
                     description='Test Description',
                     minimum_sale_price=10,
                     maximum_sale_price=20,
@@ -279,7 +288,8 @@ class ModelTest(TestCase):
                 ),
                 name='Test Product',
                 code='1234567890',
-                unit_of_measurement='Test Unit',
+                measure_unit=create_measure_unit(),
+            line='Test Line',
                 minimum_sale_price=20,
                 maximum_sale_price=10,
             )
@@ -358,7 +368,8 @@ class ModelTest(TestCase):
                     ),
                     name='Test Product',
                     code='1234567890',
-                    unit_of_measurement='Test Unit',
+                    measure_unit=create_measure_unit(),
+            line='Test Line',
                     description='Test Description',
                     minimum_sale_price=10,
                     maximum_sale_price=20,
@@ -451,7 +462,8 @@ class ModelTest(TestCase):
                     ),
                     name='Test Product',
                     code='1234567890',
-                    unit_of_measurement='Test Unit',
+                    measure_unit=create_measure_unit(),
+            line='Test Line',
                     description='Test Description',
                     minimum_sale_price=10,
                     maximum_sale_price=20,
@@ -554,7 +566,8 @@ class ModelTest(TestCase):
                     ),
                     name='Test Product',
                     code='1234567890',
-                    unit_of_measurement='Test Unit',
+                    measure_unit=create_measure_unit(),
+            line='Test Line',
                     description='Test Description',
                     minimum_sale_price=10,
                     maximum_sale_price=20,
@@ -663,7 +676,8 @@ class ModelTest(TestCase):
                     ),
                     name='Test Product',
                     code='1234567890',
-                    unit_of_measurement='Test Unit',
+                    measure_unit=create_measure_unit(),
+            line='Test Line',
                     description='Test Description',
                     minimum_sale_price=10,
                     maximum_sale_price=20,
@@ -691,3 +705,10 @@ class ModelTest(TestCase):
         self.assertEqual(sale_item.quantity, 10)
         self.assertEqual(sale_item.unit_price, 10)
         self.assertEqual(sale_item.total_price, 100)
+
+    def test_create_measure_unit(self):
+        """Test creating a MeasureUnit."""
+        measure_unit = MeasureUnit.objects.create(
+            name='Test MeasureUnit',
+        )
+        self.assertEqual(measure_unit.name, 'Test MeasureUnit')

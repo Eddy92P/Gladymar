@@ -377,6 +377,11 @@ export const AddOutput = () => {
 													</TableCell>
 													<TableCell align="right">
 														<strong>
+															Cantidad Restante
+														</strong>
+													</TableCell>
+													<TableCell align="right">
+														<strong>
 															Cantidad Despachada
 														</strong>
 													</TableCell>
@@ -418,6 +423,11 @@ export const AddOutput = () => {
 															<TableCell align="right">
 																{
 																	saleItem.quantity
+																}
+															</TableCell>
+															<TableCell align="right">
+																{
+																	saleItem.remaining_quantity
 																}
 															</TableCell>
 															<TableCell align="right">

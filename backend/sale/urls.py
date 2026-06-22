@@ -23,6 +23,7 @@ router.register('selling-channels', views.SellingChannelViewSet)
 router.register('purchases', views.PurchaseViewSet)
 router.register('sales', views.SaleViewSet)
 router.register('payments', views.PaymentViewSet)
+router.register('measure-units', views.MeasureUnitViewSet)
 
 app_name = 'sale'
 

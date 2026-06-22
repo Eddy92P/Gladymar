@@ -12,6 +12,7 @@ import PurchaseIcon from '/buy-button.png';
 import DoubleEntryIcon from '/double-entry.png';
 import SaleIcon from '/coupon.png';
 import ReportIcon from '/report.png';
+import MeasureUnitIcon from '/measurement_unit.png';
 
 export const options = [
 	{
@@ -41,6 +42,19 @@ export const options = [
 		path: 'lotes',
 		permission: 'core.view_batch',
 		icon: Workspaces,
+	},
+	{
+		key: 'measure_units',
+		label: 'Unidades de Medida',
+		path: 'unidades-medida',
+		permission: 'core.view_measureunit',
+		icon: () => (
+			<img
+				src={MeasureUnitIcon}
+				alt="Unidades de Medida"
+				style={{ width: '24px', height: '24px' }}
+			/>
+		),
 	},
 	{
 		key: 'products',

@@ -34,7 +34,7 @@ const EntryList = () => {
 			sortable: true,
 		},
 		{
-			name: 'Nº Factura',
+			name: 'Nº Factura de Compra',
 			selector: row => row.invoiceNumber,
 			sortable: true,
 		},

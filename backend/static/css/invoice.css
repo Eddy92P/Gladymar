@@ -1,11 +1,11 @@
 @page {
-  size: A4 landscape;
+  size: A4;
   margin: 2cm;
 }
 
 body {
   font-family: DejaVu Sans, sans-serif;
-  font-size: 10px;
+  font-size: 7.5px;
 }
 
 body::before {
@@ -72,7 +72,7 @@ th {
 
 .total-row {
   font-weight: bold;
-  font-size: 12px;
+  font-size: 9px;
 }
 
 .total-label {

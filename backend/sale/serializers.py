@@ -8,7 +8,7 @@ from core.models import (
     Agency, Batch, Category, Client, Entry, EntryItem,
     Output, OutputItem, Payment, Product, ProductChannelPrice,
     ProductStock, Purchase, PurchaseItem, Sale, SaleItem,
-    SellingChannel, Supplier, User, Warehouse,
+    SellingChannel, Supplier, User, Warehouse, MeasureUnit,
 )
 from sale.services.entries_service import IncreaseProductStockService
 from sale.services.update_product_stock_service import (
@@ -57,6 +57,14 @@ class BatchSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
+class MeasureUnitSerializer(serializers.ModelSerializer):
+    """Serializer for MeasureUnit model"""
+    class Meta:
+        model = MeasureUnit
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
 class ProductSerializer(serializers.ModelSerializer):
     """Serializer for Product model"""
     batch = BatchSerializer(read_only=True)
@@ -65,10 +73,20 @@ class ProductSerializer(serializers.ModelSerializer):
         source='batch',
         write_only=True
     )
+    measure_unit = MeasureUnitSerializer(read_only=True)
+    measure_unit_id = serializers.PrimaryKeyRelatedField(
+        queryset=MeasureUnit.objects.all(),
+        source='measure_unit',
+        write_only=True
+    )
 
     class Meta:
         model = Product
-        fields = '__all__'
+        fields = ['id', 'batch', 'batch_id', 'measure_unit',
+            'measure_unit_id', 'name', 'code', 'line',
+            'description', 'image', 'minimum_sale_price',
+            'maximum_sale_price', 'created_at', 'updated_at'
+        ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def validate(self, data):
@@ -782,12 +800,16 @@ class PurchaseItemSerializer(serializers.ModelSerializer):
     )
     status_display = serializers.CharField(
         source='get_status_display', read_only=True)
-
+    remaining_quantity = serializers.SerializerMethodField(
+        method_name='get_remaining_quantity')
     class Meta:
         model = PurchaseItem
         fields = ['product_stock', 'products_stock', 'quantity', 'unit_price',
-                  'total_price', 'status', 'status_display', 'entered_stock']
+                  'total_price', 'status', 'status_display', 'entered_stock', 'remaining_quantity']
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_remaining_quantity(self, obj):
+        return obj.get_remaining_quantity()
 
 
 class NestedPaymentSerializer(serializers.ModelSerializer):
@@ -1069,12 +1091,18 @@ class SaleItemSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(required=False, allow_null=True)
     status_display = serializers.CharField(
         source='get_status_display', read_only=True)
+    remaining_quantity = serializers.SerializerMethodField(
+        method_name='get_remaining_quantity')
 
     class Meta:
         model = SaleItem
         fields = ['id', 'product_stock', 'products_stock', 'quantity',
                   'unit_price', 'sub_total_price', 'discount', 'total_price',
-                  'status_display', 'dispatched_stock']
+                  'status_display', 'dispatched_stock', 'remaining_quantity']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_remaining_quantity(self, obj):
+        return obj.get_remaining_quantity()
 
     def validate(self, data):
         if data.get('product_stock') is not None and data.get(
@@ -1173,8 +1201,8 @@ class SaleSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         try:
             last_sale = Sale.objects.filter(
-                pre_invoice_number__gt=0,
-                status='proforma').order_by('-pre_invoice_number').first()
+                pre_invoice_number__gt=0).order_by(
+                    '-pre_invoice_number').first()
             if last_sale:
                 validated_data['pre_invoice_number'] = (
                     last_sale.pre_invoice_number + 1

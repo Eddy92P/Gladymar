@@ -23,7 +23,7 @@ export const validationIsString = text => {
 };
 
 export const validateNameLength = name => {
-	return name.trim().length > 2 && name.trim().length <= 100;
+	return name.trim().length > 1 && name.trim().length <= 100;
 };
 
 export const validateLastNameLength = lastName => {

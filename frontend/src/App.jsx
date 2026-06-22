@@ -16,6 +16,8 @@ import WarehousePage from './pages/WarehousePage';
 import AddWarehousePage from './pages/AddWarehousePage';
 import CategoryPage from './pages/CategoryPage';
 import AddCategoryPage from './pages/AddCategoryPage';
+import MeasureUnitPage from './pages/MeasureUnitPage';
+import AddMeasureUnitPage from './pages/AddMeasureUnitPage';
 import BatchPage from './pages/BatchPage';
 import AddBatchPage from './pages/AddBatchPage';
 import ProductPage from './pages/ProductPage';
@@ -120,6 +122,18 @@ function App() {
 								<Route
 									path="categorias/editar_categoria/:id"
 									element={<AddCategoryPage />}
+								/>
+								<Route
+									path="unidades-medida"
+									element={<MeasureUnitPage />}
+								/>
+								<Route
+									path="unidades-medida/agregar_unidad_medida"
+									element={<AddMeasureUnitPage />}
+								/>
+								<Route
+									path="unidades-medida/editar_unidad_medida/:id"
+									element={<AddMeasureUnitPage />}
 								/>
 								<Route path="lotes" element={<BatchPage />} />
 								<Route

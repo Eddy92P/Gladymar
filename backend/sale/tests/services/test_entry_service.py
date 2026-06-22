@@ -2,7 +2,7 @@ from unittest import TestCase
 from sale.services.entries_service import IncreaseProductStockService
 from core.models import (
     Agency, Batch, Category, Entry, EntryItem,
-    Product, ProductStock, Supplier, Warehouse,
+    MeasureUnit, Product, ProductStock, Supplier, Warehouse,
 )
 from django.utils import timezone
 from django.contrib.auth import get_user_model
@@ -76,6 +76,10 @@ class TestIncreaseProductStockService(TestCase):
             'name': f'Test Product{unique_suffix}',
             'batch': batch,
             'code': f'TEST-{unique_suffix}',
+            'measure_unit': MeasureUnit.objects.create(
+                name=f'Unit{unique_suffix}',
+            ),
+            'line': 'Test Line',
             'minimum_sale_price': 10.00,
             'maximum_sale_price': 100.00
         }

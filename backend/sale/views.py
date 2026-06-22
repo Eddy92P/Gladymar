@@ -11,14 +11,14 @@ from django.views import View
 from django.http import HttpResponse, Http404
 from django.template.loader import render_to_string
 from weasyprint import HTML
-from django.db.models import Subquery
+from django.db.models import Subquery, OuterRef, CharField, Q
 from datetime import datetime
 from django_filters.rest_framework import DjangoFilterBackend
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 
 from core.models import (
-    Agency, Batch, Category, Client, Entry, EntryItem,
+    Agency, Batch, Category, Client, Entry, EntryItem, MeasureUnit,
     Output, OutputItem, Payment, Product, ProductChannelPrice,
     ProductStock, Purchase, PurchaseItem, Sale, SaleItem,
     SellingChannel, Supplier, Warehouse,
@@ -41,6 +41,7 @@ from .serializers import (
     SellingChannelSerializer,
     SupplierSerializer,
     WarehouseSerializer,
+    MeasureUnitSerializer,
 )
 
 
@@ -308,6 +309,28 @@ class BatchViewSet(viewsets.ModelViewSet):
         return Response(list(queryset))
 
 
+class MeasureUnitViewSet(viewsets.ModelViewSet):
+    """View for managing measure unit APIs."""
+    serializer_class = MeasureUnitSerializer
+    queryset = MeasureUnit.objects.all()
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'post', 'patch', 'put']
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['id', 'name']
+    pagination_class = PersonalizedPagination
+
+    def get_queryset(self):
+        """Retrieve measure units ordered by id."""
+        return self.queryset.order_by('-id')
+
+    @action(detail=False, methods=["get"], url_path="all")
+    def all_measure_units(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset()).values(
+            "id", "name")
+        return Response(list(queryset))
+
+
 class ProductViewSet(viewsets.ModelViewSet):
     """View for managing product APIs."""
     serializer_class = ProductSerializer
@@ -457,7 +480,7 @@ class EntryViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retrieve entries ordered by id."""
-        return self.queryset.order_by('-id')
+        return self.queryset.select_related('purchase').order_by('-id')
 
 
 class OutputViewSet(viewsets.ModelViewSet):
@@ -543,9 +566,9 @@ class PurchaseViewSet(viewsets.ModelViewSet):
         status = self.request.query_params.get('status')
 
         if status:
-            queryset = queryset.filter(status=status).order_by('-id')
+            queryset = queryset.filter(status=status).prefetch_related('purchase_items').order_by('-id')
 
-        return self.queryset.order_by('-id')
+        return self.queryset.prefetch_related('purchase_items').order_by('-id')
 
 
 class SaleViewSet(viewsets.ModelViewSet):
@@ -573,8 +596,10 @@ class SaleViewSet(viewsets.ModelViewSet):
         status = self.request.query_params.get("status")
 
         if status:
-            queryset = queryset.filter(status=status).order_by('-id')
-        return self.queryset.order_by('-id')
+            queryset = queryset.filter(status=status).prefetch_related(
+                'sale_items').order_by('-id')
+
+        return self.queryset.prefetch_related('sale_items').order_by('-id')
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
@@ -599,7 +624,7 @@ class InvoicePdfView(View):
     def get(self, request, *args, **kwargs):
         sale_id = self.kwargs.get('id')
         try:
-            sale = Sale.objects.get(id=sale_id)
+            sale = Sale.objects.select_related('seller').prefetch_related('sale_items').get(id=sale_id)
         except Sale.DoesNotExist:
             raise Http404("Venta no encontrada.")
 
@@ -707,9 +732,16 @@ class SellReportPdfView(View):
         end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
         today = datetime.now().date()
         try:
+            payments = Payment.objects.filter(
+                transaction_id=OuterRef('sale__id'),
+                transaction_type='venta').values(
+                    'payment_method'
+                )[:1]
             sale_items = SaleItem.objects.filter(
                 sale__sale_date__range=(start_date, end_date)
-            ).select_related("sale").order_by("sale__id")
+            ).select_related("sale").order_by("sale__id").annotate(
+                payment_method=Subquery(payments, output_field=CharField())
+            ).filter(Q(sale__status='realizado') | Q(sale__status='terminado'))
         except SaleItem.DoesNotExist:
             raise Http404("Ventas no encontradas.")
 
@@ -983,9 +1015,16 @@ class SaleReportExcelView(APIView):
         start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
         end_date = datetime.strptime(end_date_str, "%Y-%m-%d")
         try:
+            payments = Payment.objects.filter(
+                transaction_id=OuterRef('sale__id'),
+                transaction_type='venta').values(
+                    'payment_method'
+                )[:1]
             sale_items = SaleItem.objects.filter(
                 sale__sale_date__range=(start_date, end_date)
-            ).select_related("sale").order_by("sale__id")
+            ).select_related("sale").order_by("sale__id").annotate(
+                payment_method=Subquery(payments, output_field=CharField())
+            ).filter(Q(sale__status='realizado') | Q(sale__status='terminado'))
         except SaleItem.DoesNotExist:
             raise Http404("Ventas no encontradas.")
         wb = Workbook()
@@ -1010,6 +1049,7 @@ class SaleReportExcelView(APIView):
                     "SUB TOTAL",
                     "DESCUENTO %",
                     "TOTAL ITEM",
+                    "METODO DE PAGO",
                     "ESTADO (ENTREGA AL CLIENTE)",
                     ])
         # Unir todas las celdas de la fila 1 (título) y centrarlo
@@ -1041,6 +1081,7 @@ class SaleReportExcelView(APIView):
             15,  # SUB TOTAL
             20,  # DESCUENTO %
             15,  # TOTAL ITEM
+            30,  # METODO DE PAGO
             30,  # ESTADO (ENTREGA AL CLIENTE)
         ]
         for i, width in enumerate(column_widths, start=1):
@@ -1073,6 +1114,7 @@ class SaleReportExcelView(APIView):
                 sale_item.sub_total_price,
                 sale_item.discount,
                 sale_item.total_price,
+                sale_item.payment_method,
                 sale_item.status,
             ])
 

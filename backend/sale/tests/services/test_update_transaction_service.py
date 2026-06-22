@@ -4,7 +4,7 @@ Tests for update transaction service.
 from sale.services.update_transaction_service import UpdateTransactionService
 
 from core.models import (
-    Agency, Batch, Category, Client, Payment, Product,
+    Agency, Batch, Category, Client, MeasureUnit, Payment, Product,
     Purchase, Sale, SellingChannel, Supplier,
 )
 from django.contrib.auth import get_user_model
@@ -75,6 +75,10 @@ class UpdateTransactionServiceTest(TestCase):
             'name': f'Test Product{unique_suffix}',
             'batch': batch,
             'code': f'TEST-{unique_suffix}',
+            'measure_unit': MeasureUnit.objects.create(
+                name=f'Unit{unique_suffix}',
+            ),
+            'line': 'Test Line',
             'minimum_sale_price': 10.00,
             'maximum_sale_price': 100.00
         }

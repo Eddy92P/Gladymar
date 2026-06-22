@@ -353,8 +353,19 @@ class Batch(models.Model):
         return self.name
 
 
+class MeasureUnit(models.Model):
+    name = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Product(models.Model):
     batch = models.ForeignKey(Batch, on_delete=models.PROTECT)
+    measure_unit = models.ForeignKey(
+        MeasureUnit, on_delete=models.PROTECT)
     name = models.CharField(
         max_length=150,
         unique=True,
@@ -385,10 +396,19 @@ class Product(models.Model):
             )
         ]
     )
-    unit_of_measurement = models.CharField(
-        max_length=10,
+    line = models.CharField(
+        max_length=50,
         null=False,
         blank=False,
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z0-9\s_-]+$',
+                message=(
+                    "La línea solo puede contener letras, números, "
+                    "espacios, guiones y guiones bajos."
+                )
+            )
+        ]
     )
     description = models.TextField(null=True, blank=True)
     image = models.ImageField(upload_to='products/', null=True, blank=True)
@@ -617,6 +637,9 @@ class PurchaseItem(models.Model):
 
         purchase.save(update_fields=['status', 'purchase_end_date'])
 
+    def get_remaining_quantity(self):
+        return self.quantity - self.entered_stock
+
 
 class Entry(models.Model):
     agency = models.ForeignKey(Agency, on_delete=models.PROTECT)
@@ -791,6 +814,9 @@ class SaleItem(models.Model):
             sale.sale_done_date = date.today()
 
         sale.save(update_fields=['status', 'sale_done_date'])
+
+    def get_remaining_quantity(self):
+        return self.quantity - self.dispatched_stock
 
 
 class Payment(models.Model):

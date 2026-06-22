@@ -3,7 +3,7 @@ Tests for output product stock service.
 """
 from django.core.exceptions import ValidationError
 from core.models import (
-    Agency, Batch, Category, Client, Output, OutputItem,
+    Agency, Batch, Category, Client, MeasureUnit, Output, OutputItem,
     Product, ProductStock, Warehouse,
 )
 from unittest import TestCase
@@ -77,6 +77,10 @@ class TestDecreaseProductStockService(TestCase):
             'name': f'Test Product {unique_suffix}',
             'batch': batch,
             'code': f'TEST-{unique_suffix}',
+            'measure_unit': MeasureUnit.objects.create(
+                name=f'Unit {unique_suffix}',
+            ),
+            'line': 'Test Line',
             'minimum_sale_price': 10.00,
             'maximum_sale_price': 100.00
         }

@@ -3,7 +3,7 @@ Tests for update product stock when an entry is updated.
 """
 from core.models import (
     Agency, Batch, Category, Client, Entry, EntryItem,
-    Output, OutputItem, Product, ProductStock, Supplier, Warehouse,
+    MeasureUnit, Output, OutputItem, Product, ProductStock, Supplier, Warehouse,
 )
 from sale.services.update_product_stock_service import (
     UpdateProductStockService,
@@ -73,6 +73,10 @@ class TestUpdateProductStockService(TestCase):
             'name': f'Test Product{unique_suffix}',
             'batch': batch,
             'code': f'TEST-{unique_suffix}',
+            'measure_unit': MeasureUnit.objects.create(
+                name=f'Unit{unique_suffix}',
+            ),
+            'line': 'Test Line',
             'minimum_sale_price': 10.00,
             'maximum_sale_price': 100.00
         }

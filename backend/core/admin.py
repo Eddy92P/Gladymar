@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from core.models import (
     User, Agency, Client, Warehouse, Category, Product,
     Supplier, SellingChannel, Purchase, Entry, Output, Sale, Payment,
+    MeasureUnit,
 )
 
 
@@ -79,3 +80,4 @@ admin.site.register(Entry)
 admin.site.register(Output)
 admin.site.register(Sale)
 admin.site.register(Payment)
+admin.site.register(MeasureUnit)

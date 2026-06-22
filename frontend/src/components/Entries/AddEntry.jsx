@@ -411,6 +411,11 @@ export const AddEntry = () => {
 													</TableCell>
 													<TableCell align="right">
 														<strong>
+															Cantidad Restante
+														</strong>
+													</TableCell>
+													<TableCell align="right">
+														<strong>
 															Cantidad Ingresada
 														</strong>
 													</TableCell>
@@ -452,6 +457,10 @@ export const AddEntry = () => {
 															<TableCell align="right">
 																{
 																	purchaseItem.quantity
+																}
+															</TableCell><TableCell align="right">
+																{
+																	purchaseItem.remaining_quantity
 																}
 															</TableCell>
 															<TableCell align="right">

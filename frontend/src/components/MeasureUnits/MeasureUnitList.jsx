@@ -21,7 +21,7 @@ const useStyles = makeStyles({
 	},
 });
 
-const ProductList = () => {
+const MeasureUnitList = () => {
 	const classes = useStyles();
 
 	const [list, setList] = useState([]);
@@ -34,45 +34,15 @@ const ProductList = () => {
 
 	const contentHeader = [
 		{
-			name: 'Lote',
-			selector: row => row.batch.name,
-			sortable: true,
-		},
-		{
 			name: 'Nombre',
 			selector: row => row.name,
-			sortable: true,
-		},
-		{
-			name: 'Línea',
-			selector: row => row.line,
-			sortable: true,
-		},
-		{
-			name: 'Código',
-			selector: row => row.code,
-			sortable: true,
-		},
-		{
-			name: 'Unidad de medida',
-			selector: row => row.measureUnit.name,
-			sortable: true,
-		},
-		{
-			name: 'Precio de venta mínimo',
-			selector: row => row.minimumSalePrice,
-			sortable: true,
-		},
-		{
-			name: 'Precio de venta máximo',
-			selector: row => row.maximumSalePrice,
 			sortable: true,
 		},
 		{
 			name: 'Acciones',
 			button: 'true',
 			cell: row => (
-				<Tooltip title="Editar producto" placement="top">
+				<Tooltip title="Editar unidad de medida" placement="top">
 					<Icon
 						path={mdiPencilOutline}
 						size={1}
@@ -90,14 +60,14 @@ const ProductList = () => {
 		const API = import.meta.env.VITE_API_URL;
 
 		let url =
-			`${API}${api.API_URL_PRODUCTS}` +
+			`${API}${api.API_URL_MEASURE_UNITS}` +
 			`?limit=${pageSize}&offset=${(page - 1) * pageSize}`;
 
 		if (filterText) {
 			url += `&search=${filterText}`;
 		}
 
-		const fetchProducts = async () => {
+		const fetchMeasureUnits = async () => {
 			try {
 				const response = await authFetch(url, {
 					method: 'GET',
@@ -108,7 +78,7 @@ const ProductList = () => {
 				});
 
 				if (!response.ok) {
-					throw new Error('Failed to fetch batches.');
+					throw new Error('Failed to fetch measure units');
 				}
 
 				const data = await response.json();
@@ -119,14 +89,6 @@ const ProductList = () => {
 						return {
 							id: listData.id,
 							name: listData.name,
-							line: listData.line,
-							batch: listData.batch,
-							code: listData.code,
-							image: listData.image,
-							description: listData.description,
-							measureUnit: listData.measure_unit,
-							minimumSalePrice: listData.minimum_sale_price,
-							maximumSalePrice: listData.maximum_sale_price,
 						};
 					});
 					setList(parsedList);
@@ -141,7 +103,7 @@ const ProductList = () => {
 			}
 		};
 
-		fetchProducts();
+		fetchMeasureUnits();
 
 		return () => {
 			isMounted = false;
@@ -149,15 +111,15 @@ const ProductList = () => {
 		};
 	}, [filterText, page, pageSize]);
 
-	const handleAddBatch = () => {
-		navigate('agregar_producto');
+	const handleAddMeasureUnit = () => {
+		navigate('agregar_unidad_medida');
 	};
 
 	const handleButtonClick = (e, id) => {
 		e.preventDefault();
-		const product = list.find(x => x.id === id);
-		navigate(`editar_producto/${id}`, {
-			state: { productData: product },
+		const measureUnit = list.find(x => x.id === id);
+		navigate(`editar_unidad_medida/${id}`, {
+			state: { measureUnitData: measureUnit },
 		});
 	};
 
@@ -176,9 +138,9 @@ const ProductList = () => {
 	return (
 		<Fragment>
 			<ListHeader
-				title="Productos"
+				title="Unidades de Medida"
 				text="Agregar"
-				onClick={handleAddBatch}
+				onClick={handleAddMeasureUnit}
 				visible={true}
 			/>
 			<List
@@ -195,4 +157,4 @@ const ProductList = () => {
 	);
 };
 
-export default ProductList;
+export default MeasureUnitList;

@@ -8,7 +8,7 @@ from rest_framework import status
 from django.contrib.auth import get_user_model
 from core.models import (
     SellingChannel, Product, ProductChannelPrice,
-    Batch, Category, Warehouse, Agency, Supplier
+    Batch, Category, Warehouse, Agency, Supplier, MeasureUnit
 )
 from sale.serializers import SellingChannelSerializer
 import uuid
@@ -110,6 +110,16 @@ def create_supplier(**params):
     return supplier
 
 
+def create_measure_unit(**params):
+    """Create and return a sample measure unit."""
+    unique_suffix = str(uuid.uuid4())[:8]
+    defaults = {
+        'name': f'Unit {unique_suffix}',
+    }
+    defaults.update(params)
+    return MeasureUnit.objects.create(**defaults)
+
+
 def create_product(**params):
     """Create and return a sample product."""
     unique_suffix = str(uuid.uuid4())[:8]
@@ -117,7 +127,8 @@ def create_product(**params):
         'name': f'Sample Product {unique_suffix}',
         'batch': create_batch(),
         'code': f'Sample Code {unique_suffix}',
-        'unit_of_measurement': 'Unit',
+        'measure_unit': create_measure_unit(),
+        'line': 'Test Line',
         'description': 'Sample Description',
         'image': None,
         'minimum_sale_price': 100,

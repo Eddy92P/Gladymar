@@ -37,6 +37,7 @@
                             <th>SUB TOTAL</th>
                             <th>DESCUENTO %</th>
                             <th>TOTAL ITEM</th>
+                            <th>METODO DE PAGO</th>
                             <th>ESTADO (ENTREGA AL CLIENTE)</th>
                         </tr>
                     {% endifchanged %}
@@ -56,6 +57,11 @@
                         <td>{{ sale_item.sub_total_price }}</td>
                         <td>{{ sale_item.discount }}</td>
                         <td>{{ sale_item.total_price }}</td>
+                        {% if sale_item.payment_method %}
+                            <td>{{ sale_item.payment_method }}</td>
+                        {% else %}
+                            <td>N/A</td>
+                        {% endif %}
                         <td>{{ sale_item.get_status_display }}</td>
                     </tr>
                 {% endfor %}

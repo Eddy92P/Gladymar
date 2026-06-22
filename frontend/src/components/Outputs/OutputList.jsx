@@ -33,6 +33,11 @@ const OutputList = () => {
 			sortable: true,
 		},
 		{
+			name: 'Nº Recibo de Venta',
+			selector: row => row.invoiceNumber,
+			sortable: true,
+		},
+		{
 			name: 'Nota',
 			selector: row => row.note,
 			sortable: true,
@@ -100,6 +105,7 @@ const OutputList = () => {
 							outputDate: listData.output_date,
 							outputItems: listData.output_items,
 							note: listData.note,
+							invoiceNumber: listData.invoice_number,
 						};
 					});
 					setList(parsedList);

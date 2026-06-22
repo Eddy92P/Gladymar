@@ -40,6 +40,7 @@ function AddProduct() {
 	const API = import.meta.env.VITE_API_URL;
 	const url = `${API}${api.API_URL_PRODUCTS}`;
 	const urlBatchChoices = `${API}${api.API_URL_ALL_BATCHES}`;
+	const urlMeasureUnitChoices = `${API}${api.API_URL_ALL_MEASURE_UNITS}`;
 	const [isLoading, setIsLoading] = useState(false);
 	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');
@@ -59,6 +60,8 @@ function AddProduct() {
 	const [disabled, setDisabled] = useState(true);
 	const [batchChoices, setBatchChoices] = useState([]);
 	const [batch, setBatch] = useState(null);
+	const [measureUnitChoices, setMeasureUnitChoices] = useState([]);
+	const [measureUnit, setMeasureUnit] = useState(null);
 	const [errorMessage, setErrorMessage] = useState('');
 	const [selectedFile, setSelectedFile] = useState(null);
 	const [selectedFileUrl, setSelectedFileUrl] = useState(null);
@@ -95,19 +98,26 @@ function AddProduct() {
 		return { value: '', isValid: false };
 	};
 
-	const unitMeasurementReducer = (state, action) => {
+	const lineReducer = (state, action) => {
 		if (action.type === 'INPUT_FOCUS') {
 			return {
 				value: state.value,
-				isValid: state.value.length > 0,
-				feedbackText: 'Ingrese una unidad de medida válida.',
+				isValid: validateLine(state.value),
+				feedbackText: 'Ingrese una línea válida.',
 			};
 		}
 		if (action.type === 'INPUT_CHANGE') {
 			return {
 				value: action.val,
-				isValid: action.val.length > 0,
-				feedbackText: 'Ingrese una unidad de medida válida.',
+				isValid: validateNameLength(action.val),
+				feedbackText: 'Ingrese una línea válida.',
+			};
+		}
+		if (action.type === 'INPUT_ERROR') {
+			return {
+				value: state.value,
+				isValid: false,
+				feedbackText: action.errorMessage,
 			};
 		}
 		return { value: '', isValid: false };
@@ -187,6 +197,12 @@ function AddProduct() {
 		feedbackText: '',
 	});
 
+	const [lineState, dispatchLine] = useReducer(lineReducer, {
+		value: productData.line ? productData.line : '',
+		isValid: true,
+		feedbackText: '',
+	});
+
 	const [minimumSalePriceState, dispatchMinimumSalePrice] = useReducer(
 		minimumSalePriceReducer,
 		{
@@ -215,25 +231,19 @@ function AddProduct() {
 		feedbackText: '',
 	});
 
-	const [unitMeasurementState, dispatchUnitMeasurement] = useReducer(
-		unitMeasurementReducer,
-		{
-			value: productData.unitMeasurement
-				? productData.unitMeasurement
-				: '',
-			isValid: true,
-			feedbackText: '',
-		}
-	);
-
 	const { isValid: nameIsValid } = nameState;
+	const { isValid: lineIsValid } = lineState;
 	const { isValid: codeIsValid } = codeState;
 	const { isValid: minimumSalePriceIsValid } = minimumSalePriceState;
 	const { isValid: maximumSalePriceIsValid } = maximumSalePriceState;
-	const { isValid: unitMeasurementIsValid } = unitMeasurementState;
+	const unitMeasurementIsValid = measureUnit !== null;
 
 	const nameInputChangeHandler = e => {
 		dispatchName({ type: 'INPUT_CHANGE', val: e.target.value });
+	};
+
+	const lineInputChangeHandler = e => {
+		dispatchLine({ type: 'INPUT_CHANGE', val: e.target.value });
 	};
 
 	const codeInputChangeHandler = e => {
@@ -248,8 +258,8 @@ function AddProduct() {
 		dispatchMaximumSalePrice({ type: 'INPUT_CHANGE', val: e.target.value });
 	};
 
-	const unitMeasurementInputChangeHandler = e => {
-		dispatchUnitMeasurement({ type: 'INPUT_CHANGE', val: e.target.value });
+	const measureUnitInputChangeHandler = (event, option) => {
+		setMeasureUnit(option);
 	};
 
 	const descriptionInputChangeHandler = e => {
@@ -311,6 +321,35 @@ function AddProduct() {
 	}, [urlBatchChoices, productData.batch]);
 
 	useEffect(() => {
+		const fetchMeasureUnitChoices = async () => {
+			try {
+				const response = await authFetch(urlMeasureUnitChoices, {
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				});
+				if (response.ok) {
+					const data = await response.json();
+					const choices = data || [];
+					setMeasureUnitChoices(choices);
+					if (productData.measureUnit && choices.length > 0) {
+						const matchingChoice = choices.find(
+							choice => choice.id === productData.measureUnit.id
+						);
+						if (matchingChoice) {
+							setMeasureUnit(matchingChoice);
+						}
+					}
+				}
+			} catch (error) {
+				console.error('Error fetching measure unit choices:', error);
+			}
+		};
+
+		fetchMeasureUnitChoices();
+	}, [urlMeasureUnitChoices, productData.measureUnit]);
+
+	useEffect(() => {
 		if (productData.image && productData.length !== 0) {
 			setExistingImage(productData.image);
 			setShouldDeleteImage(false);
@@ -347,6 +386,7 @@ function AddProduct() {
 		const formData = new FormData();
 		formData.append('batch_id', batch.id);
 		formData.append('name', nameState.value);
+		formData.append('line', lineState.value);
 		formData.append('code', codeState.value);
 		formData.append('description', description);
 
@@ -356,7 +396,7 @@ function AddProduct() {
 
 		formData.append('minimum_sale_price', minimumSalePriceState.value);
 		formData.append('maximum_sale_price', maximumSalePriceState.value);
-		formData.append('unit_of_measurement', unitMeasurementState.value);
+		formData.append('measure_unit_id', measureUnit.id);
 
 		try {
 			const response = await authFetch(url, {
@@ -411,11 +451,12 @@ function AddProduct() {
 		}
 		formData.append('batch_id', batch.id);
 		formData.append('name', nameState.value);
+		formData.append('line', lineState.value);
 		formData.append('code', codeState.value);
 		formData.append('description', description);
 		formData.append('minimum_sale_price', minimumSalePriceState.value);
 		formData.append('maximum_sale_price', maximumSalePriceState.value);
-		formData.append('unit_of_measurement', unitMeasurementState.value);
+		formData.append('measure_unit_id', measureUnit.id);
 
 		try {
 			const response = await authFetch(`${url}${productData.id}/`, {
@@ -464,14 +505,16 @@ function AddProduct() {
 	useEffect(() => {
 		if (
 			nameState.value &&
+			lineState.value &&
 			codeState.value &&
 			minimumSalePriceState.value !== null &&
 			maximumSalePriceState.value !== null &&
-			unitMeasurementState.value &&
+			measureUnit &&
 			batch
 		) {
 			const isValid =
 				nameIsValid &&
+				lineIsValid &&
 				codeIsValid &&
 				minimumSalePriceIsValid &&
 				maximumSalePriceIsValid &&
@@ -484,12 +527,14 @@ function AddProduct() {
 		}
 	}, [
 		nameState.value,
+		lineState.value,
 		codeState.value,
 		minimumSalePriceState.value,
 		maximumSalePriceState.value,
-		unitMeasurementState.value,
+		measureUnit,
 		batch,
 		nameIsValid,
+		lineIsValid,
 		codeIsValid,
 		minimumSalePriceIsValid,
 		maximumSalePriceIsValid,
@@ -754,6 +799,22 @@ function AddProduct() {
 												fullWidth
 											/>
 										</Grid>
+										<Grid size={{ xs: 12, sm: 4 }}>
+											<TextField
+												label="Línea"
+												variant="outlined"
+												onChange={lineInputChangeHandler}
+												value={lineState.value}
+												error={!lineIsValid}
+												helperText={
+													!lineIsValid
+														? lineState.feedbackText
+														: ''
+												}
+												required
+												fullWidth
+											/>
+										</Grid>
 										<Grid size={{ xs: 12, sm: 3 }}>
 											<TextField
 												label="Código"
@@ -773,23 +834,36 @@ function AddProduct() {
 											/>
 										</Grid>
 										<Grid size={{ xs: 12, sm: 2 }}>
-											<TextField
-												label="Unidad de Medida"
-												variant="outlined"
-												onChange={
-													unitMeasurementInputChangeHandler
-												}
-												value={
-													unitMeasurementState.value
-												}
-												error={!unitMeasurementIsValid}
-												helperText={
-													!unitMeasurementIsValid
-														? unitMeasurementState.feedbackText
+											<Autocomplete
+												disablePortal
+												value={measureUnit}
+												options={measureUnitChoices}
+												getOptionLabel={option =>
+													option
+														? option.name || ''
 														: ''
 												}
-												required
-												fullWidth
+												renderOption={(
+													props,
+													option
+												) => (
+													<li
+														{...props}
+														key={option.id}
+													>
+														{option.name}
+													</li>
+												)}
+												renderInput={params => (
+													<TextField
+														{...params}
+														label="Unidad de Medida"
+														required
+													/>
+												)}
+												onChange={
+													measureUnitInputChangeHandler
+												}
 											/>
 										</Grid>
 									</Grid>
@@ -914,9 +988,10 @@ function AddProduct() {
 						<AddProductPreview
 							batch={batch.name}
 							name={nameState.value}
+							line={lineState.value}
 							code={codeState.value}
 							image={selectedFileUrl || existingImage}
-							unitMeasurement={unitMeasurementState.value}
+							unitMeasurement={measureUnit?.name}
 							description={description}
 							minimumSalePrice={minimumSalePriceState.value}
 							maximumSalePrice={maximumSalePriceState.value}

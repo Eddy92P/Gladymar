@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from core.models import Batch, Category, Warehouse, Product, Supplier, Agency
+from core.models import Batch, Category, Warehouse, Product, Supplier, Agency, MeasureUnit
 from sale.serializers import ProductSerializer
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.conf import settings
@@ -93,6 +93,16 @@ def create_supplier(**params):
     return supplier
 
 
+def create_measure_unit(**params):
+    """Create and return a sample measure unit."""
+    unique_suffix = str(uuid.uuid4())[:8]
+    defaults = {
+        'name': f'Unit {unique_suffix}',
+    }
+    defaults.update(params)
+    return MeasureUnit.objects.create(**defaults)
+
+
 def create_product(**params):
     """Create and return a sample product."""
     unique_suffix = str(uuid.uuid4())[:8]
@@ -100,7 +110,8 @@ def create_product(**params):
         'name': f'Sample Product {unique_suffix}',
         'batch': create_batch(),
         'code': f'Sample Code {unique_suffix}',
-        'unit_of_measurement': 'Unit',
+        'measure_unit': create_measure_unit(),
+        'line': 'Test Line',
         'description': 'Sample Description',
         'image': None,
         'minimum_sale_price': 100,
@@ -229,7 +240,8 @@ class PrivateProductApiTests(TestCase):
             'name': f'Test Product with Image {unique_suffix}',
             'batch_id': batch.id,
             'code': f'TEST001_{unique_suffix}',
-            'unit_of_measurement': 'Unit',
+            'measure_unit_id': create_measure_unit().id,
+            'line': 'Test Line',
             'description': 'Test product with image',
             'image': image,
             'minimum_sale_price': 120.00,
@@ -260,7 +272,8 @@ class PrivateProductApiTests(TestCase):
             'name': f'Test Product without Image {unique_suffix}',
             'batch_id': batch.id,
             'code': f'TEST002_{unique_suffix}',
-            'unit_of_measurement': 'Unit',
+            'measure_unit_id': create_measure_unit().id,
+            'line': 'Test Line',
             'description': 'Test product without image',
             'minimum_sale_price': 80.00,
             'maximum_sale_price': 150.00,
@@ -365,7 +378,8 @@ class PrivateProductApiTests(TestCase):
             'name': f'Test Product {unique_suffix}',
             'batch_id': batch.id,
             'code': f'TEST003_{unique_suffix}',
-            'unit_of_measurement': 'Unit',
+            'measure_unit_id': create_measure_unit().id,
+            'line': 'Test Line',
             'image': invalid_file,
             'supplier': [supplier.id],
         }
@@ -416,7 +430,8 @@ class PrivateProductApiTests(TestCase):
             'name': 'Updated Name',
             'batch_id': product.batch.id,
             'code': f'TEST004_{unique_suffix}',
-            'unit_of_measurement': 'Unit',
+            'measure_unit_id': create_measure_unit().id,
+            'line': 'Test Line',
             'description': 'Updated Description',
             'image': new_image,
             'minimum_sale_price': 120.00,

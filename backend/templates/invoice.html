@@ -9,14 +9,20 @@
         <div class="header-container">
             <div class="header-title">
                 <h2>DECORESTILO</h1>
+                <h2>{{ sale.agency.name | upper }}</h2>
+                <h2>{{ sale.agency.location | upper }}</h2>
                 <h2>POTOSI - BOLIVIA</h2>
             </div>
             <div class="header-second-title">
                 {% if isSale %}
                     <h2>RECIBO DE VENTA</h1>
+                    <h2>{{ sale.seller.first_name | upper }} {{ sale.seller.last_name | upper }}</h2>
+                    <h2>CEL. {{ sale.seller.phone }}</h2>
                     <h3>N° {{ sale.invoice_number }}</h2>
                 {% else %}
                     <h2>PROFORMA DE VENTA</h2>
+                    <h2>{{ sale.seller.first_name | upper }} {{ sale.seller.last_name | upper }}</h2>
+                    <h2>CEL. {{ sale.seller.phone }}</h2>
                     <h3>N° {{ sale.pre_invoice_number }}</h3>
                 {% endif %}
             </div>
