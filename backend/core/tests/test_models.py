@@ -369,7 +369,7 @@ class ModelTest(TestCase):
                     name='Test Product',
                     code='1234567890',
                     measure_unit=create_measure_unit(),
-                line='Test Line',
+                    line='Test Line',
                     description='Test Description',
                     minimum_sale_price=10,
                     maximum_sale_price=20,
