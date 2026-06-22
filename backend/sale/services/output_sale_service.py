@@ -19,9 +19,13 @@ class UpdateSaleItem:
         try:
             updated = SaleItem.objects.filter(
                 id=sale_item.id,
-                dispatched_stock__lte=F('quantity') - self.output_item.quantity,
+                dispatched_stock__lte=(
+                    F('quantity') - self.output_item.quantity
+                )
             ).update(
-                dispatched_stock=F('dispatched_stock') + self.output_item.quantity
+                dispatched_stock=(
+                    F('dispatched_stock') + self.output_item.quantity
+                )
             )
             if updated == 0:
                 raise ValidationError(

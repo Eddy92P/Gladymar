@@ -1283,8 +1283,14 @@ class SaleSerializer(serializers.ModelSerializer):
                             ProductStock.objects.filter(
                                 id=item_data['product_stock'].id
                             ).update(
-                                reserved_stock=F('reserved_stock') + item_data['quantity'],
-                                available_stock=F('available_stock') - item_data['quantity']
+                                reserved_stock=(
+                                    F('reserved_stock')
+                                    + item_data['quantity']
+                                ),
+                                available_stock=(
+                                    F('available_stock')
+                                    - item_data['quantity']
+                                ),
                             )
                         except Exception as e:
                             logger.error(f"Error saving product stock: {e}")
