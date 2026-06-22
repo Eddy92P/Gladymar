@@ -450,7 +450,7 @@ class Product(models.Model):
                 self.image.save(
                     filename, ContentFile(
                         buffer.getvalue()), save=False)
-                super().save(*args, **kwargs)
+                super().save(update_fields=['image'])
 
 
 class ProductStock(models.Model):

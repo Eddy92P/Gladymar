@@ -2,7 +2,9 @@
 Service to update product stock when an output is updated
 """
 
+from django.db.models import F
 from django.core.exceptions import ValidationError
+from core.models import ProductStock
 import logging
 
 logger = logging.getLogger(__name__)
@@ -18,11 +20,16 @@ class DecreaseProductStockService:
         Decrease product stock when an output is created
         """
         try:
-            if self.product_stock.stock - self.output_item.quantity < 0:
+            updated = ProductStock.objects.filter(
+                id=self.product_stock.id,
+                stock__gte=self.output_item.quantity
+            ).update(
+                stock=F('stock') - self.output_item.quantity,
+                reserved_stock=F('reserved_stock') - self.output_item.quantity
+            )
+            if updated == 0:
                 raise ValidationError(
                     "La cantidad excede el stock disponible.")
-            self.product_stock.stock -= self.output_item.quantity
-            self.product_stock.save()
         except Exception as e:
             logger.error(f"Error decreasing product stock: {e}")
             raise e

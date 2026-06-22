@@ -1205,7 +1205,7 @@ class SaleSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         try:
-            last_sale = Sale.objects.filter(
+            last_sale = Sale.objects.select_for_update().filter(
                 pre_invoice_number__gt=0).order_by(
                     '-pre_invoice_number').first()
             if last_sale:
@@ -1238,7 +1238,7 @@ class SaleSerializer(serializers.ModelSerializer):
             if validated_data.get(
                     'status') == 'realizado' and instance.invoice_number == 0:
                 # Obtener el último invoice_number de todas las ventas
-                last_sale = Sale.objects.filter(
+                last_sale = Sale.objects.select_for_update().filter(
                     invoice_number__gt=0,
                     status='realizado').order_by('-invoice_number').first()
                 if last_sale:
@@ -1279,12 +1279,13 @@ class SaleSerializer(serializers.ModelSerializer):
                     # Actualizar stock para productos existentes y nuevos
                     # cuando el status es 'realizado'
                     if validated_data.get('status') == 'realizado':
-                        item_data['product_stock'].reserved_stock = F(
-                            'reserved_stock') + item_data['quantity']
-                        item_data['product_stock'].available_stock = F(
-                            'available_stock') - item_data['quantity']
                         try:
-                            item_data['product_stock'].save()
+                            ProductStock.objects.filter(
+                                id=item_data['product_stock'].id
+                            ).update(
+                                reserved_stock=F('reserved_stock') + item_data['quantity'],
+                                available_stock=F('available_stock') - item_data['quantity']
+                            )
                         except Exception as e:
                             logger.error(f"Error saving product stock: {e}")
                             raise serializers.ValidationError(

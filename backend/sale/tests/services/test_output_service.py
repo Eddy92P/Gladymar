@@ -103,8 +103,8 @@ class TestDecreaseProductStockService(TestCase):
             'product': self.create_test_product(),
             'warehouse': warehouse,
             'stock': 50,
-            'reserved_stock': 10,
-            'available_stock': 40,
+            'reserved_stock': 30,
+            'available_stock': 20,
             'minimum_stock': 10,
             'maximum_stock': 70
         }
@@ -139,6 +139,7 @@ class TestDecreaseProductStockService(TestCase):
 
         self.product_stock.refresh_from_db()
         self.assertEqual(self.product_stock.stock, 20)
+        self.assertEqual(self.product_stock.reserved_stock, 0)
 
     def test_decrease_stock_raise_error(self):
         """Test service for increase product stock fails."""

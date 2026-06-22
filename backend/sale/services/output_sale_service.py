@@ -2,6 +2,8 @@
 Service to update a sale item when an output is done.
 """
 from django.core.exceptions import ValidationError
+from django.db.models import F
+from core.models import SaleItem
 import logging
 
 logger = logging.getLogger(__name__)
@@ -15,12 +17,18 @@ class UpdateSaleItem:
     def update_sale_item(self):
         sale_item = self.output_item.sale_item
         try:
-            if (sale_item.dispatched_stock + self.output_item.quantity
-                    > sale_item.quantity):
+            updated = SaleItem.objects.filter(
+                id=sale_item.id,
+                dispatched_stock__lte=F('quantity') - self.output_item.quantity,
+            ).update(
+                dispatched_stock=F('dispatched_stock') + self.output_item.quantity
+            )
+            if updated == 0:
                 raise ValidationError(
                     "La cantidad despachada excede la cantidad vendida.")
-            self.product_stock.reserved_stock -= self.output_item.quantity
-            sale_item.dispatched_stock += self.output_item.quantity
+
+            sale_item.refresh_from_db()
+
             if sale_item.dispatched_stock < sale_item.quantity:
                 sale_item.status = 'parcial'
             if sale_item.dispatched_stock == sale_item.quantity:
