@@ -206,7 +206,7 @@ class UpdateTransactionServiceTest(TestCase):
             seller=create_user(),
             total=100,
             balance_due=100,
-            status='generado',
+            status='realizado',
             sale_type='contado',
             sale_date='2025-01-01',
         )
@@ -235,7 +235,7 @@ class UpdateTransactionServiceTest(TestCase):
             seller=create_user(),
             total=100,
             balance_due=100,
-            status='generado',
+            status='realizado',
             sale_type='contado',
             sale_date='2025-01-01',
         )
@@ -266,7 +266,7 @@ class UpdateTransactionServiceTest(TestCase):
             seller=create_user(),
             total=100,
             balance_due=100,
-            status='generado',
+            status='realizado',
             sale_type='contado',
             sale_date='2025-01-01',
         )
@@ -284,3 +284,61 @@ class UpdateTransactionServiceTest(TestCase):
 
         sale.refresh_from_db()
         self.assertEqual(sale.balance_due, 0)
+
+    def test_update_sale_credit_balance(self):
+        """Test credit balance updated when payment done for a sale."""
+        agency = create_user().agency
+        sale = Sale.objects.create(
+            agency=agency,
+            client=create_client(),
+            selling_channel=create_selling_channel(),
+            seller=create_user(),
+            total=100,
+            credit_balance=50,
+            status='proforma',
+            sale_type='contado',
+            sale_date='2025-01-01',
+        )
+        payment = Payment.objects.create(
+            transaction_id=sale.id,
+            payment_method='efectivo',
+            transaction_type='venta',
+            amount=50,
+            payment_date='2025-05-06',
+        )
+        service = UpdateTransactionService(
+            sale.id, payment.amount, payment.transaction_type)
+        service.update_transaction_credit_balance()
+
+        sale.refresh_from_db()
+        self.assertEqual(sale.credit_balance, 100)
+
+    def test_update_sale_credit_balance_payment_exceeds(self):
+        """Test credit balance when sale payment exceeds balance."""
+        agency = create_user().agency
+        sale = Sale.objects.create(
+            agency=agency,
+            client=create_client(),
+            selling_channel=create_selling_channel(),
+            seller=create_user(),
+            total=100,
+            credit_balance=50,
+            status='proforma',
+            sale_type='contado',
+            sale_date='2025-01-01',
+        )
+        payment = Payment.objects.create(
+            transaction_id=sale.id,
+            payment_method='efectivo',
+            transaction_type='venta',
+            amount=150,
+            payment_date='2025-05-06',
+        )
+        service = UpdateTransactionService(
+            sale.id, payment.amount, payment.transaction_type)
+        with self.assertRaises(ValidationError) as context:
+            service.update_transaction_credit_balance()
+
+        self.assertIn(
+            "El pago excede el total de la venta.", str(
+                context.exception))

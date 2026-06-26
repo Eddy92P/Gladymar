@@ -114,6 +114,7 @@ export const AddSale = () => {
 	const [errorMessage, setErrorMessage] = useState('');
 	const [showProductsModal, setShowProductsModal] = useState(false);
 	const [saleTotalAmount, setSaleTotalAmount] = useState('');
+	const [saleRemainingAmount, setSaleRemainingAmount] = useState(0.00);
 	const [saleType, setSaleType] = useState('');
 	const [clientChoices, setClientChoices] = useState([]);
 	const [client, setClient] = useState(null);
@@ -373,11 +374,11 @@ export const AddSale = () => {
 	const paymentAmountInputChangeHandler = e => {
 		dispatchPaymentAmount({ type: 'INPUT_CHANGE', val: e.target.value });
 		const paymentAmount = parseFloat(e.target.value) || 0;
-		if (saleType === 'contado' && paymentAmount < saleTotalAmount) {
+		if (saleType === 'contado' && paymentAmount < saleRemainingAmount) {
 			dispatchPaymentAmount({
 				type: 'INPUT_ERROR',
 				errorMessage:
-					'Si la compra es al contado el pago debe cubrir el monto total.',
+					'Si la venta es al contado el pago debe cubrir el monto total.',
 			});
 		}
 	};
@@ -436,12 +437,13 @@ export const AddSale = () => {
 		}
 
 		setSaleTotalAmount(totalSalePrice.toFixed(2));
+		setSaleRemainingAmount(totalSalePrice.toFixed(2) - (saleData.creditBalance || 0.00));
 	}, [productListState]);
 
 	// Recalcular el total de la compra cuando cambie la lista de productos
 	useEffect(() => {
 		calculateAndUpdateTotalSalePrice();
-	}, [productListState, calculateAndUpdateTotalSalePrice]);
+	}, [productListState, calculateAndUpdateTotalSalePrice, saleData.creditBalance]);
 
 	const priceInputChangeHandler = useCallback(
 		(id, value) => {
@@ -759,7 +761,7 @@ export const AddSale = () => {
 				sale_type: isSale ? saleType : 'proforma',
 				status: isSale ? 'realizado' : 'proforma',
 				total: saleTotalAmount,
-				balance_due: isSale ? saleTotalAmount : 0,
+				balance_due: isSale ? saleRemainingAmount : 0,
 				sale_items: productListState.map(product => ({
 					id: product.saleItemId,
 					product_stock: product.id,
@@ -1202,9 +1204,9 @@ export const AddSale = () => {
 														<StyledTableCell>
 															Costo Total Bs.
 														</StyledTableCell>
-														<StyledTableCell>
+														{!isSale && <StyledTableCell>
 															Acciones
-														</StyledTableCell>
+														</StyledTableCell>}
 													</TableRow>
 												</TableHead>
 												<TableBody>
@@ -1489,7 +1491,7 @@ export const AddSale = () => {
 																		}}
 																	/>
 																</TableCell>
-																<TableCell align="center">
+																{!isSale && <TableCell align="center">
 																	<Tooltip
 																		title={
 																			'Quitar'
@@ -1512,7 +1514,7 @@ export const AddSale = () => {
 																			/>
 																		</IconButton>
 																	</Tooltip>
-																</TableCell>
+																</TableCell>}
 															</TableRow>
 														)
 													)}
@@ -1658,6 +1660,46 @@ export const AddSale = () => {
 										}
 										value={saleTotalAmount}
 										disabled
+									/>
+								</FormControl>
+							)}
+							{saleRemainingAmount > 0 && (
+								<FormControl
+									sx={{ m: 1, width: '20%' }}
+									variant="filled"
+								>
+									<InputLabel htmlFor="standard-adornment-amount">
+										Saldo Pendiente
+									</InputLabel>
+									<FilledInput
+										id="standard-adornment-amount"
+										startAdornment={
+											<InputAdornment position="start">
+												Bs.
+											</InputAdornment>
+										}
+										disabled
+										value={saleRemainingAmount}
+									/>
+								</FormControl>
+							)}
+							{saleData.creditBalance && saleData.creditBalance > 0 && (
+								<FormControl
+									sx={{ m: 1, width: '20%' }}
+									variant="filled"
+								>
+									<InputLabel htmlFor="standard-adornment-amount">
+										Saldo a Favor
+									</InputLabel>
+									<FilledInput
+										id="standard-adornment-amount"
+										startAdornment={
+											<InputAdornment position="start">
+												Bs.
+											</InputAdornment>
+										}
+										disabled
+										value={saleData.creditBalance || 0.00}
 									/>
 								</FormControl>
 							)}

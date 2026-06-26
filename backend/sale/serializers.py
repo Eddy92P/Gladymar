@@ -605,6 +605,7 @@ class PaymentSerializer(serializers.ModelSerializer):
             'id',
             'transaction_id',
             'payment_method',
+            'payment_type',
             'transaction_type',
             'amount',
             'payment_date',
@@ -618,9 +619,10 @@ class PaymentSerializer(serializers.ModelSerializer):
         transaction_id = data.get('transaction_id')
         payment_date = data.get('payment_date')
         payment_amount = data.get('amount')
+        payment_type = data.get('payment_type')
 
         # Only validate if we have all required fields
-        if transaction_type and transaction_id and payment_date:
+        if transaction_type and transaction_id and payment_date and payment_type:
             if transaction_type == 'compra':
                 transaction = Purchase.objects.get(id=transaction_id)
                 if payment_date < transaction.purchase_date:
@@ -640,7 +642,12 @@ class PaymentSerializer(serializers.ModelSerializer):
                         )
                     })
 
-            if transaction.balance_due - payment_amount < 0:
+            if payment_type == 'anticipo' and transaction_type == 'venta':
+                if transaction.credit_balance + payment_amount > transaction.total:
+                    raise serializers.ValidationError({
+                        "amount": "El pago excede el total de la venta."
+                    })
+            elif transaction.balance_due - payment_amount < 0:
                 raise serializers.ValidationError({
                     "amount": "El pago excede el saldo pendiente."
                 })
@@ -653,10 +660,17 @@ class PaymentSerializer(serializers.ModelSerializer):
         transaction_id = validated_data['transaction_id']
         payment_amount = validated_data['amount']
         transaction_type = validated_data['transaction_type']
-        UpdateTransactionService(
-            transaction_id,
-            payment_amount,
-            transaction_type).update_transaction_balance_due()
+        payment_type = validated_data['payment_type']
+        if(payment_type == 'anticipo'):
+            UpdateTransactionService(
+                transaction_id,
+                payment_amount,
+                transaction_type).update_transaction_credit_balance()
+        else:
+            UpdateTransactionService(
+                transaction_id,
+                payment_amount,
+                transaction_type).update_transaction_balance_due()
 
         return payment
 
@@ -1166,6 +1180,7 @@ class SaleSerializer(serializers.ModelSerializer):
             'sale_items',
             'total',
             'balance_due',
+            'credit_balance',
             'status',
             'sale_type',
             'sale_date',

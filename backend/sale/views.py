@@ -634,11 +634,16 @@ class InvoicePdfView(View):
 
         isSale = True if sale.status == 'realizado' else False
         title = 'Proforma' if sale.status == 'proforma' else 'Recibo'
+        payments = Payment.objects.filter(
+            transaction_id=sale_id,
+            transaction_type='venta',
+        )
 
         context = {
             'title': title,
             'sale': sale,
             'isSale': isSale,
+            'payments': payments,
         }
         html_string = render_to_string('invoice.html', context)
         html = HTML(

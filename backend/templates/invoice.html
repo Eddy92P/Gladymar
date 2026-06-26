@@ -30,6 +30,7 @@
         <div class="header-concept">
             <div>
                 <p>CLIENTE: {{ sale.client.name }}</p>
+                <p>CEL. {{ sale.client.phone }}</p>
                 <p>DETALLE DE PRODUCTOS:</p>
             </div>
         </div>
@@ -69,6 +70,25 @@
                 </tr>
             </table>
         </div>
+        {% if not isSale and payments %}
+        <div>
+            <p style="font-size:12px; margin-top:15px;">DETALLE DE PAGOS:</p>
+            <table>
+                <tr>
+                    <th>FECHA DE PAGO</th>
+                    <th>MÉTODO DE PAGO</th>
+                    <th>MONTO</th>
+                </tr>
+                {% for payment in payments %}
+                <tr>
+                    <td>{{ payment.payment_date|date:"d/m/Y" }}</td>
+                    <td>{{ payment.payment_method | upper }}</td>
+                    <td>{{ payment.amount }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        {% endif %}
         <div class="footer">
             {% if isSale %}
                 <div class="footer-container">

@@ -5,7 +5,7 @@ from core.models import (
     Agency, Batch, Category, Client, Entry, EntryItem,
     Output, OutputItem, Product, ProductStock, Purchase, PurchaseItem,
     Sale, SaleItem, Seller, SellingChannel, Setting, Supplier,
-    User, Warehouse, MeasureUnit
+    User, Warehouse, MeasureUnit, Payment
 )
 
 
@@ -712,3 +712,15 @@ class ModelTest(TestCase):
             name='Test MeasureUnit',
         )
         self.assertEqual(measure_unit.name, 'Test MeasureUnit')
+
+    def test_create_payment(self):
+        """Test creating a Payment."""
+        payment = Payment.objects.create(
+            transaction_id=1,
+            transaction_type='anticipo',
+            payment_method='tarjeta',
+            amount=100,
+            payment_date='2025-01-01',
+        )
+        self.assertEqual(payment.transaction_id, 1)
+        self.assertEqual(payment.transaction_type, 'anticipo')

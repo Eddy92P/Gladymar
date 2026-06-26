@@ -78,6 +78,11 @@ function AddPayment() {
 		[location.state?.isSale]
 	);
 
+	const isCredit = useMemo(
+		() => location.state?.isCredit || false,
+		[location.state?.isCredit]
+	);
+
 	const [formIsValid, setFormIsValid] = useState(false);
 	const [showModal, setShowModal] = useState(false);
 	const [isForm, setIsForm] = useState(true);
@@ -171,6 +176,7 @@ function AddPayment() {
 				body: JSON.stringify({
 					transaction_id: transactionData.id,
 					paymentMethod: paymentMethod,
+					payment_type: isCredit ? 'anticipo' : 'venta',
 					transaction_type: isSale ? 'venta' : 'compra',
 					amount: amountState.value,
 					payment_date: paymentDateState.value.format('YYYY-MM-DD'),
@@ -274,6 +280,11 @@ function AddPayment() {
 															Saldo Pendiente
 														</strong>
 													</TableCell>
+													<TableCell>
+														<strong>
+															Saldo a Favor
+														</strong>
+													</TableCell>
 												</TableRow>
 											</TableHead>
 											<TableBody>
@@ -291,6 +302,11 @@ function AddPayment() {
 													<TableCell>
 														{
 															transactionData.balanceDue
+														}
+													</TableCell>
+													<TableCell>
+														{
+															transactionData.creditBalance || 0.00
 														}
 													</TableCell>
 												</TableRow>

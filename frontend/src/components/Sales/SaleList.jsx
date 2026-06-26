@@ -137,13 +137,13 @@ const SaleList = () => {
 								/>
 							</Tooltip>
 						)}
-					{row.balanceDue > 0 &&
+					{(row.balanceDue > 0 || row.status == 'proforma') &&
 						(authContext.userType == 4 ||
 							authContext.userType == 1) && (
 							<Tooltip title="Agregar pago" placement="top">
 								<Payment
 									onClick={e =>
-										handlePaymentButton(e, row.id, true)
+										handlePaymentButton(e, row.id, true, row.status == 'proforma')
 									}
 									className={classes.editIcon}
 								/>
@@ -208,6 +208,7 @@ const SaleList = () => {
 							saleDoneDate: listData.sale_done_date,
 							total: listData.total,
 							balanceDue: listData.balance_due,
+							creditBalance: listData.credit_balance,
 							status: listData.status,
 							saleItems: listData.sale_items,
 							payments: listData.payments,
@@ -258,11 +259,11 @@ const SaleList = () => {
 		navigate(`agregar_salida/${id}`, { state: { saleData: sale } });
 	};
 
-	const handlePaymentButton = (e, id, isSale) => {
+	const handlePaymentButton = (e, id, isSale, isCredit) => {
 		e.preventDefault();
 		const sale = list.find(x => x.id === id);
 		navigate(`agregar_pago/${id}`, {
-			state: { transactionData: sale, isSale: isSale },
+			state: { transactionData: sale, isSale: isSale, isCredit: isCredit },
 		});
 	};
 

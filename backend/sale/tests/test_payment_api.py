@@ -198,7 +198,8 @@ class PrivatePaymentApiTests(TestCase):
             'payment_method': 'tarjeta',
             'transaction_type': 'venta',
             'amount': 150.00,
-            'payment_date': date(2024, 1, 2),  # One day after sale_date
+            'payment_date': date(2024, 1, 2),
+            'payment_type': 'anticipo',
         }
 
         res = self.client.post(PAYMENT_URL, payload)
@@ -210,6 +211,7 @@ class PrivatePaymentApiTests(TestCase):
         self.assertEqual(payload['transaction_type'], payment.transaction_type)
         self.assertEqual(payload['amount'], payment.amount)
         self.assertEqual(payload['payment_date'], payment.payment_date)
+        self.assertEqual(payload['payment_type'], payment.payment_type)
 
     def test_partial_update_payment(self):
         """Test for partial update a payment."""

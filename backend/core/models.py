@@ -751,6 +751,8 @@ class Sale(models.Model):
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     balance_due = models.DecimalField(
         max_digits=10, decimal_places=2, default=0)
+    credit_balance = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0)
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -820,6 +822,10 @@ class SaleItem(models.Model):
 
 
 class Payment(models.Model):
+    PAYMENT_TYPE_CHOICES = (
+        ('anticipo', 'Anticipo'),
+        ('venta', 'Venta'),
+    )
     PAYMENT_METHOD_CHOICES = (
         ('efectivo', 'Efectivo'),
         ('tarjeta', 'Tarjeta'),
@@ -830,6 +836,10 @@ class Payment(models.Model):
         ('venta', 'Venta'),
     )
     transaction_id = models.PositiveIntegerField(null=False, blank=False)
+    payment_type = models.CharField(
+        max_length=20,
+        choices=PAYMENT_TYPE_CHOICES,
+        default='venta')
     payment_method = models.CharField(
         max_length=20,
         choices=PAYMENT_METHOD_CHOICES,
