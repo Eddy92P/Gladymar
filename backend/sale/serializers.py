@@ -622,7 +622,10 @@ class PaymentSerializer(serializers.ModelSerializer):
         payment_type = data.get('payment_type')
 
         # Only validate if we have all required fields
-        if transaction_type and transaction_id and payment_date and payment_type:
+        if (
+            transaction_type and transaction_id
+            and payment_date and payment_type
+        ):
             if transaction_type == 'compra':
                 transaction = Purchase.objects.get(id=transaction_id)
                 if payment_date < transaction.purchase_date:
@@ -643,7 +646,10 @@ class PaymentSerializer(serializers.ModelSerializer):
                     })
 
             if payment_type == 'anticipo' and transaction_type == 'venta':
-                if transaction.credit_balance + payment_amount > transaction.total:
+                if (
+                    transaction.credit_balance + payment_amount
+                    > transaction.total
+                ):
                     raise serializers.ValidationError({
                         "amount": "El pago excede el total de la venta."
                     })

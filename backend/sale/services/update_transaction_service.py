@@ -29,7 +29,10 @@ class UpdateTransactionService:
                 raise ValidationError('El pago excede el saldo pendiente.')
 
             amount_to_deduct = self.payment_amount
-            if self.transaction_type == 'venta' and transaction.credit_balance > 0:
+            if (
+                self.transaction_type == 'venta'
+                and transaction.credit_balance > 0
+            ):
                 amount_to_deduct -= transaction.credit_balance
             transaction.balance_due -= amount_to_deduct
             transaction.save(update_fields=['balance_due'])
@@ -46,7 +49,10 @@ class UpdateTransactionService:
                 raise ValidationError(
                     f'Tipo de transacción no válido: {self.transaction_type}')
 
-            if transaction.credit_balance + self.payment_amount > transaction.total:
+            if (
+                transaction.credit_balance + self.payment_amount
+                > transaction.total
+            ):
                 raise ValidationError('El pago excede el total de la venta.')
 
             transaction.credit_balance += self.payment_amount
