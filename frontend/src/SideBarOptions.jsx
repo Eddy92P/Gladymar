@@ -26,7 +26,7 @@ export const options = [
 		key: 'agencies',
 		label: 'Agencias',
 		path: 'agencias',
-		permission: 'core.view_agency',
+		permission: 'core.add_agency',
 		icon: Store,
 	},
 	{

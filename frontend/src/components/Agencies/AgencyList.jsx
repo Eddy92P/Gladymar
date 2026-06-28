@@ -3,7 +3,7 @@ import List from '../UI/List/List';
 import { api } from '../../Constants';
 import ListHeader from '../UI/List/ListHeader';
 import Filter from '../UI/List/Filter';
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useState, useContext } from 'react';
 
 import Icon from '@mdi/react';
 import { mdiPencilOutline } from '@mdi/js';
@@ -15,6 +15,8 @@ import { Tooltip } from '@mui/material';
 
 import authFetch from '../../api/authFetch';
 
+import AuthContext from '../../store/auth-context';
+
 const useStyles = makeStyles({
 	editIcon: {
 		color: '#127FE6',
@@ -25,6 +27,7 @@ const useStyles = makeStyles({
 const AgencyList = () => {
 	const classes = useStyles();
 
+	const authContext = useContext(AuthContext);
 	const [list, setList] = useState([]);
 	const [error, setError] = useState(null);
 	const [filterText, setFilterText] = useState('');
@@ -52,16 +55,17 @@ const AgencyList = () => {
 		{
 			name: 'Acciones',
 			button: 'true',
-			cell: row => (
-				<Tooltip title="Editar agencia" placement="top">
-					<Icon
-						path={mdiPencilOutline}
-						size={1}
-						onClick={e => handleButtonClick(e, row.id)}
-						className={classes.editIcon}
-					/>
-				</Tooltip>
-			),
+			cell: row =>
+				authContext.permissions.includes('core.change_agency') && (
+					<Tooltip title="Editar agencia" placement="top">
+						<Icon
+							path={mdiPencilOutline}
+							size={1}
+							onClick={e => handleButtonClick(e, row.id)}
+							className={classes.editIcon}
+						/>
+					</Tooltip>
+				),
 		},
 	];
 
@@ -151,7 +155,7 @@ const AgencyList = () => {
 				title="Agencias"
 				text="Agregar"
 				onClick={handleAddClient}
-				visible={true}
+				visible={authContext.userType == 4 || authContext.permissions.includes('core.add_agency')}
 			/>
 			<List
 				onPageSizeChange={handlePageSizeChange}

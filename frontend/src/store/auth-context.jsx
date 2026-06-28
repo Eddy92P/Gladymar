@@ -49,11 +49,19 @@ const retrieveStoredIsSuperuser = () => {
 	};
 };
 
+const normalizeUserType = value => {
+	if (value == null || value === '') {
+		return null;
+	}
+	const parsed = Number(value);
+	return Number.isNaN(parsed) ? value : parsed;
+};
+
 const retrieveStoredUserType = () => {
 	const storedUserType = sessionStorage.getItem('user_type');
 
 	return {
-		userType: storedUserType,
+		userType: normalizeUserType(storedUserType),
 	};
 };
 
@@ -147,19 +155,21 @@ export const AuthContextProvider = props => {
 		is_superuser,
 		user_type
 	) => {
+		const normalizedUserType = normalizeUserType(user_type);
+
 		setToken(token);
 		setPermissions(permissions);
 		setName(name);
 		setLastName(last_name);
 		setIsSuperuser(is_superuser);
-		setType(user_type);
+		setType(normalizedUserType);
 
 		sessionStorage.setItem('token', token);
 		sessionStorage.setItem('permissions', JSON.stringify(permissions));
 		sessionStorage.setItem('name', name);
 		sessionStorage.setItem('last_name', last_name);
 		sessionStorage.setItem('is_superuser', is_superuser);
-		sessionStorage.setItem('user_type', user_type);
+		sessionStorage.setItem('user_type', normalizedUserType);
 	};
 
 	const contextValue = {

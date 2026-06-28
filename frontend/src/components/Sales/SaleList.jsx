@@ -140,7 +140,7 @@ const SaleList = () => {
 					{(row.balanceDue > 0 || row.status == 'proforma') &&
 						(authContext.userType == 4 ||
 							authContext.userType == 1) && (
-							<Tooltip title="Agregar pago" placement="top">
+							<Tooltip title={row.status == 'proforma' ? "Agregar anticipo" : "Agregar pago"} placement="top">
 								<Payment
 									onClick={e =>
 										handlePaymentButton(e, row.id, true, row.status == 'proforma')
@@ -150,7 +150,10 @@ const SaleList = () => {
 							</Tooltip>
 						)}
 					{(row.status == 'proforma' ||
-						row.status == 'realizado') && (
+						row.status == 'realizado') && 
+						(authContext.userType == 4 || 
+							authContext.userType == 1 || 
+							authContext.userType == 3) && (
 						<Tooltip title="Generar recibo" placement="top">
 							<PictureAsPdf
 								onClick={e => handlePdfClick(e, row.id)}

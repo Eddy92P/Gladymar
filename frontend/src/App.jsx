@@ -45,6 +45,8 @@ import AddPaymentPage from './pages/AddPaymentTransaction';
 import ReportPage from './pages/ReportPage';
 import useIdleLogout from './hooks/useIdleLogout';
 
+import ProtectedRoute from './components/Functional/ProtectedRoute';
+
 function App() {
 	const authCtx = useContext(AuthContext);
 	const storeContext = useContext(StoreContext);
@@ -87,158 +89,311 @@ function App() {
 									element={<Navigate to="dashboard" replace={true} />}
 								/>
 								<Route path="dashboard" element={<DashboardPage />} />
-								<Route path="clientes" element={<ClientPage />} />
+								<Route path="clientes" element={
+									<ProtectedRoute allowedRoles={[3, 4]}>
+										<ClientPage />
+									</ProtectedRoute>}
+								/>
 								<Route
 									path="clientes/agregar_cliente"
-									element={<AddClientPage />}
+									element={
+										<ProtectedRoute allowedRoles={[3, 4]}>
+											<AddClientPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="clientes/editar_cliente/:id"
-									element={<AddClientPage />}
+									element={
+										<ProtectedRoute allowedRoles={[3, 4]}>
+											<AddClientPage />
+										</ProtectedRoute>}
 								/>
-								<Route path="agencias" element={<AgencyPage />} />
+								<Route path="agencias" element={
+									<ProtectedRoute allowedRoles={[4]}>
+										<AgencyPage />
+									</ProtectedRoute>}
+								/>
 								<Route
 									path="agencias/agregar_agencia"
-									element={<AddAgencyPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddAgencyPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="agencias/editar_agencia/:id"
-									element={<AddAgencyPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddAgencyPage />
+										</ProtectedRoute>}
 								/>
-								<Route path="almacenes" element={<WarehousePage />} />
+								<Route path="almacenes" element={
+									<ProtectedRoute allowedRoles={[4]}>
+										<WarehousePage />
+									</ProtectedRoute>}
+								/>
 								<Route
 									path="almacenes/agregar_almacen"
-									element={<AddWarehousePage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddWarehousePage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="almacenes/editar_almacen/:id"
-									element={<AddWarehousePage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddWarehousePage />
+										</ProtectedRoute>}
 								/>
-								<Route path="categorias" element={<CategoryPage />} />
+								<Route path="categorias" element={
+									<ProtectedRoute allowedRoles={[4]}>
+										<CategoryPage />
+									</ProtectedRoute>}
+								/>
 								<Route
 									path="categorias/agregar_categoria"
-									element={<AddCategoryPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddCategoryPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="categorias/editar_categoria/:id"
-									element={<AddCategoryPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddCategoryPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="unidades-medida"
-									element={<MeasureUnitPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<MeasureUnitPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="unidades-medida/agregar_unidad_medida"
-									element={<AddMeasureUnitPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddMeasureUnitPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="unidades-medida/editar_unidad_medida/:id"
-									element={<AddMeasureUnitPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddMeasureUnitPage />
+										</ProtectedRoute>}
 								/>
-								<Route path="lotes" element={<BatchPage />} />
+								<Route path="lotes" element={
+									<ProtectedRoute allowedRoles={[4]}>
+										<BatchPage />
+									</ProtectedRoute>}
+								/>
 								<Route
 									path="lotes/agregar_lote"
-									element={<AddBatchPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddBatchPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="lotes/editar_lote/:id"
-									element={<AddBatchPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddBatchPage />
+										</ProtectedRoute>}
 								/>
-								<Route path="productos" element={<ProductPage />} />
+								<Route path="productos" element={
+									<ProtectedRoute allowedRoles={[4]}>
+										<ProductPage />
+									</ProtectedRoute>}
+								/>
 								<Route
 									path="productos/agregar_producto"
-									element={<AddProductPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddProductPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="productos/editar_producto/:id"
-									element={<AddProductPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddProductPage />
+										</ProtectedRoute>}
 								/>
-								<Route path="proveedores" element={<SupplierPage />} />
+								<Route path="proveedores" element={
+									<ProtectedRoute allowedRoles={[4]}>
+										<SupplierPage />
+									</ProtectedRoute>}
+								/>
 								<Route
 									path="proveedores/agregar_proveedor"
-									element={<AddSupplierPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddSupplierPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="proveedores/editar_proveedor/:id"
-									element={<AddSupplierPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddSupplierPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="canales-venta"
-									element={<SellingChannelPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<SellingChannelPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="canales-venta/agregar_canal_venta"
-									element={<AddSellingChannelPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddSellingChannelPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="canales-venta/editar_canal_venta/:id"
-									element={<AddSellingChannelPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddSellingChannelPage />
+										</ProtectedRoute>}
 								/>
-								<Route path="compras" element={<PurchasePage />} />
+								<Route path="compras" element={
+									<ProtectedRoute allowedRoles={[2, 4]}>
+										<PurchasePage />
+									</ProtectedRoute>}
+								/>
 								<Route
 									path="compras/agregar_compra"
-									element={<AddPurchasePage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddPurchasePage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="compras/editar_compra/:id"
-									element={<PurchaseDetailPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<PurchaseDetailPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="compras/agregar_entrada/:id"
-									element={<AddEntryPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddEntryPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="compras/agregar_pago/:id"
-									element={<AddPaymentPage />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddPaymentPage />
+										</ProtectedRoute>}
 								/>
-								<Route path="ventas" element={<SalePage />} />
+								<Route path="ventas" element={
+									<ProtectedRoute allowedRoles={[1, 2, 3, 4]}>
+										<SalePage />
+									</ProtectedRoute>}
+								/>
 								<Route
 									path="ventas/agregar_venta"
-									element={<AddSalePage />}
+									element={
+										<ProtectedRoute allowedRoles={[3, 4]}>
+											<AddSalePage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="ventas/editar_venta/:id"
-									element={<AddSalePage />}
+									element={
+										<ProtectedRoute allowedRoles={[1, 4]}>
+											<AddSalePage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="ventas/info_venta/:id"
-									element={<SaleDetailPage />}
+									element={
+										<ProtectedRoute allowedRoles={[1, 3, 4]}>
+											<SaleDetailPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="ventas/agregar_salida/:id"
-									element={<AddOutputPage />}
+									element={
+										<ProtectedRoute allowedRoles={[2, 4]}>
+											<AddOutputPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="ventas/agregar_pago/:id"
-									element={<AddPaymentPage />}
+									element={
+										<ProtectedRoute allowedRoles={[1, 4]}>
+											<AddPaymentPage />
+										</ProtectedRoute>}
 								/>
-								<Route path="entradas" element={<EntryPage />} />
+								<Route path="entradas" element={
+									<ProtectedRoute allowedRoles={[1, 2, 4]}>
+										<EntryPage />
+									</ProtectedRoute>}
+								/>
 								<Route
 									path="entradas/agregar_entrada"
-									element={<AddEntryPage />}
+									element={
+										<ProtectedRoute allowedRoles={[2, 4]}>
+											<AddEntryPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="entradas/info_entrada/:id"
-									element={<EntryDetailPage />}
+									element={
+										<ProtectedRoute allowedRoles={[2, 4]}>
+											<EntryDetailPage />
+										</ProtectedRoute>}
 								/>
-								<Route path="salidas" element={<OutputPage />} />
+								<Route path="salidas" element={
+									<ProtectedRoute allowedRoles={[2, 4]}>
+										<OutputPage />
+									</ProtectedRoute>}
+								/>
 								<Route
 									path="salidas/agregar_salida"
-									element={<AddOutputPage />}
+									element={
+										<ProtectedRoute allowedRoles={[2, 4]}>
+											<AddOutputPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="salidas/info_salida/:id"
-									element={<OutputDetailPage />}
+									element={
+										<ProtectedRoute allowedRoles={[2, 4]}>
+											<OutputDetailPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="product_stocks"
-									element={<ProductStockPage />}
+									element={
+										<ProtectedRoute allowedRoles={[2, 4]}>
+											<ProductStockPage />
+										</ProtectedRoute>}
 								/>
 								<Route
 									path="product_stocks/increment-damaged-stock/:id"
-									element={<AddDamagedProductStock />}
+									element={
+										<ProtectedRoute allowedRoles={[4]}>
+											<AddDamagedProductStock />
+										</ProtectedRoute>}
 								/>
-								<Route path="reportes" element={<ReportPage />} />
+								<Route path="reportes" element={
+									<ProtectedRoute allowedRoles={[4]}>
+										<ReportPage />
+									</ProtectedRoute>}
+								/>
 							</Route>
 							<Route
 								path="*"

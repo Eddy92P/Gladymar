@@ -1851,7 +1851,7 @@ export const AddSale = () => {
 					/>
 				)}
 
-				{showModal && <AddSaleModal saleData={saleData} />}
+				{showModal && <AddSaleModal saleData={saleData} isSale={isSale} />}
 			</Fragment>
 		</>
 	);

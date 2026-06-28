@@ -236,7 +236,7 @@ const PurchaseList = () => {
 				title="Compras"
 				text="Agregar"
 				onClick={handleAddPurchase}
-				visible={true}
+				visible={authContext.userType == 4 || authContext.userType == 3}
 			/>
 			<List
 				onPageSizeChange={handlePageSizeChange}

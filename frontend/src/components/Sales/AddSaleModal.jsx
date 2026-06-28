@@ -42,16 +42,16 @@ function AddSaleModal(props) {
 		navigate(-1);
 	};
 	useEffect(() => {
-		setDescriptionText(
-			props.saleData.length > 0 || props.saleData
-				? 'editada'
-				: 'registrada'
-		);
-		setMessageText(
-			props.saleData.length > 0 || props.saleData
-				? 'Todos los cambios fueron registrados.'
-				: ' La venta fue registrada exitosamente.'
-		);
+		if (!props.isSale && (props.saleData.length > 0)) {
+			setDescriptionText('editada');
+			setMessageText('Todos los cambios fueron registrados.');
+		} else if (props.isSale && (props.saleData.length > 0 || props.saleData)) {
+			setDescriptionText('registrada');
+			setMessageText('La venta fue efectivizada exitosamente.');
+		} else {
+			setDescriptionText('registrada');
+			setMessageText('La venta fue registrada exitosamente.');
+		}
 	}, [props]);
 	return (
 		<Dialog onClose={handleClose} open={open} fullScreen={fullScreen}>
@@ -66,7 +66,7 @@ function AddSaleModal(props) {
 				/>
 			</Box>
 			<DialogTitle style={{ textAlign: 'center' }}>
-				Venta {descriptionText} exitosamente.
+				{props.isSale ? 'Venta' : 'Proforma'} {descriptionText} exitosamente.
 			</DialogTitle>
 			<DialogContent>
 				<DialogContentText
