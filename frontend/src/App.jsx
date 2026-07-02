@@ -312,7 +312,7 @@ function App() {
 								<Route
 									path="ventas/editar_venta/:id"
 									element={
-										<ProtectedRoute allowedRoles={[1, 4]}>
+										<ProtectedRoute allowedRoles={[3, 4]}>
 											<AddSalePage />
 										</ProtectedRoute>}
 								/>
