@@ -585,7 +585,10 @@ class SaleViewSet(viewsets.ModelViewSet):
         'client__name',
         'selling_channel__name',
         'seller__first_name',
-        'seller__last_name']
+        'seller__last_name',
+        'pre_invoice_number',
+        'invoice_number',
+    ]
     filterset_fields = ['sale_type', 'status', 'sale_date']
     pagination_class = PersonalizedPagination
 
@@ -601,7 +604,7 @@ class SaleViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(status=status).prefetch_related(
                 'sale_items').order_by('-id')
 
-        return self.queryset.prefetch_related('sale_items').order_by('-id')
+        return self.queryset.prefetch_related('sale_items').order_by('-sale_anticipation', '-id')
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
@@ -1056,7 +1059,6 @@ class SaleReportExcelView(APIView):
                     "CANTIDAD",
                     "PRECIO UNITARIO",
                     "SUB TOTAL",
-                    "DESCUENTO %",
                     "TOTAL ITEM",
                     "METODO DE PAGO",
                     "ESTADO (ENTREGA AL CLIENTE)",
@@ -1088,7 +1090,6 @@ class SaleReportExcelView(APIView):
             18,  # CANTIDAD
             18,  # PRECIO UNITARIO
             15,  # SUB TOTAL
-            20,  # DESCUENTO %
             15,  # TOTAL ITEM
             30,  # METODO DE PAGO
             30,  # ESTADO (ENTREGA AL CLIENTE)
@@ -1121,7 +1122,6 @@ class SaleReportExcelView(APIView):
                 sale_item.quantity,
                 sale_item.unit_price,
                 sale_item.sub_total_price,
-                sale_item.discount,
                 sale_item.total_price,
                 sale_item.payment_method,
                 sale_item.status,

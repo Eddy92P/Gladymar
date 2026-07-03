@@ -128,10 +128,10 @@ class CatalogProductSerializer(serializers.Serializer):
     name = serializers.CharField()
     code = serializers.CharField()
     price = serializers.DecimalField(max_digits=10, decimal_places=2)
-    stock = serializers.IntegerField()
-    reserved_stock = serializers.IntegerField(required=False, allow_null=True)
-    minimum_stock = serializers.IntegerField()
-    maximum_stock = serializers.IntegerField()
+    stock = serializers.FloatField()
+    reserved_stock = serializers.FloatField(required=False, allow_null=True)
+    minimum_stock = serializers.FloatField()
+    maximum_stock = serializers.FloatField()
     minimum_sale_price = serializers.DecimalField(
         max_digits=10, decimal_places=2)
     maximum_sale_price = serializers.DecimalField(
@@ -1122,7 +1122,7 @@ class SaleItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = SaleItem
         fields = ['id', 'product_stock', 'products_stock', 'quantity',
-                  'unit_price', 'sub_total_price', 'discount', 'total_price',
+                  'unit_price', 'sub_total_price', 'total_price',
                   'status_display', 'dispatched_stock', 'remaining_quantity']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
@@ -1130,15 +1130,22 @@ class SaleItemSerializer(serializers.ModelSerializer):
         return obj.get_remaining_quantity()
 
     def validate(self, data):
-        if data.get('product_stock') is not None and data.get(
-                'quantity') is not None:
-            if data['product_stock'].available_stock - data['quantity'] < 0:
-                raise serializers.ValidationError({
-                    'quantity': (
-                        "No se puede vender una cantidad mayor "
-                        "al stock actual."
-                    )
-                })
+        root = self.root
+        incoming_status = getattr(root, 'initial_data', {}).get('status')
+        sale_instance = getattr(root, 'instance', None)
+        sale_status = incoming_status or (
+            sale_instance.status if sale_instance else None)
+
+        if sale_status != 'proforma':
+            if data.get('product_stock') is not None and data.get(
+                    'quantity') is not None:
+                if data['product_stock'].available_stock - data['quantity'] < 0:
+                    raise serializers.ValidationError({
+                        'quantity': (
+                            "No se puede vender una cantidad mayor "
+                            "al stock actual."
+                        )
+                    })
         if data.get('product_stock') is not None and data.get(
                 'unit_price') is not None:
             min_price = data['product_stock'].product.minimum_sale_price
@@ -1182,6 +1189,7 @@ class SaleSerializer(serializers.ModelSerializer):
             'outputs',
             'selling_channel',
             'selling_channels',
+            'pre_invoice_number',
             'invoice_number',
             'sale_items',
             'total',
@@ -1189,9 +1197,11 @@ class SaleSerializer(serializers.ModelSerializer):
             'credit_balance',
             'status',
             'sale_type',
+            'sale_anticipation',
             'sale_date',
             'sale_perform_date',
             'sale_done_date',
+            'observation',
             'client',
             'clients',
             'created_at',
@@ -1323,18 +1333,21 @@ class SaleSerializer(serializers.ModelSerializer):
 
             if payments_data is not None:
                 payment_amount = payments_data['amount']
-                purchase_total_amount = instance.balance_due
-                if purchase_total_amount - payment_amount < 0:
+                total_due = instance.balance_due - instance.credit_balance
+                if total_due - payment_amount < 0:
                     raise serializers.ValidationError({
                         "payments": {
                             "amount": (
                                 "El pago no puede ser mayor "
-                                "al costo total."
+                                "al costo total o al saldo pendiente."
                             )
                         }
                     })
+                if instance.credit_balance > 0:
+                    instance.balance_due -= instance.credit_balance
+                    instance.credit_balance = 0
                 instance.balance_due -= payment_amount
-                instance.save()
+                instance.save(update_fields=['balance_due', 'credit_balance'])
                 try:
                     Payment.objects.create(
                         transaction_id=instance.id, **payments_data)
@@ -1342,6 +1355,8 @@ class SaleSerializer(serializers.ModelSerializer):
                     logger.error(f"Error creating payment: {e}")
                     raise serializers.ValidationError(
                         {"detail": "Error al crear el pago."})
+        except serializers.ValidationError:
+            raise
         except Exception as e:
             logger.error(f"Error updating sale: {e}")
             raise serializers.ValidationError(

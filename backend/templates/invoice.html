@@ -46,7 +46,6 @@
                     <th>CANTIDAD</th>
                     <th>PRECIO UNIT.</th>
                     <th>SUB TOTAL</th>
-                    <th>DESCUENTO %</th>
                     <th>TOTAL</th>
                 </tr>
                 {% for sale_item in sale.sale_items.all %}
@@ -56,16 +55,15 @@
                         <td>{{ sale_item.product_stock.warehouse.name }}</td>
                         <td>{{ sale_item.sale.agency.name }}</td>
                         <td>{{ sale_item.product_stock.product.name }}</td>
-                        <td>{{ sale_item.product_stock.product.unit_of_measurement }}</td>
+                        <td>{{ sale_item.product_stock.product.measure_unit.name }}</td>
                         <td>{{ sale_item.quantity }}</td>
                         <td>{{ sale_item.unit_price }}</td>
                         <td>{{ sale_item.sub_total_price }}</td>
-                        <td>{{ sale_item.discount }}</td>
                         <td>{{ sale_item.total_price }}</td>
                     </tr>
                 {% endfor %}
                 <tr class="total-row">
-                    <td colspan="10" class="total-label">Importe Total Bs.</td>
+                    <td colspan="9" class="total-label">Importe Total Bs.</td>
                     <td class="total-value">{{ sale.total }}</td>
                 </tr>
             </table>

@@ -4,6 +4,18 @@ from django.db import migrations, models
 import django.db.models.deletion
 
 
+def create_default_measure_unit(apps, schema_editor):
+    MeasureUnit = apps.get_model('core', 'MeasureUnit')
+    Product = apps.get_model('core', 'Product')
+
+    default_unit, _ = MeasureUnit.objects.get_or_create(
+        name='Unidad',
+    )
+    Product.objects.filter(measure_unit__isnull=True).update(
+        measure_unit=default_unit,
+    )
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -11,10 +23,16 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(
+            create_default_measure_unit,
+            migrations.RunPython.noop,
+        ),
         migrations.AlterField(
             model_name='product',
             name='measure_unit',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.PROTECT, to='core.measureunit'),
-            preserve_default=False,
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                to='core.measureunit',
+            ),
         ),
     ]

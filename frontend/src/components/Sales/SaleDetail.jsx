@@ -119,6 +119,19 @@ const SaleDetail = () => {
 									);
 								})}
 							</Stepper>
+							{saleData.observation && (
+								<Box sx={{ mt: 2 }}>
+									<Typography
+										variant="subtitle2"
+										color="text.secondary"
+									>
+										Observación
+									</Typography>
+									<Typography variant="body2">
+										{saleData.observation}
+									</Typography>
+								</Box>
+							)}
 							<React.Fragment>
 								<Box
 									sx={{
@@ -185,9 +198,6 @@ const SaleDetail = () => {
 												<strong>Sub Total</strong>
 											</TableCell>
 											<TableCell align="right">
-												<strong>Descuento</strong>
-											</TableCell>
-											<TableCell align="right">
 												<strong>Costo Total</strong>
 											</TableCell>
 										</TableRow>
@@ -227,16 +237,12 @@ const SaleDetail = () => {
 														}
 													</TableCell>
 													<TableCell align="right">
-														{saleItem.discount}
-													</TableCell>
-													<TableCell align="right">
 														{saleItem.total_price}
 													</TableCell>
 												</TableRow>
 											)
 										)}
 										<TableRow>
-											<TableCell />
 											<TableCell />
 											<TableCell />
 											<TableCell />

@@ -34,6 +34,9 @@ import {
 	InputAdornment,
 	FilledInput,
 } from '@mui/material';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import TextareaAutosize from '@mui/material/TextareaAutosize';
 import CancelIcon from '@mui/icons-material/Cancel';
 import SearchIcon from '@mui/icons-material/Search';
 import { tableCellClasses } from '@mui/material/TableCell';
@@ -121,6 +124,8 @@ export const AddSale = () => {
 	const [sellingChannelChoices, setSellingChannelChoices] = useState([]);
 	const [sellingChannel, setSellingChannel] = useState(null);
 	const [paymentMethod, setPaymentMethod] = useState('');
+	const [observation, setObservation] = useState(saleData.observation || '');
+	const [saleAnticipo, setSaleAnticipo] = useState(saleData.saleAnticipo || false);
 
 	const saleDateReducer = (state, action) => {
 		if (action.type === 'INPUT_CHANGE') {
@@ -217,22 +222,6 @@ export const AddSale = () => {
 							subTotalPrice: {
 								value: action.val,
 								isValid: validatePositiveNumber(action.val),
-							},
-						}
-					: product
-			);
-		}
-		if (action.type === 'DISCOUNT_CHANGE') {
-			return state.map(product =>
-				product.id === action.id
-					? {
-							...product,
-							discount: {
-								value: action.val,
-								isValid: validatePositiveNumber(action.val),
-								feedbackText: validatePositiveNumber(action.val)
-									? ''
-									: 'Ingrese un número válido',
 							},
 						}
 					: product
@@ -340,11 +329,6 @@ export const AddSale = () => {
 				isValid: true,
 				feedbackText: '',
 			},
-			discount: {
-				value: saleItem.discount || 0,
-				isValid: true,
-				feedbackText: '',
-			},
 			totalPrice: {
 				value: saleItem.total_price || '',
 				isValid: true,
@@ -395,6 +379,14 @@ export const AddSale = () => {
 		setPaymentMethod(e.target.value);
 	};
 
+	const observationInputChangeHandler = e => {
+		setObservation(e.target.value);
+	};
+
+	const saleAnticipoChangeHandler = e => {
+		setSaleAnticipo(e.target.checked);
+	};
+
 	// Función para calcular y actualizar el precio sub total sin descuento de cada producto
 	const calculateAndUpdateSubTotalPrice = useCallback(
 		(id, price, quantity) => {
@@ -410,15 +402,8 @@ export const AddSale = () => {
 
 	// Función para calcular y actualizar el precio total de cada producto
 	const calculateAndUpdateTotalPrice = useCallback(
-		(id, subTotal, discount) => {
-			let totalPrice = 0;
-			if (parseFloat(discount) > 0) {
-				totalPrice = (subTotal - (subTotal * discount) / 100).toFixed(
-					2
-				);
-			} else {
-				totalPrice = subTotal.toFixed(2);
-			}
+		(id, subTotal) => {
+			const totalPrice = subTotal.toFixed(2);
 			dispatchProductList({
 				type: 'TOTAL_PRICE_CHANGE',
 				id,
@@ -438,7 +423,7 @@ export const AddSale = () => {
 
 		setSaleTotalAmount(totalSalePrice.toFixed(2));
 		setSaleRemainingAmount(totalSalePrice.toFixed(2) - (saleData.creditBalance || 0.00));
-	}, [productListState]);
+	}, [productListState, saleData.creditBalance]);
 
 	// Recalcular el total de la compra cuando cambie la lista de productos
 	useEffect(() => {
@@ -454,12 +439,11 @@ export const AddSale = () => {
 			if (product) {
 				const price = parseFloat(value) || 0;
 				const quantity = parseFloat(product.quantity.value) || 0;
-				const discount = parseFloat(product.discount.value) || 0;
 
 				// Calcular el nuevo subtotal
 				const newSubTotal = price * quantity;
 				calculateAndUpdateSubTotalPrice(id, price, quantity);
-				calculateAndUpdateTotalPrice(id, newSubTotal, discount);
+				calculateAndUpdateTotalPrice(id, newSubTotal);
 			}
 		},
 		[
@@ -479,12 +463,11 @@ export const AddSale = () => {
 			if (product) {
 				const price = parseFloat(product.price.value) || 0;
 				const quantity = parseFloat(value) || 0;
-				const discount = parseFloat(product.discount.value) || 0;
 
 				// Calcular el nuevo subtotal
 				const newSubTotal = price * quantity;
 				calculateAndUpdateSubTotalPrice(id, price, quantity);
-				calculateAndUpdateTotalPrice(id, newSubTotal, discount);
+				calculateAndUpdateTotalPrice(id, newSubTotal);
 			}
 		},
 		[
@@ -493,22 +476,6 @@ export const AddSale = () => {
 			calculateAndUpdateSubTotalPrice,
 			calculateAndUpdateTotalPrice,
 		]
-	);
-
-	const discountInputChangeHandler = useCallback(
-		(id, value) => {
-			dispatchProductList({ type: 'DISCOUNT_CHANGE', id, val: value });
-
-			// Buscar el producto actual para obtener el precio
-			const product = productListState.find(p => p.id === id);
-			if (product) {
-				const subTotalPrice =
-					parseFloat(product.subTotalPrice.value) || 0;
-				const discount = parseFloat(value) || 0;
-				calculateAndUpdateTotalPrice(id, subTotalPrice, discount);
-			}
-		},
-		[dispatchProductList, productListState, calculateAndUpdateTotalPrice]
 	);
 
 	const clientInputChangeHandler = (event, option) => {
@@ -620,12 +587,13 @@ export const AddSale = () => {
 				status: 'proforma',
 				total: saleTotalAmount,
 				balance_due: 0,
+				observation: observation || null,
+				sale_anticipation: saleAnticipo,
 				sale_items: productListState.map(product => ({
 					product_stock: product.id,
 					quantity: product.quantity.value,
 					unit_price: product.price.value,
 					sub_total_price: product.subTotalPrice.value,
-					discount: product.discount.value,
 					total_price: product.totalPrice.value,
 				})),
 			};
@@ -691,21 +659,6 @@ export const AddSale = () => {
 							});
 						}
 
-						if (sale_item.discount) {
-							const errorMessage = Array.isArray(
-								sale_item.discount
-							)
-								? sale_item.discount[0]
-								: sale_item.discount;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'discount',
-							});
-						}
-
 						if (sale_item.total_price) {
 							const errorMessage = Array.isArray(
 								sale_item.total_price
@@ -731,9 +684,15 @@ export const AddSale = () => {
 						});
 					}
 					if (data.payments.amount) {
+						const errorMessage = Array.isArray(
+							data.payments.amount
+						)
+							? data.payments.amount[0]
+							: data.payments.amount;
+
 						dispatchPaymentAmount({
 							type: 'INPUT_ERROR',
-							errorMessage: data.payments.amount,
+							errorMessage: errorMessage,
 						});
 					}
 				}
@@ -761,14 +720,15 @@ export const AddSale = () => {
 				sale_type: isSale ? saleType : 'proforma',
 				status: isSale ? 'realizado' : 'proforma',
 				total: saleTotalAmount,
-				balance_due: isSale ? saleRemainingAmount : 0,
+				balance_due: isSale ? saleTotalAmount : 0,
+				observation: observation || null,
+				sale_anticipation: saleAnticipo,
 				sale_items: productListState.map(product => ({
 					id: product.saleItemId,
 					product_stock: product.id,
 					quantity: product.quantity.value,
 					unit_price: product.price.value,
 					sub_total_price: product.subTotalPrice.value,
-					discount: product.discount.value,
 					total_price: product.totalPrice.value,
 				})),
 			};
@@ -850,21 +810,6 @@ export const AddSale = () => {
 							});
 						}
 
-						if (sale_item.discount) {
-							const errorMessage = Array.isArray(
-								sale_item.discount
-							)
-								? sale_item.discount[0]
-								: sale_item.discount;
-
-							dispatchProductList({
-								type: 'SET_ERROR',
-								id: productId,
-								errorMessage: errorMessage,
-								field: 'discount',
-							});
-						}
-
 						if (sale_item.total_price) {
 							const errorMessage = Array.isArray(
 								sale_item.total_price
@@ -889,9 +834,15 @@ export const AddSale = () => {
 						});
 					}
 					if (data.payments.amount) {
+						const errorMessage = Array.isArray(
+							data.payments.amount
+						)
+							? data.payments.amount[0]
+							: data.payments.amount;
+
 						dispatchPaymentAmount({
 							type: 'INPUT_ERROR',
-							errorMessage: data.payments.amount,
+							errorMessage: errorMessage,
 						});
 					}
 				}
@@ -925,14 +876,10 @@ export const AddSale = () => {
 					product.price.value &&
 					product.quantity.value &&
 					product.subTotalPrice.value &&
-					product.discount.value !== '' &&
-					product.discount.value !== null &&
-					product.discount.value !== undefined &&
 					product.totalPrice.value &&
 					product.price.isValid &&
 					product.quantity.isValid &&
 					product.subTotalPrice.isValid &&
-					product.discount.isValid &&
 					product.totalPrice.isValid
 			);
 
@@ -1017,7 +964,7 @@ export const AddSale = () => {
 								>
 									Datos de Venta
 								</Typography>
-								<Grid container spacing={2} mt={1} mb={2}>
+								<Grid container spacing={2} mt={1} mb={2} alignItems="center">
 									<Grid size={{ xs: 12, sm: 4 }}>
 										<Autocomplete
 											disablePortal
@@ -1149,6 +1096,42 @@ export const AddSale = () => {
 											</LocalizationProvider>
 										</Grid>
 									)}
+									<Grid
+										size={{ xs: 12, sm: 2 }}
+										sx={{
+											display: 'flex',
+											alignItems: 'center',
+										}}
+									>
+										<FormControlLabel
+											control={<Checkbox checked={saleAnticipo} onChange={saleAnticipoChangeHandler} />}
+											label="Anticipo"
+											labelPlacement="top"
+											sx={{ m: 0 }}
+											disabled={isSale}
+										/>
+									</Grid>
+								</Grid>
+								<Grid container spacing={2} mt={1} mb={2}>
+									<Grid size={{ xs: 12, sm: 6 }}>
+										<Typography
+											variant="body2"
+											sx={{ mb: 1 }}
+										>
+											Observación
+										</Typography>
+										<TextareaAutosize
+											aria-label="observation"
+											minRows={3}
+											style={{ width: '100%' }}
+											value={observation}
+											onChange={
+												observationInputChangeHandler
+											}
+											fullWidth
+											disabled={isSale}
+										/>
+									</Grid>
 								</Grid>
 							</Box>
 							{productListState.length > 0 && (
@@ -1199,9 +1182,6 @@ export const AddSale = () => {
 															Sub Total Bs.
 														</StyledTableCell>
 														<StyledTableCell>
-															Descuento %
-														</StyledTableCell>
-														<StyledTableCell>
 															Costo Total Bs.
 														</StyledTableCell>
 														{!isSale && <StyledTableCell>
@@ -1226,10 +1206,9 @@ export const AddSale = () => {
 																	}
 																</TableCell>
 																<TableCell>
-																	{product
-																		.stock
-																		.value ||
-																		product.stock}
+																	{typeof product.stock === 'object'
+																		? product.stock.value
+																		: product.stock}
 																</TableCell>
 																<TableCell>
 																	{
@@ -1374,59 +1353,6 @@ export const AddSale = () => {
 																					shrink: true,
 																				},
 																		}}
-																	/>
-																</TableCell>
-																<TableCell>
-																	<TextField
-																		variant="outlined"
-																		onChange={e =>
-																			discountInputChangeHandler(
-																				product.id,
-																				e
-																					.target
-																					.value
-																			)
-																		}
-																		value={
-																			product
-																				.discount
-																				.value
-																		}
-																		error={
-																			(product
-																				.discount
-																				.value &&
-																				!product
-																					.discount
-																					.isValid) ||
-																			(!product
-																				.discount
-																				.isValid &&
-																				product
-																					.discount
-																					.feedbackText)
-																		}
-																		helperText={
-																			(product
-																				.discount
-																				.value &&
-																				!product
-																					.discount
-																					.isValid) ||
-																			(!product
-																				.discount
-																				.isValid &&
-																				product
-																					.discount
-																					.feedbackText)
-																				? product
-																						.discount
-																						.feedbackText
-																				: ''
-																		}
-																		required
-																		fullWidth
-																		disabled={isSale}
 																	/>
 																</TableCell>
 
@@ -1785,6 +1711,7 @@ export const AddSale = () => {
 								paymentDateState.value?.format('DD-MM-YYYY') ||
 								''
 							}
+							observation={observation}
 							message={message}
 						/>
 						<Box

@@ -241,7 +241,6 @@ class PrivateSaleApiTests(TestCase):
                     'quantity': 10,
                     'unit_price': 10.00,
                     'sub_total_price': 100.00,
-                    'discount': 5,
                     'total_price': 95.00,
                     'dispatched_stock': 5,
                 }
@@ -292,7 +291,6 @@ class PrivateSaleApiTests(TestCase):
                     'quantity': 10,
                     'unit_price': 10.00,
                     'sub_total_price': 100.00,
-                    'discount': 5,
                     'total_price': 95.00,
                     'dispatched_stock': 5,
                 }
@@ -320,3 +318,81 @@ class PrivateSaleApiTests(TestCase):
             self.assertEqual(payload_item['quantity'], db_item.quantity)
             self.assertEqual(payload_item['unit_price'], db_item.unit_price)
             self.assertEqual(payload_item['total_price'], db_item.total_price)
+
+    def test_create_proforma_sale_allows_quantity_over_available_stock(self):
+        """Proforma sales should not validate quantity against available stock."""
+        product_stock = create_product_stock(available_stock=5)
+        payload = {
+            'agency': create_agency().id,
+            'client': create_client().id,
+            'selling_channel': create_selling_channel().id,
+            'total': 100.00,
+            'balance_due': 0,
+            'status': 'proforma',
+            'sale_type': 'proforma',
+            'sale_date': '2024-01-01',
+            'sale_items': [
+                {
+                    'product_stock': product_stock.id,
+                    'quantity': 10,
+                    'unit_price': 10.00,
+                    'sub_total_price': 100.00,
+                    'total_price': 100.00,
+                }
+            ],
+        }
+
+        res = self.client.post(SALE_URL, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        sale = Sale.objects.get(id=res.data['id'])
+        self.assertEqual(sale.status, 'proforma')
+        self.assertEqual(sale.sale_items.first().quantity, 10)
+
+    def test_update_sale_to_realizado_rejects_quantity_over_available_stock(
+            self):
+        """Non-proforma sale updates should validate quantity against stock."""
+        product_stock = create_product_stock(available_stock=5)
+        sale = create_sale(
+            status='proforma',
+            sale_type='proforma',
+            sale_items=[{
+                'product_stock': product_stock,
+                'quantity': 5,
+                'unit_price': 10.00,
+                'sub_total_price': 50.00,
+                'total_price': 50.00,
+            }],
+        )
+        sale_item = sale.sale_items.first()
+        payload = {
+            'agency': sale.agency.id,
+            'client': sale.client.id,
+            'selling_channel': sale.selling_channel.id,
+            'total': 100.00,
+            'balance_due': 100.00,
+            'status': 'realizado',
+            'sale_type': 'contado',
+            'sale_date': '2024-01-01',
+            'sale_items': [
+                {
+                    'id': sale_item.id,
+                    'product_stock': product_stock.id,
+                    'quantity': 10,
+                    'unit_price': 10.00,
+                    'sub_total_price': 100.00,
+                    'total_price': 100.00,
+                }
+            ],
+        }
+
+        url = detail_url(sale.id)
+        res = self.client.put(url, payload, format='json')
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('sale_items', res.data)
+        self.assertIn('quantity', res.data['sale_items'][0])
+        self.assertEqual(
+            res.data['sale_items'][0]['quantity'][0],
+            "No se puede vender una cantidad mayor al stock actual.",
+        )

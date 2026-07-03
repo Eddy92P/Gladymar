@@ -5,6 +5,13 @@ export const validateEmail = email => {
 	return validEmail.test(email);
 };
 
+export const validateOptionalEmail = email => {
+	// Use when the field is optional (null/blank allowed in the backend
+	// model): an empty value is valid and skips format validation.
+	if (!email || email.trim() === '') return true;
+	return validateEmail(email);
+};
+
 export const validateSelectInput = input => {
 	return input !== null && input !== undefined && input !== '';
 };
@@ -40,6 +47,9 @@ export const validatePhoneNumber = phoneNumber => {
 };
 
 export const validateCiNumber = ciNumber => {
+	// The field is optional (null/blank allowed in the backend model),
+	// so an empty value is considered valid and skips format validation.
+	if (!ciNumber || ciNumber.trim() === '') return true;
 	const validNumber = new RegExp('^s*-?[0-9]{1,10}s*$');
 	return ciNumber.trim().length > 6 && validNumber.test(ciNumber);
 };
@@ -53,6 +63,13 @@ export const validateDateBirth = birthDate => {
 
 export const validateAddressLength = address => {
 	return address.trim().length > 10 && address.trim().length <= 200;
+};
+
+export const validateOptionalAddressLength = address => {
+	// Use when the field is optional (null/blank allowed in the backend
+	// model): an empty value is valid and skips length validation.
+	if (!address || address.trim() === '') return true;
+	return validateAddressLength(address);
 };
 
 export const validateRegisterNumberLength = registerNumber => {

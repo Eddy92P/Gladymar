@@ -35,7 +35,6 @@
                             <th>CANTIDAD</th>
                             <th>PRECIO UNITARIO</th>
                             <th>SUB TOTAL</th>
-                            <th>DESCUENTO %</th>
                             <th>TOTAL ITEM</th>
                             <th>METODO DE PAGO</th>
                             <th>ESTADO (ENTREGA AL CLIENTE)</th>
@@ -55,7 +54,6 @@
                         <td>{{ sale_item.quantity }}</td>
                         <td>{{ sale_item.unit_price }}</td>
                         <td>{{ sale_item.sub_total_price }}</td>
-                        <td>{{ sale_item.discount }}</td>
                         <td>{{ sale_item.total_price }}</td>
                         {% if sale_item.payment_method %}
                             <td>{{ sale_item.payment_method }}</td>

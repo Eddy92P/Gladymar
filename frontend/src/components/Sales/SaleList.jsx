@@ -44,6 +44,16 @@ const SaleList = () => {
 
 	const contentHeader = [
 		{
+			name: 'Nº Proforma',
+			selector: row => row.preInvoiceNumber || '-',
+			sortable: true,
+		},
+		{
+			name: 'Nº Recibo',
+			selector: row => row.invoiceNumber || '-',
+			sortable: true,
+		},
+		{
 			name: 'Vendedor',
 			selector: row => row.seller,
 			sortable: true,
@@ -77,6 +87,11 @@ const SaleList = () => {
 			name: 'Saldo',
 			selector: row => row.balanceDue,
 			sortable: true,
+		},
+		{
+			name: 'Anticipo',
+			selector: row => row.creditBalance,
+			sortable: false,
 		},
 		{
 			name: 'Acciones',
@@ -199,6 +214,8 @@ const SaleList = () => {
 					const parsedList = data.rows.map(listData => {
 						return {
 							id: listData.id,
+							preInvoiceNumber: listData.pre_invoice_number,
+							invoiceNumber: listData.invoice_number,
 							seller:
 								listData.seller.first_name +
 								' ' +
@@ -206,9 +223,11 @@ const SaleList = () => {
 							client: listData.clients,
 							sellingChannel: listData.selling_channels,
 							saleType: listData.sale_type,
+							saleAnticipo: listData.sale_anticipation,
 							saleDate: listData.sale_date,
 							salePerformDate: listData.sale_perform_date,
 							saleDoneDate: listData.sale_done_date,
+							observation: listData.observation,
 							total: listData.total,
 							balanceDue: listData.balance_due,
 							creditBalance: listData.credit_balance,

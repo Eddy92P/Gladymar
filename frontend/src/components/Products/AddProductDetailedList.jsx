@@ -108,7 +108,7 @@ const AddProductDetailedList = ({
 						item =>
 							item.minimumSalePrice > 0 &&
 							item.maximumSalePrice > 0 &&
-							item.stock > 0
+							(item.stock > 0 || !sale?.id)
 					);
 				} else if (sale?.id) {
 					const response = await authFetch(url, {

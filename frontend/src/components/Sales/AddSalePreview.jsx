@@ -123,6 +123,27 @@ function AddSalePreview(props) {
 								/>
 							</Grid>
 						)}
+						{props.observation && (
+							<Grid item md={12}>
+								<TextField
+									label="Observación"
+									value={props.observation}
+									fullWidth
+									variant="standard"
+									multiline
+									sx={{
+										'& .MuiInput-underline:before': {
+											borderBottom: 'none',
+										},
+										'& .MuiInput-underline:after': {
+											borderBottom: 'none',
+										},
+									}}
+									disabled
+									className={classes.textStyle}
+								/>
+							</Grid>
+						)}
 					</Grid>
 				</Box>
 				<Box mt={4}>
@@ -212,24 +233,6 @@ function AddSalePreview(props) {
 									<TextField
 										label="Sub Total"
 										value={product.subTotalPrice.value}
-										fullWidth
-										variant="standard"
-										sx={{
-											'& .MuiInput-underline:before': {
-												borderBottom: 'none',
-											},
-											'& .MuiInput-underline:after': {
-												borderBottom: 'none',
-											},
-										}}
-										disabled
-										className={classes.textStyle}
-									/>
-								</Grid>
-								<Grid item md={3}>
-									<TextField
-										label="Descuento"
-										value={product.discount.value}
 										fullWidth
 										variant="standard"
 										sx={{

@@ -12,9 +12,9 @@ import { api } from '../../Constants';
 import {
 	validateNameLength,
 	validatePhoneNumber,
-	validateAddressLength,
+	validateOptionalAddressLength,
 	validateCiNumber,
-	validateEmail,
+	validateOptionalEmail,
 } from '../../Validations';
 
 import authFetch from '../../api/authFetch';
@@ -136,14 +136,14 @@ function AddClient() {
 		if (action.type === 'INPUT_FOCUS') {
 			return {
 				value: state.value,
-				isValid: validateEmail(state.value),
+				isValid: validateOptionalEmail(state.value),
 				feedbackText: 'Ingrese correo valido',
 			};
 		}
 		if (action.type === 'INPUT_CHANGE') {
 			return {
 				value: action.val,
-				isValid: validateEmail(action.val),
+				isValid: validateOptionalEmail(action.val),
 				feedbackText: 'Ingrese correo valido',
 			};
 		}
@@ -160,14 +160,14 @@ function AddClient() {
 		if (action.type === 'INPUT_FOCUS') {
 			return {
 				value: state.value,
-				isValid: validateAddressLength(state.value),
+				isValid: validateOptionalAddressLength(state.value),
 				feedbackText: 'Ingrese una dirección valida',
 			};
 		}
 		if (action.type === 'INPUT_CHANGE') {
 			return {
 				value: action.val,
-				isValid: validateAddressLength(action.val),
+				isValid: validateOptionalAddressLength(action.val),
 				feedbackText: 'Ingrese una dirección valida',
 			};
 		}
@@ -394,14 +394,7 @@ function AddClient() {
 		}
 	};
 	useEffect(() => {
-		if (
-			nameState.value &&
-			phoneNumberState.value &&
-			nitState.value &&
-			emailState.value &&
-			addressState.value &&
-			clientType
-		) {
+		if (nameState.value && phoneNumberState.value && clientType) {
 			const isValid =
 				nameIsValid &&
 				phoneNumberIsValid &&
@@ -481,7 +474,6 @@ function AddClient() {
 													? nitState.feedbackText
 													: ''
 											}
-											required
 											fullWidth
 										/>
 									</Grid>
@@ -528,7 +520,6 @@ function AddClient() {
 													? addressState.feedbackText
 													: ''
 											}
-											required
 											fullWidth
 										/>
 									</Grid>
@@ -562,7 +553,6 @@ function AddClient() {
 													? emailState.feedbackText
 													: ''
 											}
-											required
 											fullWidth
 										/>
 									</Grid>

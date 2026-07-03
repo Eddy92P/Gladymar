@@ -240,8 +240,8 @@ class Client(models.Model):
     nit = models.CharField(
         max_length=50,
         unique=True,
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
         validators=[
             RegexValidator(
                 regex=r'^\d{7,11}(-[A-Z]{2})?$',
@@ -252,9 +252,9 @@ class Client(models.Model):
     email = models.EmailField(
         max_length=50,
         unique=True,
-        null=False,
+        null=True,
         blank=True)
-    address = models.CharField(max_length=150, null=False, blank=True)
+    address = models.CharField(max_length=150, null=True, blank=True)
     client_type = models.CharField(
         max_length=20,
         choices=CLIENT_TYPE_CHOICES,
@@ -462,12 +462,12 @@ class ProductStock(models.Model):
         Warehouse,
         on_delete=models.PROTECT,
         related_name='product_stocks')
-    stock = models.PositiveIntegerField(default=0)
-    reserved_stock = models.PositiveIntegerField(default=0)
-    available_stock = models.PositiveIntegerField(default=0)
-    damaged_stock = models.PositiveIntegerField(default=0)
-    minimum_stock = models.PositiveIntegerField(default=0)
-    maximum_stock = models.PositiveIntegerField(default=0)
+    stock = models.FloatField(default=0)
+    reserved_stock = models.FloatField(default=0)
+    available_stock = models.FloatField(default=0)
+    damaged_stock = models.FloatField(default=0)
+    minimum_stock = models.FloatField(default=0)
+    maximum_stock = models.FloatField(default=0)
 
     class Meta:
         unique_together = ("product", "warehouse")
@@ -615,10 +615,10 @@ class PurchaseItem(models.Model):
         max_length=15,
         choices=STATUS_CHOICES,
         default='pendiente')
-    quantity = models.PositiveIntegerField()
+    quantity = models.FloatField(default=0)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    entered_stock = models.PositiveIntegerField(default=0)
+    entered_stock = models.FloatField(default=0)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -682,7 +682,7 @@ class EntryItem(models.Model):
         on_delete=models.PROTECT,
         related_name='entry_items')
     product_stock = models.ForeignKey(ProductStock, on_delete=models.PROTECT)
-    quantity = models.PositiveIntegerField(default=0)
+    quantity = models.FloatField(default=0)
 
     def __str__(self):
         return f"{self.product.name} - {self.quantity}"
@@ -720,7 +720,7 @@ class OutputItem(models.Model):
         on_delete=models.PROTECT,
         related_name='output_items')
     product_stock = models.ForeignKey(ProductStock, on_delete=models.PROTECT)
-    quantity = models.PositiveIntegerField(default=0)
+    quantity = models.FloatField(default=0)
 
     def __str__(self):
         return f"{self.product.name} - {self.quantity}"
@@ -743,6 +743,7 @@ class Sale(models.Model):
         on_delete=models.PROTECT,
         related_name='sales')
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
+    sale_anticipation = models.BooleanField(default=False)
     selling_channel = models.ForeignKey(
         SellingChannel, on_delete=models.PROTECT)
     seller = models.ForeignKey(User, on_delete=models.PROTECT)
@@ -764,6 +765,7 @@ class Sale(models.Model):
     sale_date = models.DateField(null=False, blank=False)
     sale_perform_date = models.DateField(null=True, blank=True)
     sale_done_date = models.DateField(null=True, blank=True)
+    observation = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -789,13 +791,12 @@ class SaleItem(models.Model):
         max_length=15,
         choices=STATUS_CHOICES,
         default='pendiente')
-    quantity = models.IntegerField()
+    quantity = models.FloatField(default=0)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     sub_total_price = models.DecimalField(
         max_digits=10, decimal_places=2, default=0.0)
-    discount = models.FloatField(default=0.0)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    dispatched_stock = models.PositiveIntegerField(default=0)
+    dispatched_stock = models.FloatField(default=0)
 
     def __str__(self):
         return f"Sale item {self.product.name} - {self.quantity}"

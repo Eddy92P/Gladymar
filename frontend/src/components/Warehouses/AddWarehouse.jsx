@@ -524,7 +524,8 @@ function AddWarehouse() {
 			// Check if all required fields are filled and valid
 			const allFieldsValid = productListState.every(
 				product =>
-					product.stock?.value &&
+					product.stock?.value !== undefined &&
+					product.stock?.value !== '' &&
 					product.stock?.isValid &&
 					product.minimumStock?.isValid &&
 					product.maximumStock?.isValid
@@ -657,9 +658,9 @@ function AddWarehouse() {
 													<StyledTableCell>
 														Stock Máximo
 													</StyledTableCell>
-													<StyledTableCell>
+													{warehouseData.length === 0 && <StyledTableCell>
 														Acciones
-													</StyledTableCell>
+													</StyledTableCell>}
 												</TableRow>
 											</TableHead>
 											<TableBody>
@@ -873,7 +874,7 @@ function AddWarehouse() {
 																	}}
 																/>
 															</TableCell>
-															<TableCell align="center">
+															{warehouseData.length === 0 && <TableCell align="center">
 																<Tooltip
 																	title={
 																		'Quitar'
@@ -896,7 +897,7 @@ function AddWarehouse() {
 																		/>
 																	</IconButton>
 																</Tooltip>
-															</TableCell>
+															</TableCell>}
 														</TableRow>
 													)
 												)}

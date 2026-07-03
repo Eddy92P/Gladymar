@@ -193,7 +193,6 @@ class TestUpdateSaleItem(TestCase):
             'quantity': 50,
             'unit_price': 50,
             'sub_total_price': 2500,
-            'discount': 5,
             'total_price': 2000,
             'dispatched_stock': 0,
         }
