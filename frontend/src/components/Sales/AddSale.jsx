@@ -387,6 +387,10 @@ export const AddSale = () => {
 		setSaleAnticipo(e.target.checked);
 	};
 
+	const roundUpToTenth = useCallback((amount) => {
+		return Math.ceil(amount * 10) / 10;
+	}, []);
+
 	// Función para calcular y actualizar el precio sub total sin descuento de cada producto
 	const calculateAndUpdateSubTotalPrice = useCallback(
 		(id, price, quantity) => {
@@ -403,17 +407,17 @@ export const AddSale = () => {
 	// Función para calcular y actualizar el precio total de cada producto
 	const calculateAndUpdateTotalPrice = useCallback(
 		(id, subTotal) => {
-			const totalPrice = subTotal.toFixed(2);
+			const totalPrice = roundUpToTenth(subTotal.toFixed(2));
 			dispatchProductList({
 				type: 'TOTAL_PRICE_CHANGE',
 				id,
 				val: totalPrice.toString(),
 			});
 		},
-		[dispatchProductList]
+		[dispatchProductList, roundUpToTenth]
 	);
 
-	// Función para calcular y actualizar el precio total de la compra
+	// Función para calcular y actualizar el precio total de la venta
 	const calculateAndUpdateTotalSalePrice = useCallback(() => {
 		const updated = [...productListState];
 		let totalSalePrice = 0;
@@ -425,7 +429,7 @@ export const AddSale = () => {
 		setSaleRemainingAmount(totalSalePrice.toFixed(2) - (saleData.creditBalance || 0.00));
 	}, [productListState, saleData.creditBalance]);
 
-	// Recalcular el total de la compra cuando cambie la lista de productos
+	// Recalcular el total de la venta cuando cambie la lista de productos
 	useEffect(() => {
 		calculateAndUpdateTotalSalePrice();
 	}, [productListState, calculateAndUpdateTotalSalePrice, saleData.creditBalance]);
@@ -1179,9 +1183,6 @@ export const AddSale = () => {
 															Precio Unitario Bs.
 														</StyledTableCell>
 														<StyledTableCell>
-															Sub Total Bs.
-														</StyledTableCell>
-														<StyledTableCell>
 															Costo Total Bs.
 														</StyledTableCell>
 														{!isSale && <StyledTableCell>
@@ -1326,36 +1327,6 @@ export const AddSale = () => {
 																		disabled={isSale}
 																	/>
 																</TableCell>
-																<TableCell>
-																	<TextField
-																		variant="outlined"
-																		onChange={e =>
-																			dispatchProductList(
-																				{
-																					type: 'SUB_TOTAL_PRICE_CHANGE',
-																					id: product.id,
-																					val: e
-																						.target
-																						.value,
-																				}
-																			)
-																		}
-																		value={
-																			product
-																				.subTotalPrice
-																				.value
-																		}
-																		disabled
-																		fullWidth
-																		slotProps={{
-																			inputLabel:
-																				{
-																					shrink: true,
-																				},
-																		}}
-																	/>
-																</TableCell>
-
 																<TableCell>
 																	<TextField
 																		variant="outlined"
