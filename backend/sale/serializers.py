@@ -1139,7 +1139,8 @@ class SaleItemSerializer(serializers.ModelSerializer):
         if sale_status != 'proforma':
             if data.get('product_stock') is not None and data.get(
                     'quantity') is not None:
-                if data['product_stock'].available_stock - data['quantity'] < 0:
+                if (data['product_stock'].available_stock
+                        - data['quantity'] < 0):
                     raise serializers.ValidationError({
                         'quantity': (
                             "No se puede vender una cantidad mayor "

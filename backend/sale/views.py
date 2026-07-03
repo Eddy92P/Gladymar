@@ -604,7 +604,8 @@ class SaleViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(status=status).prefetch_related(
                 'sale_items').order_by('-id')
 
-        return self.queryset.prefetch_related('sale_items').order_by('-sale_anticipation', '-id')
+        return self.queryset.prefetch_related('sale_items').order_by(
+            '-sale_anticipation', '-id')
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
