@@ -320,8 +320,8 @@ class PrivateSaleApiTests(TestCase):
             self.assertEqual(payload_item['total_price'], db_item.total_price)
 
     def test_create_proforma_sale_allows_quantity_over_available_stock(self):
-        """Proforma sales should not 
-            validate quantity against available stock."""
+        """Proforma sales should not validate quantity against
+        available stock."""
         product_stock = create_product_stock(available_stock=5)
         payload = {
             'agency': create_agency().id,
