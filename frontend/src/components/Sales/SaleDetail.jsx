@@ -48,7 +48,7 @@ const SaleDetail = () => {
 					: '',
 		},
 	];
-	const API = import.meta.env.BACKEND_API_URL;
+	const API = import.meta.env.VITE_API_URL;
 	const pdfUrl = `${API}${api.OUTPUT_PDF_URL}`;
 
 	useEffect(() => {

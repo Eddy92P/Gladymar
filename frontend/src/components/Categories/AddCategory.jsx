@@ -30,7 +30,7 @@ import authFetch from '../../api/authFetch';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function AddCategory() {
-	const API = import.meta.env.BACKEND_API_URL;
+	const API = import.meta.env.VITE_API_URL;
 	const url = `${API}${api.API_URL_CATEGORIES}`;
 	const [isLoading, setIsLoading] = useState(false);
 	const [message, setMessage] = useState('');

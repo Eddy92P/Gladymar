@@ -87,7 +87,7 @@ const ProductList = () => {
 	useEffect(() => {
 		let isMounted = true;
 		const controller = new AbortController();
-		const API = import.meta.env.BACKEND_API_URL;
+		const API = import.meta.env.VITE_API_URL;
 
 		let url =
 			`${API}${api.API_URL_PRODUCTS}` +

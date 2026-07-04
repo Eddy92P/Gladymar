@@ -62,7 +62,7 @@ import ListHeader from '../UI/List/ListHeader';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function AddWarehouse() {
-	const API = import.meta.env.BACKEND_API_URL;
+	const API = import.meta.env.VITE_API_URL;
 	const url = `${API}${api.API_URL_WAREHOUSES}`;
 	const urlAgencyChoices = `${API}${api.API_URL_AGENCIES}`;
 	const [isLoading, setIsLoading] = useState(false);

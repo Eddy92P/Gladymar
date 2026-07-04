@@ -6,7 +6,7 @@ async function authFetch(url, options = {}) {
       credentials: 'include',
     });
     // Connecting to Vercel API
-	const API = import.meta.env.BACKEND_API_URL;
+	const API = import.meta.env.VITE_API_URL;
 	const urlRefresh = `${API}${api.API_URL_REFRESH}`;
     
     if (response.status === 401) {

@@ -33,7 +33,7 @@ const AddProductDetailedList = ({
 	const storeContext = useContext(StoreContext);
 
 	useEffect(() => {
-		const API = import.meta.env.BACKEND_API_URL;
+		const API = import.meta.env.VITE_API_URL;
 		let url = '';
 		if (
 			sellingChannel ||

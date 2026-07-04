@@ -37,7 +37,7 @@ import ListHeader from '../UI/List/ListHeader';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function AddClient() {
-	const API = import.meta.env.BACKEND_API_URL;
+	const API = import.meta.env.VITE_API_URL;
 	const url = `${API}${api.API_URL_CLIENTS}`;
 	const urlClientChoices = `${API}${api.API_URL_CLIENT_CHOICES}`;
 	const [isLoading, setIsLoading] = useState(false);
