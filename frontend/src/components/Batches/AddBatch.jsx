@@ -31,7 +31,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import authFetch from '../../api/authFetch';
 
 function AddBatch() {
-	const API = import.meta.env.VITE_API_URL;
+	const API = import.meta.env.BACKEND_API_URL;
 	const url = `${API}${api.API_URL_BATCHES}`;
 	const urlCategoryChoices = `${API}${api.API_URL_ALL_CATEGORIES}`;
 	const [isLoading, setIsLoading] = useState(false);

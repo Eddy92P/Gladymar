@@ -42,7 +42,7 @@ import ListHeader from '../UI/List/ListHeader';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function AddPayment() {
-	const API = import.meta.env.VITE_API_URL;
+	const API = import.meta.env.BACKEND_API_URL;
 	const url = `${API}${api.API_URL_PAYMENTS}`;
 
 	const paymentMethodChoices = [

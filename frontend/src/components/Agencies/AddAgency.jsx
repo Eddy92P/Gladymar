@@ -32,7 +32,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import authFetch from '../../api/authFetch';
 
 function AddAgency() {
-	const API = import.meta.env.VITE_API_URL;
+	const API = import.meta.env.BACKEND_API_URL;
 	const url = `${API}${api.API_URL_AGENCIES}`;
 	const urlCityChoices = `${API}${api.API_URL_CITY_CHOICES}`;
 	const [isLoading, setIsLoading] = useState(false);

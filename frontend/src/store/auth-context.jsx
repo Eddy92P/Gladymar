@@ -133,7 +133,7 @@ export const AuthContextProvider = props => {
 		sessionStorage.removeItem('is_superuser');
 		sessionStorage.removeItem('user_type');
 
-		const API = import.meta.env.VITE_API_URL;
+		const API = import.meta.env.BACKEND_API_URL;
 		const urlLogout = `${API}${api.API_URL_LOGOUT}`;
 		
 		fetch(urlLogout, {

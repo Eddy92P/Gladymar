@@ -62,7 +62,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 export const AddSellingChannel = () => {
-	const API = import.meta.env.VITE_API_URL;
+	const API = import.meta.env.BACKEND_API_URL;
 	const url = `${API}${api.API_URL_SELLING_CHANNEL}`;
 
 	const [isLoading, setIsLoading] = useState(false);

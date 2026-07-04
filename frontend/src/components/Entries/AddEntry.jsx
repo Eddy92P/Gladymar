@@ -68,7 +68,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 export const AddEntry = () => {
-	const API = import.meta.env.VITE_API_URL;
+	const API = import.meta.env.BACKEND_API_URL;
 	const url = `${API}${api.API_URL_ENTRIES}`;
 	const urlSupplierChoices = `${API}${api.API_URL_ALL_SUPPLIERS}`;
 

@@ -37,7 +37,7 @@ import ListHeader from '../UI/List/ListHeader';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 function AddProduct() {
-	const API = import.meta.env.VITE_API_URL;
+	const API = import.meta.env.BACKEND_API_URL;
 	const url = `${API}${api.API_URL_PRODUCTS}`;
 	const urlBatchChoices = `${API}${api.API_URL_ALL_BATCHES}`;
 	const urlMeasureUnitChoices = `${API}${api.API_URL_ALL_MEASURE_UNITS}`;

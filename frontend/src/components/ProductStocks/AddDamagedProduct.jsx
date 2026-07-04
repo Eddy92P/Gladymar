@@ -29,7 +29,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import authFetch from '../../api/authFetch';
 
 function AddDamagedProductStock() {
-	const API = import.meta.env.VITE_API_URL;
+	const API = import.meta.env.BACKEND_API_URL;
 	const url = `${API}${api.API_URL_PRODUCT_STOCKS}`;
 	const [isLoading, setIsLoading] = useState(false);
 	const [message, setMessage] = useState('');

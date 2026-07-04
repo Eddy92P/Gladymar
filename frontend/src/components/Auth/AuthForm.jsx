@@ -102,7 +102,7 @@ const AuthForm = () => {
 		event.preventDefault();
 
 		// Connecting to Vercel API
-		const API = import.meta.env.VITE_API_URL;
+		const API = import.meta.env.BACKEND_API_URL;
 		const url = `${API}${api.API_URL_LOGIN}`;
 
 		if (formIsValid) {

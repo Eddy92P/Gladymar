@@ -75,7 +75,7 @@ const SelectAgency = () => {
 	}, [agency]);
 
 	useEffect(() => {
-		const API = import.meta.env.VITE_API_URL;
+		const API = import.meta.env.BACKEND_API_URL;
 		const url = `${API}${api.API_URL_ALL_AGENCIES}`;
 		let isMounted = true;
 		const controller = new AbortController();

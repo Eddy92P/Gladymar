@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { api } from '../../Constants';
 
 const ReportList = () => {
-	const API = import.meta.env.VITE_API_URL;
+	const API = import.meta.env.BACKEND_API_URL;
 	const buyUrl = `${API}${api.BUY_REPORT_PDF_URL}`;
 	const sellUrl = `${API}${api.SELL_REPORT_PDF_URL}`;
 	const entryUrl = `${API}${api.ENTRY_REPORT_PDF_URL}`;

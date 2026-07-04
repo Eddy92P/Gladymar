@@ -31,7 +31,7 @@ const useStyles = makeStyles({
 const SaleList = () => {
 	const classes = useStyles();
 	const authContext = useContext(AuthContext);
-	const API = import.meta.env.VITE_API_URL;
+	const API = import.meta.env.BACKEND_API_URL;
 	const pdfUrl = `${API}${api.PROFORMA_PDF_URL}`;
 
 	const [list, setList] = useState([]);

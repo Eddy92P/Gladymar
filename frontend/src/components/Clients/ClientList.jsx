@@ -23,7 +23,7 @@ const useStyles = makeStyles({
 });
 
 const ClientList = () => {
-	const API = import.meta.env.VITE_API_URL;
+	const API = import.meta.env.BACKEND_API_URL;
 	const urlClientChoices = `${API}${api.API_URL_CLIENT_CHOICES}`;
 	const classes = useStyles();
 

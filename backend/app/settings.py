@@ -249,7 +249,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-COOKIE_DOMAIN = "gladymar.onrender.com"
+COOKIE_DOMAIN = os.environ.get("COOKIE_DOMAIN", "")
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Decorestilo API",
