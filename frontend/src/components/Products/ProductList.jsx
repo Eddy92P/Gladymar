@@ -44,11 +44,6 @@ const ProductList = () => {
 			sortable: true,
 		},
 		{
-			name: 'Línea',
-			selector: row => row.line,
-			sortable: true,
-		},
-		{
 			name: 'Código',
 			selector: row => row.code,
 			sortable: true,
@@ -119,7 +114,6 @@ const ProductList = () => {
 						return {
 							id: listData.id,
 							name: listData.name,
-							line: listData.line,
 							batch: listData.batch,
 							code: listData.code,
 							image: listData.image,

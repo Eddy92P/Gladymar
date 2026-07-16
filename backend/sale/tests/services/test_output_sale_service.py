@@ -112,7 +112,6 @@ def create_product(**params):
         'batch': create_batch(),
         'code': f'Sample Code {unique_suffix}',
         'measure_unit': create_measure_unit(),
-        'line': 'Test Line',
         'description': 'Sample Description',
         'image': None,
         'minimum_sale_price': 100,

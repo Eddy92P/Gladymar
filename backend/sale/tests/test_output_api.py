@@ -127,7 +127,6 @@ def create_product(**params):
         'batch': create_batch(),
         'code': f'CODE-{unique_suffix}',
         'measure_unit': create_measure_unit(),
-        'line': 'Test Line',
         'minimum_sale_price': 10.00,
         'maximum_sale_price': 100.00,
     }

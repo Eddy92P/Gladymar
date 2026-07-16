@@ -80,7 +80,6 @@ class TestDecreaseProductStockService(TestCase):
             'measure_unit': MeasureUnit.objects.create(
                 name=f'Unit {unique_suffix}',
             ),
-            'line': 'Test Line',
             'minimum_sale_price': 10.00,
             'maximum_sale_price': 100.00
         }

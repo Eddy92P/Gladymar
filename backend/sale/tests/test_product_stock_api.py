@@ -55,7 +55,6 @@ def create_product_stock(**params):
         code=f'TEST-{unique_suffix}',
         batch=batch,
         measure_unit=measure_unit,
-        line='Test Line',
         minimum_sale_price=10.00,
         maximum_sale_price=100.00
     )

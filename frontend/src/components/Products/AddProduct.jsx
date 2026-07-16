@@ -13,7 +13,7 @@ import Alert from '@mui/material/Alert';
 import AuthContext from '../../store/auth-context';
 import { api } from '../../Constants';
 import {
-	validateNameLength,
+	validateProductName,
 	validateCode,
 	validatePositiveNumber,
 } from '../../Validations';
@@ -77,40 +77,15 @@ function AddProduct() {
 		if (action.type === 'INPUT_FOCUS') {
 			return {
 				value: state.value,
-				isValid: validateNameLength(state.value),
+				isValid: validateProductName(state.value),
 				feedbackText: 'Ingrese nombre valido',
 			};
 		}
 		if (action.type === 'INPUT_CHANGE') {
 			return {
 				value: action.val,
-				isValid: validateNameLength(action.val),
+				isValid: validateProductName(action.val),
 				feedbackText: 'Ingrese nombre valido',
-			};
-		}
-		if (action.type === 'INPUT_ERROR') {
-			return {
-				value: state.value,
-				isValid: false,
-				feedbackText: action.errorMessage,
-			};
-		}
-		return { value: '', isValid: false };
-	};
-
-	const lineReducer = (state, action) => {
-		if (action.type === 'INPUT_FOCUS') {
-			return {
-				value: state.value,
-				isValid: validateLine(state.value),
-				feedbackText: 'Ingrese una línea válida.',
-			};
-		}
-		if (action.type === 'INPUT_CHANGE') {
-			return {
-				value: action.val,
-				isValid: validateNameLength(action.val),
-				feedbackText: 'Ingrese una línea válida.',
 			};
 		}
 		if (action.type === 'INPUT_ERROR') {
@@ -197,12 +172,6 @@ function AddProduct() {
 		feedbackText: '',
 	});
 
-	const [lineState, dispatchLine] = useReducer(lineReducer, {
-		value: productData.line ? productData.line : '',
-		isValid: true,
-		feedbackText: '',
-	});
-
 	const [minimumSalePriceState, dispatchMinimumSalePrice] = useReducer(
 		minimumSalePriceReducer,
 		{
@@ -232,7 +201,6 @@ function AddProduct() {
 	});
 
 	const { isValid: nameIsValid } = nameState;
-	const { isValid: lineIsValid } = lineState;
 	const { isValid: codeIsValid } = codeState;
 	const { isValid: minimumSalePriceIsValid } = minimumSalePriceState;
 	const { isValid: maximumSalePriceIsValid } = maximumSalePriceState;
@@ -240,10 +208,6 @@ function AddProduct() {
 
 	const nameInputChangeHandler = e => {
 		dispatchName({ type: 'INPUT_CHANGE', val: e.target.value });
-	};
-
-	const lineInputChangeHandler = e => {
-		dispatchLine({ type: 'INPUT_CHANGE', val: e.target.value });
 	};
 
 	const codeInputChangeHandler = e => {
@@ -386,7 +350,6 @@ function AddProduct() {
 		const formData = new FormData();
 		formData.append('batch_id', batch.id);
 		formData.append('name', nameState.value);
-		formData.append('line', lineState.value);
 		formData.append('code', codeState.value);
 		formData.append('description', description);
 
@@ -451,7 +414,6 @@ function AddProduct() {
 		}
 		formData.append('batch_id', batch.id);
 		formData.append('name', nameState.value);
-		formData.append('line', lineState.value);
 		formData.append('code', codeState.value);
 		formData.append('description', description);
 		formData.append('minimum_sale_price', minimumSalePriceState.value);
@@ -505,7 +467,6 @@ function AddProduct() {
 	useEffect(() => {
 		if (
 			nameState.value &&
-			lineState.value &&
 			codeState.value &&
 			minimumSalePriceState.value !== null &&
 			maximumSalePriceState.value !== null &&
@@ -514,7 +475,6 @@ function AddProduct() {
 		) {
 			const isValid =
 				nameIsValid &&
-				lineIsValid &&
 				codeIsValid &&
 				minimumSalePriceIsValid &&
 				maximumSalePriceIsValid &&
@@ -527,14 +487,12 @@ function AddProduct() {
 		}
 	}, [
 		nameState.value,
-		lineState.value,
 		codeState.value,
 		minimumSalePriceState.value,
 		maximumSalePriceState.value,
 		measureUnit,
 		batch,
 		nameIsValid,
-		lineIsValid,
 		codeIsValid,
 		minimumSalePriceIsValid,
 		maximumSalePriceIsValid,
@@ -799,22 +757,6 @@ function AddProduct() {
 												fullWidth
 											/>
 										</Grid>
-										<Grid size={{ xs: 12, sm: 4 }}>
-											<TextField
-												label="Línea"
-												variant="outlined"
-												onChange={lineInputChangeHandler}
-												value={lineState.value}
-												error={!lineIsValid}
-												helperText={
-													!lineIsValid
-														? lineState.feedbackText
-														: ''
-												}
-												required
-												fullWidth
-											/>
-										</Grid>
 										<Grid size={{ xs: 12, sm: 3 }}>
 											<TextField
 												label="Código"
@@ -988,7 +930,6 @@ function AddProduct() {
 						<AddProductPreview
 							batch={batch.name}
 							name={nameState.value}
-							line={lineState.value}
 							code={codeState.value}
 							image={selectedFileUrl || existingImage}
 							unitMeasurement={measureUnit?.name}

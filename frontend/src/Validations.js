@@ -33,6 +33,17 @@ export const validateNameLength = name => {
 	return name.trim().length > 1 && name.trim().length <= 100;
 };
 
+export const validateProductName = name => {
+	// Mirrors backend Product.name RegexValidator and max_length (150).
+	const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9 .,_-]+$/;
+	const trimmed = name.trim();
+	return (
+		trimmed.length > 1 &&
+		trimmed.length <= 150 &&
+		nameRegex.test(name)
+	);
+};
+
 export const validateLastNameLength = lastName => {
 	return lastName.trim().length > 2 && lastName.trim().length <= 100;
 };
@@ -89,7 +100,7 @@ export const validatePercentageVisa = percentageVisa => {
 };
 
 export const validateCode = code => {
-	const codeRegex = /^[a-zA-Z0-9\s_-]+$/;
+	const codeRegex = /^[a-zA-ZñÑ0-9\s_-]+$/;
 	return codeRegex.test(code) && code.length > 0;
 };
 
