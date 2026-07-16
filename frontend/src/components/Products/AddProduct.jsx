@@ -13,7 +13,7 @@ import Alert from '@mui/material/Alert';
 import AuthContext from '../../store/auth-context';
 import { api } from '../../Constants';
 import {
-	validateNameLength,
+	validateProductName,
 	validateCode,
 	validatePositiveNumber,
 } from '../../Validations';
@@ -77,14 +77,14 @@ function AddProduct() {
 		if (action.type === 'INPUT_FOCUS') {
 			return {
 				value: state.value,
-				isValid: validateNameLength(state.value),
+				isValid: validateProductName(state.value),
 				feedbackText: 'Ingrese nombre valido',
 			};
 		}
 		if (action.type === 'INPUT_CHANGE') {
 			return {
 				value: action.val,
-				isValid: validateNameLength(action.val),
+				isValid: validateProductName(action.val),
 				feedbackText: 'Ingrese nombre valido',
 			};
 		}
