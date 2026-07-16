@@ -379,7 +379,8 @@ class Product(models.Model):
                 regex=r'^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9 .,_-]+$',
                 message=(
                     "El nombre solo puede contener letras, números, "
-                    "espacios, guiones, guiones bajos, puntos, comas y acentos."
+                    "espacios, guiones, guiones bajos, puntos, "
+                    "comas y acentos."
                 )
             )
         ]

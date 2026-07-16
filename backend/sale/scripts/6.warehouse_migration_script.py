@@ -13,17 +13,24 @@ REFRESH_URL = f"{os.getenv('BASE_URL')}/api/user/refresh/"
 WAREHOUSE_URL = f"{os.getenv('BASE_URL')}/api/sale/warehouses/"
 EXCEL_PATH = 'sale/import_files/warehouse.xlsx'
 
+
 def get_auth_session():
     session = requests.Session()
-    response = session.post(LOGIN_URL, json={'email': USERNAME, 'password': PASSWORD})
+    response = session.post(
+        LOGIN_URL, json={'email': USERNAME, 'password': PASSWORD}
+    )
     response.raise_for_status()
     if not session.cookies.get('access'):
-        raise RuntimeError('Login succeeded but no access token cookie was returned')
+        raise RuntimeError(
+            'Login succeeded but no access token cookie was returned'
+        )
     return session
+
 
 def refresh_auth_session(session):
     response = session.post(REFRESH_URL)
     response.raise_for_status()
+
 
 df = pd.read_excel(EXCEL_PATH)
 
@@ -63,4 +70,7 @@ print(f"❌ Registros fallidos: {len(failed)}")
 
 if failed:
     pd.DataFrame(failed).to_csv('failed_warehouses.csv', index=False)
-    print("\n❌ Detalles de los registros fallidos han sido guardados en failed_warehouses.csv")
+    print(
+        "\n❌ Detalles de los registros fallidos han sido guardados "
+        "en failed_warehouses.csv"
+    )
