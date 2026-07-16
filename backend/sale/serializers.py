@@ -84,7 +84,7 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = [
             'id', 'batch', 'batch_id', 'measure_unit', 'measure_unit_id',
-            'name', 'code', 'line', 'description', 'image',
+            'name', 'code', 'description', 'image',
             'minimum_sale_price', 'maximum_sale_price',
             'created_at', 'updated_at',
         ]

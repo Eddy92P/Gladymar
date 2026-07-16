@@ -110,7 +110,6 @@ def create_product(**params):
         'name': f'TestProduct{unique_suffix}',
         'code': f'CODE{unique_suffix}',
         'measure_unit': create_measure_unit(),
-        'line': 'Test Line',
         'description': 'Test product description',
         'minimum_sale_price': 10.00,
         'maximum_sale_price': 100.00,

@@ -93,16 +93,6 @@ function AddProductPreview(props) {
 						</Grid>
 						<Grid item md={3}>
 							<TextField
-								label="Línea"
-								value={props.line}
-								fullWidth
-								variant="standard"
-								disabled
-								className={classes.textStyle}
-							/>
-						</Grid>
-						<Grid item md={3}>
-							<TextField
 								label="Código"
 								value={props.code}
 								fullWidth

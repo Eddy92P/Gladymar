@@ -275,7 +275,6 @@ class Warehouse(models.Model):
         'Product', related_name='warehouses', through='ProductStock')
     name = models.CharField(
         max_length=255,
-        unique=True,
         null=False,
         blank=False,
         validators=[
@@ -305,6 +304,9 @@ class Warehouse(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        unique_together = ('agency', 'name')
+
 
 class Category(models.Model):
     name = models.CharField(
@@ -333,7 +335,6 @@ class Batch(models.Model):
     category = models.ForeignKey(Category, on_delete=models.PROTECT)
     name = models.CharField(
         max_length=255,
-        unique=True,
         null=False,
         blank=False,
         validators=[
@@ -351,6 +352,9 @@ class Batch(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        unique_together = ('category', 'name')
 
 
 class MeasureUnit(models.Model):
@@ -368,43 +372,27 @@ class Product(models.Model):
         MeasureUnit, on_delete=models.PROTECT)
     name = models.CharField(
         max_length=150,
-        unique=True,
         null=False,
         blank=False,
         validators=[
             RegexValidator(
-                regex=r'^[a-zA-Z0-9\s_-]+$',
+                regex=r'^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9 .,_-]+$',
                 message=(
                     "El nombre solo puede contener letras, números, "
-                    "espacios, guiones y guiones bajos."
+                    "espacios, guiones, guiones bajos, puntos, comas y acentos."
                 )
             )
         ]
     )
     code = models.CharField(
         max_length=50,
-        unique=True,
         null=False,
         blank=False,
         validators=[
             RegexValidator(
-                regex=r'^[a-zA-Z0-9\s_-]+$',
+                regex=r'^[a-zA-ZñÑ0-9\s_-]+$',
                 message=(
                     "El código solo puede contener letras, números, "
-                    "espacios, guiones y guiones bajos."
-                )
-            )
-        ]
-    )
-    line = models.CharField(
-        max_length=50,
-        null=False,
-        blank=False,
-        validators=[
-            RegexValidator(
-                regex=r'^[a-zA-Z0-9\s_-]+$',
-                message=(
-                    "La línea solo puede contener letras, números, "
                     "espacios, guiones y guiones bajos."
                 )
             )
@@ -418,6 +406,9 @@ class Product(models.Model):
         max_digits=10, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('batch', 'code')
 
     def __str__(self):
         return f"{self.name} - {self.code}"
