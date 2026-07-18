@@ -1,0 +1,32 @@
+name: Backup PostgreSQL DB
+
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Generate filename with timestamp (Bolivia timezone)
+        id: date
+        run: echo "date=$(TZ='America/La_Paz' date +%Y-%m-%d_%H-%M-%S)" >> $GITHUB_OUTPUT
+
+      - name: Execute backup command
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          pg_dump "$DATABASE_URL" -F c -f "backup_${{ steps.date.outputs.date }}.dump"
+
+      - name: Upload backup as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-${{ steps.date.outputs.date }}
+          path: backup_${{ steps.date.outputs.date }}.dump
+          retention-days: 30
