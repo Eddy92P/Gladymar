@@ -39,8 +39,9 @@ session = get_auth_session()
 success_count = 0
 failed = []
 
-# Group rows by warehouse so each PATCH contains all products for that warehouse.
-# Sum stock when the same product appears more than once (unique per warehouse).
+# Group rows by warehouse so each PATCH contains all products for
+# that warehouse. Sum stock when the same product appears more than
+# once (unique per warehouse).
 for warehouse_id, group in df.groupby('ID_ALMACEN'):
     aggregated = (
         group.groupby('ID_PRODUCTO', as_index=False)['STOCK'].sum()
