@@ -17,7 +17,9 @@ jobs:
             https://www.postgresql.org/media/keys/ACCC4CF8.asc
           sudo sh -c 'echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
           sudo apt-get update
-          sudo apt-get install -y postgresql-client
+          PG_VERSION=$(apt-cache search postgresql-client- | grep -oP 'postgresql-client-\d+ ' | grep -oP '\d+' | sort -rn | head -1)
+          echo "Instalando postgresql-client-$PG_VERSION"
+          sudo apt-get install -y "postgresql-client-$PG_VERSION"
 
       - name: Generate filename with timestamp (Bolivia timezone)
         id: date
