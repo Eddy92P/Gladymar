@@ -249,29 +249,43 @@ class WarehouseSerializer(serializers.ModelSerializer):
             instance.save()
 
             if products_stock_data is not None:
-                existing_items = instance.product_stocks.all()
+                existing_items = list(instance.product_stocks.all())
+                existing_by_id = {item.id: item for item in existing_items}
+                existing_by_product = {
+                    item.product_id: item for item in existing_items
+                }
+                matched_ids = set()
 
-                for item in existing_items:
-                    if item.id not in [
-                            item_data.get('id')
-                            for item_data in products_stock_data
-                            if item_data.get('id')]:
-                        item.delete()
                 for item_data in products_stock_data:
-                    if item_data.get('id'):
-                        item = existing_items.get(id=item_data['id'])
+                    item = None
+                    item_id = item_data.get('id')
+                    if item_id:
+                        item = existing_by_id.get(item_id)
+                    if item is None:
+                        product = item_data.get('product')
+                        product_id = getattr(product, 'id', product)
+                        item = existing_by_product.get(product_id)
+
+                    if item is not None:
+                        matched_ids.add(item.id)
                         for attr, value in item_data.items():
                             if attr != 'id':
                                 setattr(item, attr, value)
                         item.save()
                     else:
                         item_data_copy = item_data.copy()
+                        item_data_copy.pop('id', None)
                         item_data_copy['available_stock'] = (
                             item_data_copy['stock']
                         )
                         item_data_copy.pop('warehouse', None)
-                        ProductStock.objects.create(
+                        new_item = ProductStock.objects.create(
                             warehouse=instance, **item_data_copy)
+                        matched_ids.add(new_item.id)
+
+                for item in existing_items:
+                    if item.id not in matched_ids:
+                        item.delete()
         except Exception as e:
             logger.error(f"Error updating warehouse: {e}")
             raise serializers.ValidationError(
