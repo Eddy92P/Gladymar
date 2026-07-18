@@ -20,6 +20,7 @@ jobs:
           PG_VERSION=$(apt-cache search postgresql-client- | grep -oP 'postgresql-client-\d+ ' | grep -oP '\d+' | sort -rn | head -1)
           echo "Instalando postgresql-client-$PG_VERSION"
           sudo apt-get install -y "postgresql-client-$PG_VERSION"
+          echo "/usr/lib/postgresql/$PG_VERSION/bin" >> "$GITHUB_PATH"
 
       - name: Generate filename with timestamp (Bolivia timezone)
         id: date
