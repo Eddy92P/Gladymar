@@ -158,7 +158,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         unique=True,
         null=False,
         blank=False)
-    address = models.CharField(max_length=150, null=False, blank=False)
+    address = models.CharField(max_length=150, null=True, blank=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(auto_now_add=True)
