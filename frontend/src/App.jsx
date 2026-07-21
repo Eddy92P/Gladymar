@@ -357,21 +357,21 @@ function App() {
 										</ProtectedRoute>}
 								/>
 								<Route path="salidas" element={
-									<ProtectedRoute allowedRoles={[2, 4]}>
+									<ProtectedRoute allowedRoles={[2, 3, 4]}>
 										<OutputPage />
 									</ProtectedRoute>}
 								/>
 								<Route
 									path="salidas/agregar_salida"
 									element={
-										<ProtectedRoute allowedRoles={[2, 4]}>
+										<ProtectedRoute allowedRoles={[2, 3, 4]}>
 											<AddOutputPage />
 										</ProtectedRoute>}
 								/>
 								<Route
 									path="salidas/info_salida/:id"
 									element={
-										<ProtectedRoute allowedRoles={[2, 4]}>
+										<ProtectedRoute allowedRoles={[2, 3, 4]}>
 											<OutputDetailPage />
 										</ProtectedRoute>}
 								/>
