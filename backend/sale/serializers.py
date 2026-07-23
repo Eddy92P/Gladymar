@@ -301,7 +301,8 @@ class WarehouseLightSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Warehouse
-        fields = ['id', 'agency', 'name', 'location', 'created_at', 'updated_at']
+        fields = [
+            'id', 'agency', 'name', 'location', 'created_at', 'updated_at']
 
 
 class ProductStockSerializer(serializers.ModelSerializer):

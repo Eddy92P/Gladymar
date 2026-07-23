@@ -455,11 +455,16 @@ class ProductStock(models.Model):
         on_delete=models.PROTECT,
         related_name='product_stocks')
     stock = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    reserved_stock = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    available_stock = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    damaged_stock = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    minimum_stock = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    maximum_stock = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    reserved_stock = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0)
+    available_stock = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0)
+    damaged_stock = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0)
+    minimum_stock = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0)
+    maximum_stock = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0)
 
     class Meta:
         unique_together = ("product", "warehouse")

@@ -343,7 +343,8 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retrieve products ordered by id."""
-        return self.queryset.order_by('-id').select_related('batch', 'measure_unit')
+        return self.queryset.order_by('-id').select_related(
+            'batch', 'measure_unit')
 
     def update(self, request, *args, **kwargs):
         """Custom update method to handle image deletion."""
