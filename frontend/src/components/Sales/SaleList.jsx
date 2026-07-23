@@ -139,7 +139,8 @@ const SaleList = () => {
 					</Tooltip>
 					{row.status == 'realizado' &&
 						(authContext.userType == 4 ||
-							authContext.userType == 2) && (
+							authContext.userType == 2 ||
+							authContext.userType == 3) && (
 							<Tooltip
 								title="Realizar salida almacén"
 								placement="top"
