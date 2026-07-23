@@ -2,6 +2,7 @@
 Serializers for warehouse app
 """
 
+from decimal import Decimal
 from django.db import transaction
 from rest_framework import serializers
 from core.models import (
@@ -294,6 +295,15 @@ class WarehouseSerializer(serializers.ModelSerializer):
         return instance
 
 
+class WarehouseLightSerializer(serializers.ModelSerializer):
+    """Warehouse without product_stock, to avoid heavy circular nesting."""
+    agency = AgencySerializer(read_only=True)
+
+    class Meta:
+        model = Warehouse
+        fields = ['id', 'agency', 'name', 'location', 'created_at', 'updated_at']
+
+
 class ProductStockSerializer(serializers.ModelSerializer):
     """Serializer for intermediate table for product and stock model."""
     product = serializers.PrimaryKeyRelatedField(
@@ -301,7 +311,7 @@ class ProductStockSerializer(serializers.ModelSerializer):
     products = ProductSerializer(read_only=True, source='product')
     warehouse = serializers.PrimaryKeyRelatedField(
         queryset=Warehouse.objects.all(), write_only=True)
-    warehouses = WarehouseSerializer(read_only=True, source='warehouse')
+    warehouses = WarehouseLightSerializer(read_only=True, source='warehouse')
     id = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
@@ -1001,7 +1011,7 @@ class OutputItemSerializer(serializers.ModelSerializer):
                     )
                 })
         if product_stock:
-            if product_stock.reserved_stock - quantity < 0:
+            if product_stock.reserved_stock - Decimal(str(quantity)) < 0:
                 raise serializers.ValidationError({
                     'quantity': "La cantidad excede el stock reservado."
                 })
@@ -1154,7 +1164,7 @@ class SaleItemSerializer(serializers.ModelSerializer):
             if data.get('product_stock') is not None and data.get(
                     'quantity') is not None:
                 if (data['product_stock'].available_stock
-                        - data['quantity'] < 0):
+                        - Decimal(str(data['quantity'])) < 0):
                     raise serializers.ValidationError({
                         'quantity': (
                             "No se puede vender una cantidad mayor "
@@ -1326,16 +1336,18 @@ class SaleSerializer(serializers.ModelSerializer):
                     # cuando el status es 'realizado'
                     if validated_data.get('status') == 'realizado':
                         try:
+                            item_quantity = Decimal(
+                                str(item_data['quantity']))
                             ProductStock.objects.filter(
                                 id=item_data['product_stock'].id
                             ).update(
                                 reserved_stock=(
                                     F('reserved_stock')
-                                    + item_data['quantity']
+                                    + item_quantity
                                 ),
                                 available_stock=(
                                     F('available_stock')
-                                    - item_data['quantity']
+                                    - item_quantity
                                 ),
                             )
                         except Exception as e:

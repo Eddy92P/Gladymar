@@ -409,7 +409,7 @@ class Product(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('batch', 'code')
+        unique_together = ('batch', 'code', 'name')
 
     def __str__(self):
         return f"{self.name} - {self.code}"
@@ -454,12 +454,12 @@ class ProductStock(models.Model):
         Warehouse,
         on_delete=models.PROTECT,
         related_name='product_stocks')
-    stock = models.FloatField(default=0)
-    reserved_stock = models.FloatField(default=0)
-    available_stock = models.FloatField(default=0)
-    damaged_stock = models.FloatField(default=0)
-    minimum_stock = models.FloatField(default=0)
-    maximum_stock = models.FloatField(default=0)
+    stock = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    reserved_stock = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    available_stock = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    damaged_stock = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    minimum_stock = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    maximum_stock = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     class Meta:
         unique_together = ("product", "warehouse")

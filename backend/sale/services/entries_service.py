@@ -2,6 +2,7 @@
 Service to increase product stock when an entry is created
 """
 
+from decimal import Decimal
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,8 +18,9 @@ class IncreaseProductStockService:
         """
         try:
             product = self.entry_item.product_stock
-            product.stock += self.entry_item.quantity
-            product.available_stock += self.entry_item.quantity
+            quantity = Decimal(str(self.entry_item.quantity))
+            product.stock += quantity
+            product.available_stock += quantity
             product.save()
 
         except Exception as e:
