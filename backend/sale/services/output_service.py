@@ -2,6 +2,7 @@
 Service to update product stock when an output is updated
 """
 
+from decimal import Decimal
 from django.db.models import F
 from django.core.exceptions import ValidationError
 from core.models import ProductStock
@@ -20,12 +21,13 @@ class DecreaseProductStockService:
         Decrease product stock when an output is created
         """
         try:
+            quantity = Decimal(str(self.output_item.quantity))
             updated = ProductStock.objects.filter(
                 id=self.product_stock.id,
-                stock__gte=self.output_item.quantity
+                stock__gte=quantity
             ).update(
-                stock=F('stock') - self.output_item.quantity,
-                reserved_stock=F('reserved_stock') - self.output_item.quantity
+                stock=F('stock') - quantity,
+                reserved_stock=F('reserved_stock') - quantity
             )
             if updated == 0:
                 raise ValidationError(

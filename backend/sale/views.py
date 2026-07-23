@@ -262,7 +262,7 @@ class WarehouseViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retrieve warehouses ordered by id."""
-        return self.queryset.order_by('-id')
+        return self.queryset.order_by('-id').select_related('agency')
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -299,7 +299,7 @@ class BatchViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retrieve batches ordered by id."""
-        return self.queryset.order_by('-id')
+        return self.queryset.order_by('-id').select_related('category')
 
     @action(detail=False, methods=["get"], url_path="all")
     def all_categories(self, request):
@@ -343,7 +343,8 @@ class ProductViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retrieve products ordered by id."""
-        return self.queryset.order_by('-id')
+        return self.queryset.order_by('-id').select_related(
+            'batch', 'measure_unit')
 
     def update(self, request, *args, **kwargs):
         """Custom update method to handle image deletion."""
@@ -376,7 +377,13 @@ class ProductStockViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retrieve product stocks ordered by id."""
-        return self.queryset.order_by('-id')
+        return self.queryset.order_by('-id').select_related(
+            'product',
+            'product__batch',
+            'product__measure_unit',
+            'warehouse',
+            'warehouse__agency'
+        )
 
     @action(detail=True, methods=['post'], url_path='increment-damaged-stock')
     def increment_damaged_stock(self, request, pk=None):
@@ -480,7 +487,12 @@ class EntryViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retrieve entries ordered by id."""
-        return self.queryset.select_related('purchase').order_by('-id')
+        return self.queryset.order_by('-id').select_related(
+            'purchase',
+            'purchase__buyer',
+            'purchase__supplier',
+            'warehouse_keeper__agency'
+        )
 
 
 class OutputViewSet(viewsets.ModelViewSet):
@@ -502,7 +514,12 @@ class OutputViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retrieve outputs ordered by id."""
-        return self.queryset.order_by('-id')
+        return self.queryset.order_by('-id').select_related(
+            'sale',
+            'sale__client',
+            'warehouse_keeper',
+            'warehouse_keeper__agency'
+        )
 
 
 class ProductChannelPriceViewSet(viewsets.ModelViewSet):
@@ -517,7 +534,10 @@ class ProductChannelPriceViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retrieve product channel prices ordered by id."""
-        return self.queryset.order_by('-id')
+        return self.queryset.order_by('-id').select_related(
+            'product',
+            'selling_channel'
+        )
 
 
 class SellingChannelViewSet(viewsets.ModelViewSet):
@@ -568,7 +588,12 @@ class PurchaseViewSet(viewsets.ModelViewSet):
         if status:
             queryset = queryset.filter(
                 status=status).prefetch_related(
-                    'purchase_items').order_by('-id')
+                    'purchase_items').select_related(
+                        'buyer',
+                        'supplier',
+                        'warehouse_keeper',
+                        'warehouse_keeper__agency'
+                    ).order_by('-id')
 
         return self.queryset.prefetch_related('purchase_items').order_by('-id')
 
@@ -602,7 +627,12 @@ class SaleViewSet(viewsets.ModelViewSet):
 
         if status:
             queryset = queryset.filter(status=status).prefetch_related(
-                'sale_items').order_by('-id')
+                'sale_items').select_related(
+                    'client',
+                    'selling_channel',
+                    'seller',
+                    'seller__agency'
+                ).order_by('-id')
 
         return self.queryset.prefetch_related('sale_items').order_by(
             '-sale_anticipation', '-id')

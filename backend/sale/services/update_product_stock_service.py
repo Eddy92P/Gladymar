@@ -2,6 +2,7 @@
 Service to update product stock when an entry is updated
 """
 
+from decimal import Decimal
 from django.core.exceptions import ValidationError
 
 
@@ -26,8 +27,8 @@ class UpdateProductStockService:
                 product_stock = item.product_stock
                 if (actual_item_quantity > previous_item_quantity
                         or actual_item_quantity < previous_item_quantity):
-                    new_item_quantity = (
-                        actual_item_quantity - previous_item_quantity)
+                    new_item_quantity = Decimal(str(
+                        actual_item_quantity - previous_item_quantity))
                     if (product_stock.stock + new_item_quantity
                             > product_stock.maximum_stock):
                         raise ValidationError(
@@ -54,8 +55,8 @@ class UpdateProductStockService:
                 product_stock = item.product_stock
                 if (actual_item_quantity > previous_item_quantity
                         or actual_item_quantity < previous_item_quantity):
-                    new_item_quantity = (
-                        actual_item_quantity - previous_item_quantity)
+                    new_item_quantity = Decimal(str(
+                        actual_item_quantity - previous_item_quantity))
                     if (product_stock.stock - new_item_quantity
                             < product_stock.minimum_stock):
                         raise ValidationError(
