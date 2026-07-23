@@ -35,7 +35,7 @@ import authFetch from '../../api/authFetch';
 const StyledDialog = styled(Dialog)({
 	'& .MuiDialog-paper': {
 		padding: '32px',
-		height: '35%',
+		maxHeight: '90vh',
 	},
 });
 

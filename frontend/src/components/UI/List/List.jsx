@@ -1,12 +1,18 @@
-import { Fragment, useState, useMemo, useEffect } from 'react';
+import { Fragment, useContext, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import classes from './List.module.css';
 
 import DataTable from 'react-data-table-component';
+import PaginationContext from '../../../store/pagination-context';
 
 const List = props => {
-	const [page, setPage] = useState(0);
-	const [pageSize, setPageSize] = useState(5);
+	const location = useLocation();
+	const { getPagination, setPagination } = useContext(PaginationContext);
+	const storedPagination = getPagination(location.pathname);
+
+	const page = storedPagination?.page ?? 0;
+	const pageSize = storedPagination?.pageSize ?? 5;
 
 	const subHeaderComponentMemo = useMemo(() => {
 		return props.filter ? props.filter : null;
@@ -34,12 +40,17 @@ const List = props => {
 					paginationComponentOptions={paginationComponentOptions}
 					paginationTotalRows={props.rowCount}
 					paginationServer
-					onChangePage={newPage => setPage(newPage)}
+					onChangePage={newPage =>
+						setPagination(location.pathname, { page: newPage })
+					}
 					onChangeRowsPerPage={(newSize, newPage) => {
-						setPageSize(newSize);
-						setPage(newPage);
+						setPagination(location.pathname, {
+							pageSize: newSize,
+							page: newPage,
+						});
 					}}
 					paginationPerPage={pageSize}
+					paginationDefaultPage={page || 1}
 					paginationRowsPerPageOptions={[5, 10]}
 					subHeader
 					subHeaderComponent={subHeaderComponentMemo}

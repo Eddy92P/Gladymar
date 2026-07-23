@@ -506,8 +506,8 @@ class Supplier(models.Model):
     nit = models.CharField(
         max_length=50,
         unique=True,
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
         validators=[
             RegexValidator(
                 regex=r'^\d{7,11}(-[A-Z]{2})?$',
@@ -518,9 +518,9 @@ class Supplier(models.Model):
     email = models.EmailField(
         max_length=50,
         unique=True,
-        null=False,
+        null=True,
         blank=True)
-    address = models.CharField(max_length=150, null=False, blank=True)
+    address = models.CharField(max_length=150, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -420,6 +420,21 @@ class SupplierSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
+    def validate_nit(self, value):
+        if value == '':
+            return None
+        return value
+
+    def validate_email(self, value):
+        if value == '':
+            return None
+        return value
+
+    def validate_address(self, value):
+        if value == '':
+            return None
+        return value
+
 
 class ClientSerializer(serializers.ModelSerializer):
     """Serializer for Client model"""
@@ -428,6 +443,21 @@ class ClientSerializer(serializers.ModelSerializer):
         model = Client
         fields = '__all__'
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def validate_nit(self, value):
+        if value == '':
+            return None
+        return value
+
+    def validate_email(self, value):
+        if value == '':
+            return None
+        return value
+
+    def validate_address(self, value):
+        if value == '':
+            return None
+        return value
 
 
 class ProductChannelPriceSerializer(serializers.ModelSerializer):
