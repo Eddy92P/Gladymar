@@ -364,6 +364,13 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         return super().update(request, *args, **kwargs)
 
+    @action(detail=False, methods=['get'], url_path="all")
+    def all_products(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset()).values(
+            "id", "name", "code")
+        return Response(list(queryset))
+
 
 class ProductStockViewSet(viewsets.ModelViewSet):
     """View for managing product stock APIs."""
@@ -487,7 +494,15 @@ class EntryViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retrieve entries ordered by id."""
-        return self.queryset.order_by('-id').select_related(
+        user = self.request.user
+        if user.is_superuser or user.is_staff:
+            return self.queryset.order_by('-id').select_related(
+                'purchase',
+                'purchase__buyer',
+                'purchase__supplier',
+                'warehouse_keeper__agency'
+            )
+        return self.queryset.filter(warehouse_keeper=user).order_by('-id').select_related(
             'purchase',
             'purchase__buyer',
             'purchase__supplier',
@@ -514,7 +529,15 @@ class OutputViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retrieve outputs ordered by id."""
-        return self.queryset.order_by('-id').select_related(
+        user = self.request.user
+        if user.is_superuser or user.is_staff:
+            return self.queryset.order_by('-id').select_related(
+                'sale',
+                'sale__client',
+                'warehouse_keeper',
+                'warehouse_keeper__agency'
+            )
+        return self.queryset.filter(warehouse_keeper=user).order_by('-id').select_related(
             'sale',
             'sale__client',
             'warehouse_keeper',
@@ -624,9 +647,17 @@ class SaleViewSet(viewsets.ModelViewSet):
         """Retrieve sales ordered by id and filtered by status."""
         queryset = super().get_queryset()
         status = self.request.query_params.get("status")
+        user = self.request.user
+        if user.is_superuser or user.is_staff:
+            return queryset.order_by('-id').select_related(
+                'sale',
+                'sale__client',
+                'warehouse_keeper',
+                'warehouse_keeper__agency'
+            )
 
         if status:
-            queryset = queryset.filter(status=status).prefetch_related(
+            queryset = queryset.filter(status=status, seller=user).prefetch_related(
                 'sale_items').select_related(
                     'client',
                     'selling_channel',
@@ -634,7 +665,7 @@ class SaleViewSet(viewsets.ModelViewSet):
                     'seller__agency'
                 ).order_by('-id')
 
-        return self.queryset.prefetch_related('sale_items').order_by(
+        return queryset.filter(seller=user).prefetch_related('sale_items').order_by(
             '-sale_anticipation', '-id')
 
 
