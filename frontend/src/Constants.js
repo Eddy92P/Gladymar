@@ -25,6 +25,7 @@ const apiUrl = {
 	API_URL_MEASURE_UNITS: '/api/sale/measure-units/',
 	API_URL_ALL_MEASURE_UNITS: '/api/sale/measure-units/all',
 	API_URL_PRODUCTS: '/api/sale/products/',
+	API_URL_ALL_PRODUCTS: '/api/sale/products/all',
 	API_URL_PRODUCT_STOCKS: '/api/sale/product-stocks/',
 	API_URL_SUPPLIERS: '/api/sale/suppliers/',
 	API_URL_ALL_SUPPLIERS: '/api/sale/suppliers/all',

@@ -202,10 +202,11 @@ class PrivateEntryApiTests(TestCase):
 
     def test_retrieve_entries(self):
         """Test retrieving a list of entries."""
-        create_entry()
-        create_entry()
+        create_entry(warehouse_keeper=self.user)
+        create_entry(warehouse_keeper=self.user)
         res = self.client.get(ENTRY_URL)
-        entries = Entry.objects.all().order_by('-id')
+        entries = Entry.objects.filter(
+            warehouse_keeper=self.user).order_by('-id')
         serializer = EntrySerializer(entries, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data['rows'], serializer.data)
@@ -234,7 +235,8 @@ class PrivateEntryApiTests(TestCase):
 
     def test_partial_update_entry(self):
         """Test partial update of an entry."""
-        entry = create_entry(invoice_number='1234567890')
+        entry = create_entry(
+            invoice_number='1234567890', warehouse_keeper=self.user)
         payload = {'invoice_number': '1234567891'}
         url = detail_url(entry.id)
         res = self.client.patch(url, payload)
@@ -244,7 +246,8 @@ class PrivateEntryApiTests(TestCase):
 
     def test_full_update_entry(self):
         """Test full update of an entry"""
-        entry = create_entry(invoice_number='1234567890')
+        entry = create_entry(
+            invoice_number='1234567890', warehouse_keeper=self.user)
         payload = {
             'agency': create_agency().id,
             'warehouse_keeper': create_user().id,

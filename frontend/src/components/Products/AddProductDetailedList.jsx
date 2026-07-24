@@ -45,7 +45,7 @@ const AddProductDetailedList = ({
 		) {
 			url = `${API}${api.API_URL_CATALOG}`;
 		} else {
-			url = `${API}${api.API_URL_PRODUCTS}`;
+			url = `${API}${api.API_URL_ALL_PRODUCTS}`;
 		}
 		let isMounted = true;
 
@@ -199,7 +199,7 @@ const AddProductDetailedList = ({
 					const data = await response.json();
 
 					if (isMounted) {
-						products = data.rows.map(listData => {
+						products = data.map(listData => {
 							return {
 								id: listData.id,
 								name: listData.name,
