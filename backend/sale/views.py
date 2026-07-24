@@ -502,7 +502,8 @@ class EntryViewSet(viewsets.ModelViewSet):
                 'purchase__supplier',
                 'warehouse_keeper__agency'
             )
-        return self.queryset.filter(warehouse_keeper=user).order_by('-id').select_related(
+        return self.queryset.filter(
+            warehouse_keeper=user).order_by('-id').select_related(
             'purchase',
             'purchase__buyer',
             'purchase__supplier',
@@ -537,7 +538,8 @@ class OutputViewSet(viewsets.ModelViewSet):
                 'warehouse_keeper',
                 'warehouse_keeper__agency'
             )
-        return self.queryset.filter(warehouse_keeper=user).order_by('-id').select_related(
+        return self.queryset.filter(
+            warehouse_keeper=user).order_by('-id').select_related(
             'sale',
             'sale__client',
             'warehouse_keeper',
@@ -657,16 +659,17 @@ class SaleViewSet(viewsets.ModelViewSet):
             )
 
         if status:
-            queryset = queryset.filter(status=status, seller=user).prefetch_related(
-                'sale_items').select_related(
+            queryset = queryset.filter(
+                status=status, seller=user).prefetch_related(
+                    'sale_items').select_related(
                     'client',
                     'selling_channel',
                     'seller',
                     'seller__agency'
                 ).order_by('-id')
 
-        return queryset.filter(seller=user).prefetch_related('sale_items').order_by(
-            '-sale_anticipation', '-id')
+        return queryset.filter(seller=user).prefetch_related(
+            'sale_items').order_by('-sale_anticipation', '-id')
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
