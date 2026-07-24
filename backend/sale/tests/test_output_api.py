@@ -203,11 +203,12 @@ class PrivateOutputApiTests(TestCase):
 
     def test_retrieve_outputs(self):
         """Test for get a list of outputs."""
-        create_output()
-        create_output()
+        create_output(warehouse_keeper=self.user)
+        create_output(warehouse_keeper=self.user)
 
         res = self.client.get(OUTPUT_URL)
-        outputs = Output.objects.all().order_by('-id')
+        outputs = Output.objects.filter(
+            warehouse_keeper=self.user).order_by('-id')
         serializer = OutputSerializer(outputs, many=True)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
@@ -236,7 +237,8 @@ class PrivateOutputApiTests(TestCase):
 
     def test_partial_update_output(self):
         """Test for partial update an output."""
-        output = create_output(output_date=timezone.now().date())
+        output = create_output(
+            output_date=timezone.now().date(), warehouse_keeper=self.user)
         payload = {'output_date': (timezone.now() + timedelta(days=1)).date()}
 
         url = detail_url(output.id)
@@ -248,7 +250,7 @@ class PrivateOutputApiTests(TestCase):
 
     def test_full_update_output(self):
         """Test for full update an output."""
-        output = create_output()
+        output = create_output(warehouse_keeper=self.user)
         payload = {
             'agency': create_agency().id,
             'warehouse_keeper': create_user().id,

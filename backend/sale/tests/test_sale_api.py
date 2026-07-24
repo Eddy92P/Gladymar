@@ -200,8 +200,8 @@ class PrivateSaleApiTests(TestCase):
 
     def test_retrieve_sale(self):
         """Test for retrieve a list of sales."""
-        sale1 = create_sale()
-        sale2 = create_sale()
+        sale1 = create_sale(seller=self.user)
+        sale2 = create_sale(seller=self.user)
 
         res = self.client.get(SALE_URL)
 
@@ -262,7 +262,7 @@ class PrivateSaleApiTests(TestCase):
 
     def test_partial_update_sale(self):
         """Test for partial update a sale."""
-        sale = create_sale(total=100.00)
+        sale = create_sale(total=100.00, seller=self.user)
         payload = {'total': 150.00}
 
         url = detail_url(sale.id)
@@ -274,7 +274,7 @@ class PrivateSaleApiTests(TestCase):
 
     def test_full_update_sale(self):
         """Test for full update a sale."""
-        sale = create_sale()
+        sale = create_sale(seller=self.user)
         payload = {
             'agency': sale.agency.id,
             'client': create_client().id,
@@ -356,6 +356,7 @@ class PrivateSaleApiTests(TestCase):
         sale = create_sale(
             status='proforma',
             sale_type='proforma',
+            seller=self.user,
             sale_items=[{
                 'product_stock': product_stock,
                 'quantity': 5,
