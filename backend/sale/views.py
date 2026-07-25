@@ -16,6 +16,7 @@ from datetime import datetime
 from django_filters.rest_framework import DjangoFilterBackend
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
+from django.db.models import Prefetch
 
 from core.models import (
     Agency, Batch, Category, Client, Entry, EntryItem, MeasureUnit,
@@ -612,15 +613,20 @@ class PurchaseViewSet(viewsets.ModelViewSet):
 
         if status:
             queryset = queryset.filter(
-                status=status).prefetch_related(
-                    'purchase_items').select_related(
+                status=status).select_related(
                         'buyer',
                         'supplier',
                         'warehouse_keeper',
-                        'warehouse_keeper__agency'
                     ).order_by('-id')
 
-        return self.queryset.prefetch_related('purchase_items').order_by('-id')
+        queryset = queryset.prefetch_related(
+            Prefetch(
+                'purchase_items',
+                queryset=PurchaseItem.objects.select_related('product_stock'),
+            )
+        )
+
+        return queryset.order_by('-id')
 
 
 class SaleViewSet(viewsets.ModelViewSet):
@@ -653,19 +659,23 @@ class SaleViewSet(viewsets.ModelViewSet):
 
         if status:
             queryset = queryset.filter(
-                status=status).prefetch_related(
-                'sale_items').select_related(
+                status=status).select_related(
                 'client',
                 'selling_channel',
                 'seller',
-                'seller__agency'
             ).order_by('-id')
 
         if not user.is_superuser or not user.is_staff:
             queryset = queryset.filter(seller=user)
 
-        return queryset.prefetch_related(
-            'sale_items').order_by('-sale_anticipation', '-id')
+        queryset = queryset.prefetch_related(
+            Prefetch(
+                'sale_items',
+                queryset=SaleItem.objects.select_related('product_stock'),
+            )
+        )
+
+        return queryset.order_by('-sale_anticipation', '-id')
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
