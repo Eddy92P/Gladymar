@@ -620,7 +620,7 @@ class PurchaseViewSet(viewsets.ModelViewSet):
                 'purchase_items',
                 queryset=PurchaseItem.objects.select_related('product_stock'),
             )
-        ).select_related('buyer', 'supplier', 'warehouse_keeper')
+        ).select_related('buyer', 'supplier')
 
         return queryset.order_by('-id')
 
