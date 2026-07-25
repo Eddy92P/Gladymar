@@ -668,7 +668,22 @@ class SaleViewSet(viewsets.ModelViewSet):
                     'product_stock__product__measure_unit',
                     'product_stock__warehouse__agency',
                 ),
-            )
+            ),
+            Prefetch(
+                'outputs',
+                queryset=Output.objects.select_related(
+                    'warehouse_keeper', 'client',
+                ).prefetch_related(
+                    Prefetch(
+                        'output_items',
+                        queryset=OutputItem.objects.select_related(
+                            'product_stock__product__batch',
+                            'product_stock__product__measure_unit',
+                            'product_stock__warehouse__agency',
+                        ),
+                    )
+                ),
+            ),
         ).select_related('client', 'selling_channel', 'seller')
 
         return queryset.order_by('-sale_anticipation', '-id')
