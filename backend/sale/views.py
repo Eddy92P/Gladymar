@@ -613,18 +613,14 @@ class PurchaseViewSet(viewsets.ModelViewSet):
 
         if status:
             queryset = queryset.filter(
-                status=status).select_related(
-                        'buyer',
-                        'supplier',
-                        'warehouse_keeper',
-                    ).order_by('-id')
+                status=status).order_by('-id')
 
         queryset = queryset.prefetch_related(
             Prefetch(
                 'purchase_items',
                 queryset=PurchaseItem.objects.select_related('product_stock'),
             )
-        )
+        ).select_related('buyer', 'supplier')
 
         return queryset.order_by('-id')
 
@@ -659,11 +655,7 @@ class SaleViewSet(viewsets.ModelViewSet):
 
         if status:
             queryset = queryset.filter(
-                status=status).select_related(
-                'client',
-                'selling_channel',
-                'seller',
-            ).order_by('-id')
+                status=status)
 
         if not user.is_superuser or not user.is_staff:
             queryset = queryset.filter(seller=user)
@@ -671,9 +663,13 @@ class SaleViewSet(viewsets.ModelViewSet):
         queryset = queryset.prefetch_related(
             Prefetch(
                 'sale_items',
-                queryset=SaleItem.objects.select_related('product_stock'),
+                queryset=SaleItem.objects.select_related(
+                    'product_stock__product__batch',
+                    'product_stock__product__measure_unit',
+                    'product_stock__warehouse__agency',
+                ),
             )
-        )
+        ).select_related('client', 'selling_channel', 'seller')
 
         return queryset.order_by('-sale_anticipation', '-id')
 
