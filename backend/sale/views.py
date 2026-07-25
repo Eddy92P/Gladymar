@@ -620,10 +620,11 @@ class PurchaseViewSet(viewsets.ModelViewSet):
                     ).order_by('-id')
 
         queryset = queryset.prefetch_related(
-            Prefetch('purchase_items',
-                queryset=PurchaseItem.objects.select_related('product_stock')
-                )
+            Prefetch(
+                'purchase_items',
+                queryset=PurchaseItem.objects.select_related('product_stock'),
             )
+        )
 
         return queryset.order_by('-id')
 
@@ -668,8 +669,9 @@ class SaleViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(seller=user)
 
         queryset = queryset.prefetch_related(
-            Prefetch('sale_items',
-            queryset=SaleItem.objects.select_related('product_stock')
+            Prefetch(
+                'sale_items',
+                queryset=SaleItem.objects.select_related('product_stock'),
             )
         )
 
