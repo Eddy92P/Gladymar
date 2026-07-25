@@ -652,25 +652,19 @@ class SaleViewSet(viewsets.ModelViewSet):
         user = self.request.user
 
         if status:
-            if user.is_superuser or user.is_staff:
-                queryset = queryset.filter(
-                    status=status, seller=user).prefetch_related(
-                        'sale_items').select_related(
-                        'client',
-                        'selling_channel',
-                        'seller',
-                        'seller__agency'
-                    ).order_by('-id')
-            else:
-                queryset = queryset.prefetch_related(
-                    'sale_items').select_related(
-                    'client',
-                    'selling_channel',
-                    'seller',
-                    'seller__agency'
-                ).order_by('-id')
+            queryset = queryset.filter(
+                status=status).prefetch_related(
+                'sale_items').select_related(
+                'client',
+                'selling_channel',
+                'seller',
+                'seller__agency'
+            ).order_by('-id')
 
-        return queryset.filter(seller=user).prefetch_related(
+        if not user.is_superuser or not user.is_staff:
+            queryset = queryset.filter(seller=user)
+
+        return queryset.prefetch_related(
             'sale_items').order_by('-sale_anticipation', '-id')
 
 

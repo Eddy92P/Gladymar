@@ -188,37 +188,37 @@ const ProductDetailedTable = ({
 					<Table sx={{ minWidth: 650 }} aria-label="simple table">
 						<TableHead>
 							<TableRow>
-								{data[0].purchaseItem != null && (
+								{data?.length > 0 && data[0].purchaseItem != null && (
 									<StyledTableCell>ID Compra</StyledTableCell>
 								)}
-								{data[0].saleItem != null && (
+								{data?.length > 0 && data[0].saleItem != null && (
 									<StyledTableCell>ID Venta</StyledTableCell>
 								)}
-								{data[0].agency != null && (
+								{data?.length > 0 && data[0].agency != null && (
 									<StyledTableCell>Agencia</StyledTableCell>
 								)}
-								{data[0].warehouse != null && (
+								{data?.length > 0 && data[0].warehouse != null && (
 									<StyledTableCell>Almacén</StyledTableCell>
 								)}
 								<StyledTableCell>Nombre</StyledTableCell>
 								<StyledTableCell>Código</StyledTableCell>
-								{data[0].price != null && (
+								{data?.length > 0 && data[0].price != null && (
 									<StyledTableCell>
 										Precio Bs.
 									</StyledTableCell>
 								)}
-								{data[0].stock != null && (
+								{data?.length > 0 && data[0].stock != null && (
 									<StyledTableCell>Stock</StyledTableCell>
 								)}
-								{data[0].reservedStock != null && (
+								{data?.length > 0 && data[0].reservedStock != null && (
 									<StyledTableCell>Stock Reservado</StyledTableCell>
 								)}
-								{data[0].minimumSalePrice != null && (
+								{data?.length > 0 && data[0].minimumSalePrice != null && (
 									<StyledTableCell>
 										Precio Mínimo Bs.
 									</StyledTableCell>
 								)}
-								{data[0].maximumSalePrice != null && (
+								{data?.length > 0 && data[0].maximumSalePrice != null && (
 									<StyledTableCell>
 										Precio Máximo Bs.
 									</StyledTableCell>
