@@ -326,7 +326,7 @@ function App() {
 								<Route
 									path="ventas/agregar_salida/:id"
 									element={
-										<ProtectedRoute allowedRoles={[2, 4]}>
+										<ProtectedRoute allowedRoles={[2, 3, 4]}>
 											<AddOutputPage />
 										</ProtectedRoute>}
 								/>
