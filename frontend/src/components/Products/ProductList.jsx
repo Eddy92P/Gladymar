@@ -47,11 +47,13 @@ const ProductList = () => {
 			name: 'Código',
 			selector: row => row.code,
 			sortable: true,
+			width: '150px',
 		},
 		{
 			name: 'Unidad de medida',
 			selector: row => row.measureUnit.name,
 			sortable: true,
+			width: '150px',
 		},
 		{
 			name: 'Precio de venta mínimo',
