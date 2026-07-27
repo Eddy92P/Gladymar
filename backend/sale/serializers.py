@@ -570,22 +570,6 @@ class SellingChannelSerializer(serializers.ModelSerializer):
             'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
-
-class SellingChannelLightSerializer(serializers.ModelSerializer):
-    """Selling channel without product_channel_price.
-
-    Used when nesting a selling channel inside another payload (e.g.
-    a sale). The full SellingChannelSerializer embeds every priced
-    product in the catalog for that channel (with product/batch/
-    category), which is irrelevant there and can blow up the response
-    size for a single sale/list of sales.
-    """
-
-    class Meta:
-        model = SellingChannel
-        fields = ['id', 'name', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
-
     @transaction.atomic
     def create(self, validated_data):
         products_channel_data = validated_data.pop('product_channel_price', [])
@@ -665,6 +649,22 @@ class SellingChannelLightSerializer(serializers.ModelSerializer):
                 {"detail": "Error al actualizar el selling channel."})
 
         return instance
+
+
+class SellingChannelLightSerializer(serializers.ModelSerializer):
+    """Selling channel without product_channel_price.
+
+    Used when nesting a selling channel inside another payload (e.g.
+    a sale). The full SellingChannelSerializer embeds every priced
+    product in the catalog for that channel (with product/batch/
+    category), which is irrelevant there and can blow up the response
+    size for a single sale/list of sales.
+    """
+
+    class Meta:
+        model = SellingChannel
+        fields = ['id', 'name', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
 
 class PaymentSerializer(serializers.ModelSerializer):
