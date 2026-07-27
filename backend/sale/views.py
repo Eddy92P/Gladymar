@@ -688,6 +688,34 @@ class SaleViewSet(viewsets.ModelViewSet):
 
         return queryset.order_by('-sale_anticipation', '-id')
 
+    def list(self, request, *args, **kwargs):
+        """List sales, batching payments in a single query per page.
+
+        SaleSerializer.to_representation looks up payments per sale by
+        `transaction_id`, which isn't a real FK/relation Django can
+        prefetch_related. Without batching here, it would run one extra
+        query per sale in the page (N+1), which is cheap locally but adds
+        up in production where each DB round trip has real latency.
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        page = self.paginate_queryset(queryset)
+        sales = page if page is not None else queryset
+
+        payments_by_sale = {}
+        for payment in Payment.objects.filter(
+            transaction_id__in=[sale.id for sale in sales],
+            transaction_type='venta',
+        ):
+            payments_by_sale.setdefault(
+                payment.transaction_id, []).append(payment)
+        for sale in sales:
+            sale.prefetched_payments = payments_by_sale.get(sale.id, [])
+
+        serializer = self.get_serializer(sales, many=True)
+        if page is not None:
+            return self.get_paginated_response(serializer.data)
+        return Response(serializer.data)
+
 
 class PaymentViewSet(viewsets.ModelViewSet):
     """View for managing Payment APIs."""

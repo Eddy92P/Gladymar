@@ -1268,11 +1268,14 @@ class SaleSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         """Custom representation to include payments in GET requests."""
         data = super().to_representation(instance)
-        # Get payments for this sale
-        payments = Payment.objects.filter(
-            transaction_id=instance.id,
-            transaction_type='venta'
-        )
+        # Use batched payments attached by the view (see SaleViewSet.list)
+        # to avoid one extra query per sale when serializing a list.
+        payments = getattr(instance, 'prefetched_payments', None)
+        if payments is None:
+            payments = Payment.objects.filter(
+                transaction_id=instance.id,
+                transaction_type='venta'
+            )
         data['payments'] = NestedPaymentSerializer(payments, many=True).data
         return data
 
