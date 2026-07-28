@@ -107,17 +107,6 @@ export const AddEntry = () => {
 		return state;
 	};
 
-	const invoiceNumberReducer = (state, action) => {
-		if (action.type === 'INPUT_CHANGE') {
-			return {
-				value: action.val,
-				isValid: validatePositiveNumber(action.val),
-				feedbackText: 'Ingrese un número válido.',
-			};
-		}
-		return state;
-	};
-
 	const productListReducer = (state, action) => {
 		if (action.type === 'QUANTITY_CHANGE') {
 			return state.map(product =>
@@ -169,29 +158,15 @@ export const AddEntry = () => {
 		feedbackText: '',
 	});
 
-	const [invoiceNumberState, dispatchInvoiceNumber] = useReducer(
-		invoiceNumberReducer,
-		{
-			value: purchaseData.invoiceNumber ? purchaseData.invoiceNumber : '',
-			isValid: true,
-			feedbackText: '',
-		}
-	);
-
 	const [productListState, dispatchProductList] = useReducer(
 		productListReducer,
 		[]
 	);
 
 	const { isValid: entryDateIsValid } = entryDateState;
-	const { isValid: invoiceNumberIsValid } = invoiceNumberState;
 
 	const entryDateInputChangeHandler = newValue => {
 		dispatchEntryDate({ type: 'INPUT_CHANGE', val: newValue });
-	};
-
-	const invoiceNumberInputChangeHandler = e => {
-		dispatchInvoiceNumber({ type: 'INPUT_CHANGE', val: e.target.value });
 	};
 
 	const supplierInputChangeHandler = (event, option) => {
@@ -260,7 +235,6 @@ export const AddEntry = () => {
 				agency: storeContext.agency,
 				supplier: supplier.id,
 				entry_date: entryDateState.value.format('YYYY-MM-DD'),
-				invoice_number: invoiceNumberState.value,
 				entry_items: productListState.map(product => ({
 					purchase_item: product.purchaseItem,
 					product_stock: product.id,
@@ -281,12 +255,6 @@ export const AddEntry = () => {
 			if (!response.ok) {
 				setErrorMessage('Ocurrió un problema.');
 				setIsForm(true);
-				if (data.invoice_number) {
-					dispatchInvoiceNumber({
-						type: 'INPUT_ERROR',
-						errorMessage: data.invoice_number[0],
-					});
-				}
 				if (data.entry_items) {
 					data.entry_items.forEach((entry_item, index) => {
 						const productId = productListState[index]?.id;
@@ -325,7 +293,6 @@ export const AddEntry = () => {
 		if (
 			entryDateState.value &&
 			supplier &&
-			invoiceNumberState.value &&
 			productListState.length > 0
 		) {
 			// Validar Productos
@@ -335,7 +302,6 @@ export const AddEntry = () => {
 			const isValid =
 				entryDateIsValid &&
 				supplier &&
-				invoiceNumberIsValid &&
 				allProductsFieldsValid;
 			setFormIsValid(isValid);
 			setDisabled(!isValid);
@@ -345,10 +311,8 @@ export const AddEntry = () => {
 	}, [
 		supplier,
 		entryDateState.value,
-		invoiceNumberState.value,
 		purchaseData.length,
 		entryDateIsValid,
-		invoiceNumberIsValid,
 		productListState,
 	]);
 
@@ -526,24 +490,6 @@ export const AddEntry = () => {
 												onChange={
 													supplierInputChangeHandler
 												}
-											/>
-										</Grid>
-										<Grid size={{ xs: 12, sm: 2 }}>
-											<TextField
-												label="Nº Factura"
-												variant="outlined"
-												onChange={
-													invoiceNumberInputChangeHandler
-												}
-												value={invoiceNumberState.value}
-												error={!invoiceNumberIsValid}
-												helperText={
-													!invoiceNumberIsValid
-														? invoiceNumberState.feedbackText
-														: ''
-												}
-												required
-												fullWidth
 											/>
 										</Grid>
 										<Grid size={{ xs: 12, sm: 2 }}>
@@ -808,7 +754,6 @@ export const AddEntry = () => {
 					<div className={classes.listContainer}>
 						<AddEntryPreview
 							supplier={supplier}
-							invoiceNumber={invoiceNumberState.value}
 							entryDate={
 								entryDateState.value?.format('DD-MM-YYYY') || ''
 							}

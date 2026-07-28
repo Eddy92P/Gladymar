@@ -12,9 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 class DecreaseProductStockService:
-    def __init__(self, output_item, product_stock):
+    def __init__(self, output_item, product_stock, sale_item_exists):
         self.output_item = output_item
         self.product_stock = product_stock
+        self.sale_item_exists = sale_item_exists
 
     def decrease_product_stock(self):
         """
@@ -27,7 +28,14 @@ class DecreaseProductStockService:
                 stock__gte=quantity
             ).update(
                 stock=F('stock') - quantity,
-                reserved_stock=F('reserved_stock') - quantity
+                reserved_stock=(
+                    F('reserved_stock') - quantity
+                    if self.sale_item_exists else F('reserved_stock')
+                ),
+                available_stock=(
+                    F('available_stock') - quantity
+                    if not self.sale_item_exists else F('available_stock')
+                )
             )
             if updated == 0:
                 raise ValidationError(
