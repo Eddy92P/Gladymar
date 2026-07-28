@@ -1060,9 +1060,9 @@ class OutputItemSerializer(serializers.ModelSerializer):
                 })
         if product_stock:
             if sale_item is None:
-                if product_stock.stock - Decimal(str(quantity)) < 0:
+                if product_stock.stock - Decimal(str(quantity)) < 0 or product_stock.available_stock - Decimal(str(quantity)) < 0:
                     raise serializers.ValidationError({
-                        'quantity': "La cantidad excede el stock real disponible."
+                        'quantity': "La cantidad excede el stock disponible/real."
                     })
             else:
                 if product_stock.reserved_stock - Decimal(str(quantity)) < 0:

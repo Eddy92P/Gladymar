@@ -28,11 +28,12 @@ class DecreaseProductStockService:
                 stock__gte=quantity
             ).update(
                 stock=F('stock') - quantity,
-                reserved_stock=F('reserved_stock') - quantity if self.sale_item_exists else F('reserved_stock')
+                reserved_stock=F('reserved_stock') - quantity if self.sale_item_exists else F('reserved_stock'),
+                available_stock=F('available_stock') - quantity if not self.sale_item_exists else F('available_stock')
             )
             if updated == 0:
                 raise ValidationError(
-                    "La cantidad excede el stock real disponible.")
+                    "La cantidad excede el stock disponible.")
         except Exception as e:
             logger.error(f"Error decreasing product stock: {e}")
             raise e
