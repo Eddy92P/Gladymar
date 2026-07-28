@@ -1,6 +1,7 @@
 import List from '../UI/List/List';
 
 import { api } from '../../Constants';
+import { formatDisplayDate } from '../../DateUtils';
 import ListHeader from '../UI/List/ListHeader';
 import Filter from '../UI/List/Filter';
 import { Fragment, useEffect, useState, useContext } from 'react';
@@ -76,6 +77,7 @@ const SaleList = () => {
 		{
 			name: 'Fecha de Venta',
 			selector: row => row.saleDate,
+			cell: row => formatDisplayDate(row.saleDate),
 			sortable: true,
 		},
 		{

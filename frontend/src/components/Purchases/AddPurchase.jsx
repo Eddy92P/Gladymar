@@ -45,6 +45,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 // Validations and Constants
 import { validatePositiveNumber, validTransactionDate } from '../../Validations';
 import { api } from '../../Constants';
+import { formatDisplayDate } from '../../DateUtils';
 
 // Components
 import AddProductDetailedList from '../Products/AddProductDetailedList';
@@ -680,6 +681,7 @@ export const AddPurchase = () => {
 										>
 											<DatePicker
 												label="Fecha de Compra"
+												format="DD/MM/YYYY"
 												onChange={
 													purchaseDateInputChangeHandler
 												}
@@ -1027,6 +1029,7 @@ export const AddPurchase = () => {
 												>
 													<DatePicker
 														label="Fecha de Pago"
+														format="DD/MM/YYYY"
 														onChange={
 															paymentDateInputChangeHandler
 														}
@@ -1145,15 +1148,15 @@ export const AddPurchase = () => {
 						<AddPurchasePreview
 							supplier={supplier}
 							invoiceNumber={invoiceNumberState.value}
-							purchaseDate={purchaseDateState.value.format(
-								'DD-MM-YYYY'
+							purchaseDate={formatDisplayDate(
+								purchaseDateState.value
 							)}
 							purchaseType={purchaseType}
 							products={productListState}
 							paymentMethod={paymentMethod}
 							paymentAmount={paymentAmountState.value}
-							paymentDate={paymentDateState.value.format(
-								'DD-MM-YYYY'
+							paymentDate={formatDisplayDate(
+								paymentDateState.value
 							)}
 							message={message}
 						/>

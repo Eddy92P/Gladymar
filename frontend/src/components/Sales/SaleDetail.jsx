@@ -15,8 +15,8 @@ import {
 } from '@mui/material';
 import React, { useMemo, useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import dayjs from 'dayjs';
 import { api } from '../../Constants';
+import { formatDisplayDate } from '../../DateUtils';
 
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 
@@ -30,21 +30,21 @@ const SaleDetail = () => {
 	const steps = [
 		{
 			label: 'Proforma',
-			date: dayjs(saleData.saleDate).format('DD-MM-YYYY'),
+			date: formatDisplayDate(saleData.saleDate),
 		},
 		{
 			label: 'Realizada',
 			date:
 				saleData.status === 'realizado' ||
 				saleData.status === 'terminado'
-					? dayjs(saleData.salePerformDate).format('DD-MM-YYYY')
+					? formatDisplayDate(saleData.salePerformDate)
 					: '',
 		},
 		{
 			label: 'Terminado',
 			date:
 				saleData.status === 'terminado'
-					? dayjs(saleData.saleDoneDate).format('DD-MM-YYYY')
+					? formatDisplayDate(saleData.saleDoneDate)
 					: '',
 		},
 	];
@@ -313,9 +313,9 @@ const SaleDetail = () => {
 												(payment, index) => (
 													<TableRow key={index}>
 														<TableCell>
-															{
+															{formatDisplayDate(
 																payment.payment_date
-															}
+															)}
 														</TableCell>
 														<TableCell>
 															{
@@ -420,7 +420,9 @@ const SaleDetail = () => {
 															}
 														</TableCell>
 														<TableCell>
-															{output.output_date}
+															{formatDisplayDate(
+																output.output_date
+															)}
 														</TableCell>
 														<TableCell>
 															<a

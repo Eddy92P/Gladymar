@@ -50,6 +50,7 @@ import dayjs from 'dayjs';
 // Validations and Constants
 import { validatePositiveNumber, validTransactionDate } from '../../Validations';
 import { api } from '../../Constants';
+import { formatDisplayDate } from '../../DateUtils';
 
 // Components
 import AddProductDetailedList from '../Products/AddProductDetailedList';
@@ -1055,6 +1056,7 @@ export const AddSale = () => {
 											>
 												<DatePicker
 													label="Fecha de Proforma"
+													format="DD/MM/YYYY"
 													onChange={
 														saleDateInputChangeHandler
 													}
@@ -1080,6 +1082,7 @@ export const AddSale = () => {
 											>
 												<DatePicker
 													label="Fecha de Venta"
+													format="DD/MM/YYYY"
 													onChange={
 														salePerformDateInputChangeHandler
 													}
@@ -1506,6 +1509,7 @@ export const AddSale = () => {
 													>
 														<DatePicker
 															label="Fecha de Pago"
+															format="DD/MM/YYYY"
 															onChange={
 																paymentDateInputChangeHandler
 															}
@@ -1667,20 +1671,17 @@ export const AddSale = () => {
 							client={client}
 							sellingChannel={sellingChannel}
 							saleDate={
-								saleDateState.value?.format('DD-MM-YYYY') || ''
+								formatDisplayDate(saleDateState.value)
 							}
 							salePerformDate={
-								salePerformDateState.value?.format(
-									'DD-MM-YYYY'
-								) || ''
+								formatDisplayDate(salePerformDateState.value)
 							}
 							saleType={saleType}
 							products={productListState}
 							paymentMethod={paymentMethod}
 							paymentAmount={paymentAmountState.value}
 							paymentDate={
-								paymentDateState.value?.format('DD-MM-YYYY') ||
-								''
+								formatDisplayDate(paymentDateState.value)
 							}
 							observation={observation}
 							message={message}

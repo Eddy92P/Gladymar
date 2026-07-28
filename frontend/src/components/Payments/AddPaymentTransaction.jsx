@@ -11,6 +11,7 @@ import Alert from '@mui/material/Alert';
 import authFetch from '../../api/authFetch';
 import { api } from '../../Constants';
 import { validatePositiveNumber, validTransactionDate } from '../../Validations';
+import { formatDisplayDate } from '../../DateUtils';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -377,6 +378,7 @@ function AddPayment() {
 											>
 												<DatePicker
 													label="Fecha de Pago"
+													format="DD/MM/YYYY"
 													onChange={
 														paymentDateInputChangeHandler
 													}
@@ -457,8 +459,8 @@ function AddPayment() {
 							}
 							transactionType={isSale ? 'venta' : 'compra'}
 							amount={amountState.value}
-							paymentDate={paymentDateState.value.format(
-								'YYYY-MM-DD'
+							paymentDate={formatDisplayDate(
+								paymentDateState.value
 							)}
 							message={message}
 						/>

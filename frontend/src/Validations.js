@@ -111,7 +111,8 @@ export const validatePositiveNumber = number => {
 
 export const validateActualDate = date => {
 	// If date is empty, it's valid (optional field)
-	if (!date || date.trim() === '') return true;
+	if (!date) return true;
+	if (typeof date === 'string' && date.trim() === '') return true;
 	// Check if it's a valid date and not before today
 	return dayjs(date).isValid() && !dayjs(date).isBefore(dayjs(), 'day');
 };

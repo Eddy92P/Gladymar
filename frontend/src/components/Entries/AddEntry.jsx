@@ -41,6 +41,7 @@ import TextareaAutosize from '@mui/material/TextareaAutosize';
 // Validations and Constants
 import { validatePositiveNumber, validDate } from '../../Validations';
 import { api } from '../../Constants';
+import { formatDisplayDate } from '../../DateUtils';
 
 // Components
 import AddProductDetailedList from '../Products/AddProductDetailedList';
@@ -498,6 +499,7 @@ export const AddEntry = () => {
 											>
 												<DatePicker
 													label="Fecha de Entrada"
+													format="DD/MM/YYYY"
 													onChange={
 														entryDateInputChangeHandler
 													}
@@ -755,7 +757,7 @@ export const AddEntry = () => {
 						<AddEntryPreview
 							supplier={supplier}
 							entryDate={
-								entryDateState.value?.format('DD-MM-YYYY') || ''
+								formatDisplayDate(entryDateState.value)
 							}
 							products={productListState}
 							message={message}

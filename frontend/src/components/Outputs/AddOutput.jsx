@@ -41,6 +41,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 // Validations and Constants
 import { validatePositiveNumber, validDate } from '../../Validations';
 import { api } from '../../Constants';
+import { formatDisplayDate } from '../../DateUtils';
 
 // Components
 import AddProductDetailedList from '../Products/AddProductDetailedList';
@@ -501,6 +502,7 @@ export const AddOutput = () => {
 											>
 												<DatePicker
 													label="Fecha de Salida"
+													format="DD/MM/YYYY"
 													onChange={
 														outputDateInputChangeHandler
 													}
@@ -769,8 +771,7 @@ export const AddOutput = () => {
 						<AddOutputPreview
 							client={client}
 							outputDate={
-								outputDateState.value?.format('DD-MM-YYYY') ||
-								''
+								formatDisplayDate(outputDateState.value)
 							}
 							products={productListState}
 							message={message}
