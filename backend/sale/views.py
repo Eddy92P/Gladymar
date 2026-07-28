@@ -93,8 +93,8 @@ class CatalogView(APIView):
 
                 data.append({
                     "id": product_stock.id,
-                    "agency": product_stock.warehouse.agency.name,
                     "warehouse": product_stock.warehouse.name,
+                    "batch": product_stock.product.batch.name,
                     "name": product_stock.product.name,
                     "code": product_stock.product.code,
                     "price": pp.price,
@@ -124,8 +124,8 @@ class CatalogView(APIView):
                 data.append({
                     "sale_item_id": sale_item.id,
                     "id": sale_item.product_stock.id,
-                    "agency": sale_item.product_stock.warehouse.agency.name,
                     "warehouse": sale_item.product_stock.warehouse.name,
+                    "batch": sale_item.product_stock.product.batch.name,
                     "name": product.name,
                     "code": product.code,
                     "price": 0,
@@ -153,10 +153,8 @@ class CatalogView(APIView):
                 data.append({
                     "purchase_item_id": purchase_item.id,
                     "id": purchase_item.product_stock.id,
-                    "agency": (
-                        purchase_item.product_stock.warehouse.agency.name
-                    ),
                     "warehouse": purchase_item.product_stock.warehouse.name,
+                    "batch": purchase_item.product_stock.product.batch.name,
                     "name": product.name,
                     "code": product.code,
                     "price": 0,
@@ -181,8 +179,8 @@ class CatalogView(APIView):
 
                 data.append({
                     "id": product.id,
-                    "agency": product.warehouse.agency.name,
                     "warehouse": product.warehouse.name,
+                    "batch": product.product.batch.name,
                     "name": product.product.name,
                     "code": product.product.code,
                     "price": 0,
@@ -205,8 +203,8 @@ class CatalogView(APIView):
 
                 data.append({
                     "id": product.id,
-                    "agency": product.warehouse.agency.name,
                     "warehouse": product.warehouse.name,
+                    "batch": product.product.batch.name,
                     "name": product.product.name,
                     "code": product.product.code,
                     "price": 0,

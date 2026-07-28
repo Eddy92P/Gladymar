@@ -125,8 +125,8 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class CatalogProductSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    agency = serializers.CharField()
     warehouse = serializers.CharField()
+    batch = serializers.CharField()
     name = serializers.CharField()
     code = serializers.CharField()
     price = serializers.DecimalField(max_digits=10, decimal_places=2)

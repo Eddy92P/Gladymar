@@ -194,11 +194,11 @@ const ProductDetailedTable = ({
 								{data?.length > 0 && data[0].saleItem != null && (
 									<StyledTableCell>ID Venta</StyledTableCell>
 								)}
-								{data?.length > 0 && data[0].agency != null && (
-									<StyledTableCell>Agencia</StyledTableCell>
-								)}
 								{data?.length > 0 && data[0].warehouse != null && (
 									<StyledTableCell>Almacén</StyledTableCell>
+								)}
+								{data?.length > 0 && data[0].batch != null && (
+									<StyledTableCell>Lote</StyledTableCell>
 								)}
 								<StyledTableCell>Nombre</StyledTableCell>
 								<StyledTableCell>Código</StyledTableCell>

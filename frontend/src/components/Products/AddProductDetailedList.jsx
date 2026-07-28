@@ -94,8 +94,8 @@ const AddProductDetailedList = ({
 					}
 					const productStockData = await response.json();
 					allProducts = productStockData.map(item => ({
-						agency: item.agency,
 						warehouse: item.warehouse,
+						batch: item.batch,
 						id: item.id,
 						name: item.name,
 						code: item.code,
@@ -175,8 +175,8 @@ const AddProductDetailedList = ({
 					}
 					const productStockData = await response.json();
 					products = productStockData.map(item => ({
-						agency: item.agency,
 						warehouse: item.warehouse,
+						batch: item.batch,
 						id: item.id,
 						name: item.name,
 						code: item.code,
