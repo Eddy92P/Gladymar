@@ -19,6 +19,7 @@ from sale.services.output_service import DecreaseProductStockService
 from sale.services.update_transaction_service import UpdateTransactionService
 from sale.services.entry_purchase_service import UpdatePurchaseItem
 from sale.services.output_sale_service import UpdateSaleItem
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import F
 import logging
 
@@ -1058,22 +1059,29 @@ class OutputItemSerializer(serializers.ModelSerializer):
                     )
                 })
         if product_stock:
-            if product_stock.reserved_stock - Decimal(str(quantity)) < 0:
-                raise serializers.ValidationError({
-                    'quantity': "La cantidad excede el stock reservado."
-                })
+            if sale_item is None:
+                if product_stock.stock - Decimal(str(quantity)) < 0:
+                    raise serializers.ValidationError({
+                        'quantity': "La cantidad excede el stock real disponible."
+                    })
+            else:
+                if product_stock.reserved_stock - Decimal(str(quantity)) < 0:
+                    raise serializers.ValidationError({
+                        'quantity': "La cantidad excede el stock reservado."
+                    })
 
         return data
 
     @transaction.atomic
     def create(self, validated_data):
+        sale_item_exists = validated_data.get('sale_item') is not None
         try:
             output_item = super().create(validated_data)
             product_stock = validated_data['product_stock']
-            if validated_data.get('sale_item') is not None:
+            if sale_item_exists:
                 UpdateSaleItem(output_item, product_stock).update_sale_item()
             DecreaseProductStockService(
-                output_item, product_stock).decrease_product_stock()
+                output_item, product_stock, sale_item_exists).decrease_product_stock()
             # Obtener el último invoice_number de todas las salidas
             last_output = Output.objects.filter(
                 invoice_number__gt=0).order_by('-invoice_number').first()
@@ -1083,6 +1091,15 @@ class OutputItemSerializer(serializers.ModelSerializer):
                 output_item.invoice_number = 1
             output_item.save()
             return output_item
+        except serializers.ValidationError:
+            # Already a well-formed, user-facing validation error
+            # (e.g. from a nested serializer) - don't mask its message.
+            raise
+        except DjangoValidationError as e:
+            logger.error(f"Error creating output item: {e}")
+            message = e.messages[0] if getattr(
+                e, 'messages', None) else str(e)
+            raise serializers.ValidationError({"detail": message})
         except Exception as e:
             logger.error(f"Error creating output item: {e}")
             raise serializers.ValidationError(
@@ -1123,6 +1140,10 @@ class OutputSerializer(serializers.ModelSerializer):
                 output.invoice_number = 1
             output.save()
 
+        except serializers.ValidationError:
+            # Already a well-formed, user-facing validation error
+            # (e.g. propagated from OutputItemSerializer) - don't mask it.
+            raise
         except Exception as e:
             logger.error(f"Error creating output: {e}")
             raise serializers.ValidationError(

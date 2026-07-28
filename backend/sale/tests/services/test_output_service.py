@@ -133,7 +133,8 @@ class TestDecreaseProductStockService(TestCase):
             quantity=30
         )
 
-        service = DecreaseProductStockService(output_item, self.product_stock)
+        service = DecreaseProductStockService(
+            output_item, self.product_stock, sale_item_exists=True)
         service.decrease_product_stock()
 
         self.product_stock.refresh_from_db()
@@ -160,11 +161,12 @@ class TestDecreaseProductStockService(TestCase):
             quantity=60
         )
 
-        service = DecreaseProductStockService(output_item, self.product_stock)
+        service = DecreaseProductStockService(
+            output_item, self.product_stock, sale_item_exists=True)
 
         with self.assertRaises(ValidationError) as context:
             service.decrease_product_stock()
 
         self.assertIn(
-            "La cantidad excede el stock disponible.", str(
+            "La cantidad excede el stock real disponible.", str(
                 context.exception))

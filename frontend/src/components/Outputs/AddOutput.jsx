@@ -261,7 +261,7 @@ export const AddOutput = () => {
 			const data = await response.json();
 
 			if (!response.ok) {
-				setErrorMessage('Ocurrió un problema.');
+				setErrorMessage(data.detail || 'Ocurrió un problema.');
 				setIsForm(true);
 				if (data.output_items) {
 					data.output_items.forEach((output_item, index) => {
