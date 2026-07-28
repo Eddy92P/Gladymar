@@ -168,5 +168,5 @@ class TestDecreaseProductStockService(TestCase):
             service.decrease_product_stock()
 
         self.assertIn(
-            "La cantidad excede el stock real disponible.", str(
+            "La cantidad excede el stock disponible.", str(
                 context.exception))
