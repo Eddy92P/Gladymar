@@ -650,8 +650,8 @@ class Entry(models.Model):
     entry_date = models.DateField(null=False, blank=False)
     invoice_number = models.CharField(
         max_length=50,
-        null=False,
-        blank=False,
+        null=True,
+        blank=True,
         validators=[
             RegexValidator(
                 regex=r'^\d+$',
