@@ -1060,9 +1060,15 @@ class OutputItemSerializer(serializers.ModelSerializer):
                 })
         if product_stock:
             if sale_item is None:
-                if product_stock.stock - Decimal(str(quantity)) < 0 or product_stock.available_stock - Decimal(str(quantity)) < 0:
+                remaining_qty = Decimal(str(quantity))
+                if (product_stock.stock - remaining_qty < 0
+                        or product_stock.available_stock
+                        - remaining_qty < 0):
                     raise serializers.ValidationError({
-                        'quantity': "La cantidad excede el stock disponible/real."
+                        'quantity': (
+                            "La cantidad excede el stock "
+                            "disponible/real."
+                        )
                     })
             else:
                 if product_stock.reserved_stock - Decimal(str(quantity)) < 0:
@@ -1079,9 +1085,11 @@ class OutputItemSerializer(serializers.ModelSerializer):
             output_item = super().create(validated_data)
             product_stock = validated_data['product_stock']
             if sale_item_exists:
-                UpdateSaleItem(output_item, product_stock).update_sale_item()
+                UpdateSaleItem(
+                    output_item, product_stock).update_sale_item()
             DecreaseProductStockService(
-                output_item, product_stock, sale_item_exists).decrease_product_stock()
+                output_item, product_stock, sale_item_exists
+            ).decrease_product_stock()
             # Obtener el último invoice_number de todas las salidas
             last_output = Output.objects.filter(
                 invoice_number__gt=0).order_by('-invoice_number').first()

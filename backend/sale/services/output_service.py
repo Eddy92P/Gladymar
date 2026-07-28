@@ -28,8 +28,14 @@ class DecreaseProductStockService:
                 stock__gte=quantity
             ).update(
                 stock=F('stock') - quantity,
-                reserved_stock=F('reserved_stock') - quantity if self.sale_item_exists else F('reserved_stock'),
-                available_stock=F('available_stock') - quantity if not self.sale_item_exists else F('available_stock')
+                reserved_stock=(
+                    F('reserved_stock') - quantity
+                    if self.sale_item_exists else F('reserved_stock')
+                ),
+                available_stock=(
+                    F('available_stock') - quantity
+                    if not self.sale_item_exists else F('available_stock')
+                )
             )
             if updated == 0:
                 raise ValidationError(
