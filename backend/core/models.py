@@ -267,10 +267,6 @@ class Client(models.Model):
 
 
 class Warehouse(models.Model):
-    agency = models.ForeignKey(
-        Agency,
-        on_delete=models.PROTECT,
-        related_name='agencies')
     product_stock = models.ManyToManyField(
         'Product', related_name='warehouses', through='ProductStock')
     name = models.CharField(
@@ -303,9 +299,6 @@ class Warehouse(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        unique_together = ('agency', 'name')
 
 
 class Category(models.Model):
@@ -607,15 +600,16 @@ class PurchaseItem(models.Model):
         Purchase,
         on_delete=models.PROTECT,
         related_name='purchase_items')
-    product_stock = models.ForeignKey(ProductStock, on_delete=models.PROTECT)
+    product = models.ForeignKey(Product, on_delete=models.PROTECT)
     status = models.CharField(
         max_length=15,
         choices=STATUS_CHOICES,
         default='pendiente')
-    quantity = models.FloatField(default=0)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    entered_stock = models.FloatField(default=0)
+    entered_stock = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0)
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -679,7 +673,7 @@ class EntryItem(models.Model):
         on_delete=models.PROTECT,
         related_name='entry_items')
     product_stock = models.ForeignKey(ProductStock, on_delete=models.PROTECT)
-    quantity = models.FloatField(default=0)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return f"{self.product.name} - {self.quantity}"
@@ -717,7 +711,7 @@ class OutputItem(models.Model):
         on_delete=models.PROTECT,
         related_name='output_items')
     product_stock = models.ForeignKey(ProductStock, on_delete=models.PROTECT)
-    quantity = models.FloatField(default=0)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return f"{self.product.name} - {self.quantity}"
@@ -788,12 +782,13 @@ class SaleItem(models.Model):
         max_length=15,
         choices=STATUS_CHOICES,
         default='pendiente')
-    quantity = models.FloatField(default=0)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
     sub_total_price = models.DecimalField(
         max_digits=10, decimal_places=2, default=0.0)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    dispatched_stock = models.FloatField(default=0)
+    dispatched_stock = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
         return f"Sale item {self.product.name} - {self.quantity}"

@@ -11,13 +11,15 @@ from core.models import (
     ProductStock, Purchase, PurchaseItem, Sale, SaleItem,
     SellingChannel, Supplier, User, Warehouse, MeasureUnit,
 )
-from sale.services.entries_service import IncreaseProductStockService
 from sale.services.update_product_stock_service import (
     UpdateProductStockService,
 )
 from sale.services.output_service import DecreaseProductStockService
 from sale.services.update_transaction_service import UpdateTransactionService
 from sale.services.entry_purchase_service import UpdatePurchaseItem
+from sale.services.asign_product_warehouse_service import (
+    AssignProductWarehouseService,
+)
 from sale.services.output_sale_service import UpdateSaleItem
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import F
@@ -123,10 +125,18 @@ class ProductSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
+class ProductLightSerializer(serializers.ModelSerializer):
+    """Serializer for Product model without batch and measure unit."""
+    class Meta:
+        model = Product
+        fields = ['id', 'name', 'code']
+        read_only_fields = ['id', 'name', 'code']
+
+
 class CatalogProductSerializer(serializers.Serializer):
     id = serializers.IntegerField()
-    agency = serializers.CharField()
     warehouse = serializers.CharField()
+    batch = serializers.CharField()
     name = serializers.CharField()
     code = serializers.CharField()
     price = serializers.DecimalField(max_digits=10, decimal_places=2)
@@ -202,12 +212,6 @@ class AgencySerializer(serializers.ModelSerializer):
 
 class WarehouseSerializer(serializers.ModelSerializer):
     """Serializer for Warehouse model"""
-    agency = AgencySerializer(read_only=True)
-    agency_id = serializers.PrimaryKeyRelatedField(
-        queryset=Agency.objects.all(),
-        source='agency',
-        write_only=True
-    )
     product_stock = NestedProductStockSerializer(
         many=True, required=False, source='product_stocks')
 
@@ -216,8 +220,6 @@ class WarehouseSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'product_stock',
-            'agency',
-            'agency_id',
             'name',
             'location',
             'created_at',
@@ -298,12 +300,11 @@ class WarehouseSerializer(serializers.ModelSerializer):
 
 class WarehouseLightSerializer(serializers.ModelSerializer):
     """Warehouse without product_stock, to avoid heavy circular nesting."""
-    agency = AgencySerializer(read_only=True)
 
     class Meta:
         model = Warehouse
         fields = [
-            'id', 'agency', 'name', 'location', 'created_at', 'updated_at']
+            'id', 'name', 'location', 'created_at', 'updated_at']
 
 
 class ProductStockSerializer(serializers.ModelSerializer):
@@ -757,14 +758,18 @@ class EntryItemSerializer(serializers.ModelSerializer):
     """Serializer for EntryItem model"""
     products_stock = ProductStockSerializer(
         read_only=True, source='product_stock')
-    product_stock = serializers.PrimaryKeyRelatedField(
+    product = serializers.PrimaryKeyRelatedField(
         write_only=True,
-        queryset=ProductStock.objects.all()
+        queryset=Product.objects.all()
     )
     purchase_item = serializers.PrimaryKeyRelatedField(
         write_only=True,
         queryset=PurchaseItem.objects.all(),
         required=False
+    )
+    warehouse = serializers.PrimaryKeyRelatedField(
+        write_only=True,
+        queryset=Warehouse.objects.all()
     )
 
     class Meta:
@@ -772,9 +777,10 @@ class EntryItemSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'purchase_item',
-            'product_stock',
+            'product',
             'products_stock',
-            'quantity']
+            'quantity',
+            'warehouse']
         read_only_fields = ['id']
 
     def validate(self, data):
@@ -794,11 +800,20 @@ class EntryItemSerializer(serializers.ModelSerializer):
 
         return data
 
+    @transaction.atomic
     def create(self, validated_data):
+        product = validated_data.pop('product')
+        warehouse = validated_data.pop('warehouse')
+        quantity = validated_data.get('quantity', 0)
+
+        validated_data['product_stock'] = AssignProductWarehouseService(
+            product, warehouse, quantity
+        ).assign_product_warehouse()
+
         entry_item = super().create(validated_data)
+
         if validated_data.get('purchase_item') is not None:
             UpdatePurchaseItem(entry_item).update_purchase_item()
-        IncreaseProductStockService(entry_item).increase_product_stock()
 
         return entry_item
 
@@ -869,8 +884,8 @@ class EntrySerializer(serializers.ModelSerializer):
                                 setattr(item, attr, value)
                         item.save()
                     else:
-                        EntryItem.objects.create(
-                            entry=instance, **item_data)
+                        item_data['entry'] = instance
+                        EntryItemSerializer().create(item_data)
                 UpdateProductStockService(
                     instance, {
                         'entry_items': items_data,
@@ -885,10 +900,10 @@ class EntrySerializer(serializers.ModelSerializer):
 
 class PurchaseItemSerializer(serializers.ModelSerializer):
     """Serializer for Purchase Item model."""
-    products_stock = ProductStockSerializer(
-        read_only=True, source='product_stock')
-    product_stock = serializers.PrimaryKeyRelatedField(
-        queryset=ProductStock.objects.all(),
+    products = ProductLightSerializer(
+        read_only=True, source='product')
+    product = serializers.PrimaryKeyRelatedField(
+        queryset=Product.objects.all(),
         write_only=True,
     )
     status_display = serializers.CharField(
@@ -899,7 +914,7 @@ class PurchaseItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = PurchaseItem
         fields = [
-            'product_stock', 'products_stock', 'quantity', 'unit_price',
+            'product', 'products', 'quantity', 'unit_price',
             'total_price', 'status', 'status_display', 'entered_stock',
             'remaining_quantity',
         ]

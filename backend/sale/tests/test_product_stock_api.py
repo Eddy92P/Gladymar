@@ -13,7 +13,6 @@ from core.models import (
     ProductStock,
     Product,
     Warehouse,
-    Agency,
     Category,
     Batch,
     MeasureUnit,
@@ -59,16 +58,8 @@ def create_product_stock(**params):
         maximum_sale_price=100.00
     )
 
-    # Create agency
-    agency = Agency.objects.create(
-        name=f'Test Agency {unique_suffix}',
-        location=f'Test Location {unique_suffix}',
-        city='La Paz'
-    )
-
     # Create warehouse
     warehouse = Warehouse.objects.create(
-        agency=agency,
         name=f'Test Warehouse {unique_suffix}',
         location=f'Test Location {unique_suffix}'
     )

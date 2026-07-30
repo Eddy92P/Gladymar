@@ -31,6 +31,10 @@ import SearchIcon from '@mui/icons-material/Search';
 import { tableCellClasses } from '@mui/material/TableCell';
 import { styled } from '@mui/material/styles';
 import { red } from '@mui/material/colors';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import dayjs from 'dayjs';
 
 // Validations and Constants
 import {
@@ -129,7 +133,7 @@ export const AddSellingChannel = () => {
 								isValid: validateActualDate(action.val),
 								feedbackText: validateActualDate(action.val)
 									? ''
-									: 'Ingrese una fecha válida o deje vacío',
+									: 'Ingrese una fecha actual o posterior',
 							},
 						}
 					: product
@@ -145,7 +149,7 @@ export const AddSellingChannel = () => {
 								isValid: validateActualDate(action.val),
 								feedbackText: validateActualDate(action.val)
 									? ''
-									: 'Ingrese una fecha válida o deje vacío',
+									: 'Ingrese una fecha actual o posterior',
 							},
 						}
 					: product
@@ -217,10 +221,11 @@ export const AddSellingChannel = () => {
 					product.startDate && typeof product.startDate === 'object'
 						? product.startDate
 						: {
-								value:
-									product.start_date ||
-									product.startDate ||
-									'',
+								value: product.start_date
+									? dayjs(product.start_date)
+									: product.startDate
+										? dayjs(product.startDate)
+										: null,
 								isValid: true,
 								feedbackText: '',
 							},
@@ -230,8 +235,11 @@ export const AddSellingChannel = () => {
 					product.endDate && typeof product.endDate === 'object'
 						? product.endDate
 						: {
-								value:
-									product.end_date || product.endDate || '',
+								value: product.end_date
+									? dayjs(product.end_date)
+									: product.endDate
+										? dayjs(product.endDate)
+										: null,
 								isValid: true,
 								feedbackText: '',
 							},
@@ -290,8 +298,12 @@ export const AddSellingChannel = () => {
 					product_channel_price: productListState.map(product => ({
 						product: product.id,
 						price: product.price?.value,
-						start_date: product.startDate?.value || null,
-						end_date: product.endDate?.value || null,
+						start_date: product.startDate?.value
+							? product.startDate.value.format('YYYY-MM-DD')
+							: null,
+						end_date: product.endDate?.value
+							? product.endDate.value.format('YYYY-MM-DD')
+							: null,
 					})),
 				}),
 				headers: {
@@ -383,8 +395,12 @@ export const AddSellingChannel = () => {
 						id: product.sellingChannelId,
 						product: product.id,
 						price: product.price?.value,
-						start_date: product.startDate?.value || null,
-						end_date: product.endDate?.value || null,
+						start_date: product.startDate?.value
+							? product.startDate.value.format('YYYY-MM-DD')
+							: null,
+						end_date: product.endDate?.value
+							? product.endDate.value.format('YYYY-MM-DD')
+							: null,
 					})),
 				}),
 				headers: {
@@ -625,118 +641,134 @@ export const AddSellingChannel = () => {
 																/>
 															</TableCell>
 															<TableCell>
-																<TextField
-																	type="date"
-																	variant="outlined"
-																	onChange={e =>
-																		dispatchProductList(
-																			{
-																				type: 'START_DATE_CHANGE',
-																				id: product.id,
-																				val: e
-																					.target
-																					.value,
-																			}
-																		)
+																<LocalizationProvider
+																	dateAdapter={
+																		AdapterDayjs
 																	}
-																	value={
-																		product
-																			.startDate
-																			?.value ||
-																		''
-																	}
-																	error={
-																		(product
-																			.startDate
-																			?.value &&
-																			!product
-																				.startDate
-																				?.isValid) ||
-																		(!product
-																			.startDate
-																			?.isValid &&
+																>
+																	<DatePicker
+																		format="DD/MM/YYYY"
+																		onChange={value =>
+																			dispatchProductList(
+																				{
+																					type: 'START_DATE_CHANGE',
+																					id: product.id,
+																					val: value,
+																				}
+																			)
+																		}
+																		value={
 																			product
 																				.startDate
-																				?.feedbackText)
-																	}
-																	helperText={
-																		(product
-																			.startDate
-																			?.value &&
-																			!product
-																				.startDate
-																				?.isValid) ||
-																		(!product
-																			.startDate
-																			?.isValid &&
-																			product
-																				.startDate
-																				?.feedbackText)
-																			? product
-																					.startDate
-																					?.feedbackText ||
-																				''
-																			: ''
-																	}
-																	fullWidth
-																/>
+																				?.value ||
+																			null
+																		}
+																		slotProps={{
+																			textField:
+																				{
+																					variant:
+																						'outlined',
+																					error:
+																						(product
+																							.startDate
+																							?.value &&
+																							!product
+																								.startDate
+																								?.isValid) ||
+																						(!product
+																							.startDate
+																							?.isValid &&
+																							product
+																								.startDate
+																								?.feedbackText),
+																					helperText:
+																						(product
+																							.startDate
+																							?.value &&
+																							!product
+																								.startDate
+																								?.isValid) ||
+																						(!product
+																							.startDate
+																							?.isValid &&
+																							product
+																								.startDate
+																								?.feedbackText)
+																							? product
+																									.startDate
+																									?.feedbackText ||
+																								''
+																							: '',
+																					fullWidth: true,
+																				},
+																		}}
+																	/>
+																</LocalizationProvider>
 															</TableCell>
 															<TableCell>
-																<TextField
-																	type="date"
-																	variant="outlined"
-																	onChange={e =>
-																		dispatchProductList(
-																			{
-																				type: 'END_DATE_CHANGE',
-																				id: product.id,
-																				val: e
-																					.target
-																					.value,
-																			}
-																		)
+																<LocalizationProvider
+																	dateAdapter={
+																		AdapterDayjs
 																	}
-																	value={
-																		product
-																			.endDate
-																			?.value ||
-																		''
-																	}
-																	error={
-																		(product
-																			.endDate
-																			?.value &&
-																			!product
-																				.endDate
-																				?.isValid) ||
-																		(!product
-																			.endDate
-																			?.isValid &&
+																>
+																	<DatePicker
+																		format="DD/MM/YYYY"
+																		onChange={value =>
+																			dispatchProductList(
+																				{
+																					type: 'END_DATE_CHANGE',
+																					id: product.id,
+																					val: value,
+																				}
+																			)
+																		}
+																		value={
 																			product
 																				.endDate
-																				?.feedbackText)
-																	}
-																	helperText={
-																		(product
-																			.endDate
-																			?.value &&
-																			!product
-																				.endDate
-																				?.isValid) ||
-																		(!product
-																			.endDate
-																			?.isValid &&
-																			product
-																				.endDate
-																				?.feedbackText)
-																			? product
-																					.endDate
-																					?.feedbackText ||
-																				''
-																			: ''
-																	}
-																	fullWidth
-																/>
+																				?.value ||
+																			null
+																		}
+																		slotProps={{
+																			textField:
+																				{
+																					variant:
+																						'outlined',
+																					error:
+																						(product
+																							.endDate
+																							?.value &&
+																							!product
+																								.endDate
+																								?.isValid) ||
+																						(!product
+																							.endDate
+																							?.isValid &&
+																							product
+																								.endDate
+																								?.feedbackText),
+																					helperText:
+																						(product
+																							.endDate
+																							?.value &&
+																							!product
+																								.endDate
+																								?.isValid) ||
+																						(!product
+																							.endDate
+																							?.isValid &&
+																							product
+																								.endDate
+																								?.feedbackText)
+																							? product
+																									.endDate
+																									?.feedbackText ||
+																								''
+																							: '',
+																					fullWidth: true,
+																				},
+																		}}
+																	/>
+																</LocalizationProvider>
 															</TableCell>
 															<TableCell align="center">
 																<Tooltip

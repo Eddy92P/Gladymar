@@ -41,6 +41,7 @@ import TextareaAutosize from '@mui/material/TextareaAutosize';
 // Validations and Constants
 import { validatePositiveNumber, validDate } from '../../Validations';
 import { api } from '../../Constants';
+import { formatDisplayDate } from '../../DateUtils';
 
 // Components
 import AddProductDetailedList from '../Products/AddProductDetailedList';
@@ -71,6 +72,7 @@ export const AddEntry = () => {
 	const API = import.meta.env.VITE_API_URL;
 	const url = `${API}${api.API_URL_ENTRIES}`;
 	const urlSupplierChoices = `${API}${api.API_URL_ALL_SUPPLIERS}`;
+	const urlWarehousesChoices = `${API}${api.API_URL_ALL_WAREHOUSES}`;
 
 	const [isLoading, setIsLoading] = useState(false);
 	const storeContext = useContext(StoreContext);
@@ -93,6 +95,8 @@ export const AddEntry = () => {
 	const [showProductsModal, setShowProductsModal] = useState(false);
 	const [supplierChoices, setSupplierChoices] = useState([]);
 	const [supplier, setSupplier] = useState(null);
+	const [warehouseChoices, setWarehouseChoices] = useState([]);
+	const [defaultWarehouse, setDefaultWarehouse] = useState(null);
 	const [note, setNote] = useState('');
 
 	const entryDateReducer = (state, action) => {
@@ -142,6 +146,13 @@ export const AddEntry = () => {
 		if (action.type === 'REMOVE_PRODUCT') {
 			return state.filter(product => product.id !== action.id);
 		}
+		if (action.type === 'WAREHOUSE_CHANGE') {
+			return state.map(product =>
+				product.id === action.id
+					? { ...product, warehouse: action.warehouse }
+					: product
+			);
+		}
 		if (action.type === 'ADD_PRODUCT') {
 			return [...state, action.product];
 		}
@@ -171,6 +182,14 @@ export const AddEntry = () => {
 
 	const supplierInputChangeHandler = (event, option) => {
 		setSupplier(option);
+	};
+
+	const warehouseInputChangeHandler = (event, option, productId) => {
+		dispatchProductList({
+			type: 'WAREHOUSE_CHANGE',
+			id: productId,
+			warehouse: option,
+		});
 	};
 
 	const noteInputChangeHandler = event => {
@@ -227,6 +246,38 @@ export const AddEntry = () => {
 
 		fetchSuppliers();
 	}, [urlSupplierChoices, purchaseData.supplier]);
+
+	useEffect(() => {
+		const fetchWarehouses = async () => {
+			try {
+				const response = await authFetch(urlWarehousesChoices, {
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				});
+				if (response.ok) {
+					const data = await response.json();
+					const choices = data || [];
+					setWarehouseChoices(choices);
+					if (purchaseData.warehouse && choices.length > 0) {
+						const matchingChoice = choices.find(
+							choice => choice.name === purchaseData.warehouse
+						);
+						if (matchingChoice) {
+							setDefaultWarehouse(matchingChoice);
+						}
+					}
+				}
+			} catch (error) {
+				console.error(
+					'Error al recuperar las opciones de Almacenes:',
+					error
+				);
+			}
+		};
+		fetchWarehouses();
+	}, [urlWarehousesChoices, purchaseData.warehouse]);
 	const handleSubmit = async () => {
 		try {
 			// Preparar los datos básicos de la entrada
@@ -237,7 +288,8 @@ export const AddEntry = () => {
 				entry_date: entryDateState.value.format('YYYY-MM-DD'),
 				entry_items: productListState.map(product => ({
 					purchase_item: product.purchaseItem,
-					product_stock: product.id,
+					product: product.id,
+					warehouse: product.warehouse?.id,
 					quantity: product.quantity.value,
 				})),
 				note: note,
@@ -363,9 +415,6 @@ export const AddEntry = () => {
 														</strong>
 													</TableCell>
 													<TableCell>
-														<strong>Almacén</strong>
-													</TableCell>
-													<TableCell>
 														<strong>Estado</strong>
 													</TableCell>
 													<TableCell align="right">
@@ -392,7 +441,6 @@ export const AddEntry = () => {
 															<TableCell>
 																{
 																	purchaseItem
-																		.products_stock
 																		.products
 																		.code
 																}
@@ -400,16 +448,7 @@ export const AddEntry = () => {
 															<TableCell>
 																{
 																	purchaseItem
-																		.products_stock
 																		.products
-																		.name
-																}
-															</TableCell>
-															<TableCell>
-																{
-																	purchaseItem
-																		.products_stock
-																		.warehouses
 																		.name
 																}
 															</TableCell>
@@ -498,6 +537,7 @@ export const AddEntry = () => {
 											>
 												<DatePicker
 													label="Fecha de Entrada"
+													format="DD/MM/YYYY"
 													onChange={
 														entryDateInputChangeHandler
 													}
@@ -562,18 +602,21 @@ export const AddEntry = () => {
 													<TableHead>
 														<TableRow>
 															<StyledTableCell>
+																Lote
+															</StyledTableCell>
+															<StyledTableCell>
 																Nombre
 															</StyledTableCell>
 															<StyledTableCell>
 																Código
 															</StyledTableCell>
-															<StyledTableCell>
-																Stock
-															</StyledTableCell>
-															<StyledTableCell>
+															<StyledTableCell style={{ width: '10%' }}>
 																Cantidad
 															</StyledTableCell>
 															<StyledTableCell>
+																Almacén
+															</StyledTableCell>
+															<StyledTableCell align="center" style={{ width: '10%' }}>
 																Acciones
 															</StyledTableCell>
 														</TableRow>
@@ -586,19 +629,17 @@ export const AddEntry = () => {
 																>
 																	<TableCell>
 																		{
+																			product.batch
+																		}
+																	</TableCell>
+																	<TableCell>
+																		{
 																			product.name
 																		}
 																	</TableCell>
 																	<TableCell>
 																		{
 																			product.code
-																		}
-																	</TableCell>
-																	<TableCell>
-																		{
-																			product
-																				.stock
-																				.value
 																		}
 																	</TableCell>
 																	<TableCell>
@@ -654,6 +695,46 @@ export const AddEntry = () => {
 																			}
 																			required
 																			fullWidth
+																		/>
+																	</TableCell>
+																	<TableCell>
+																		<Autocomplete
+																			disablePortal
+																			value={product.warehouse || null}
+																			options={warehouseChoices}
+																			getOptionLabel={option =>
+																				option
+																					? option.name || ''
+																					: ''
+																			}
+																			renderOption={(
+																				props,
+																				option
+																			) => (
+																				<li
+																					{...props}
+																					key={option.id}
+																				>
+																					{option.name}
+																				</li>
+																			)}
+																			renderInput={params => (
+																				<TextField
+																					{...params}
+																					label="Almacén"
+																					required
+																				/>
+																			)}
+																			onChange={(
+																				event,
+																				option
+																			) =>
+																				warehouseInputChangeHandler(
+																					event,
+																					option,
+																					product.id
+																				)
+																			}
 																		/>
 																	</TableCell>
 																	<TableCell align="center">
@@ -755,7 +836,7 @@ export const AddEntry = () => {
 						<AddEntryPreview
 							supplier={supplier}
 							entryDate={
-								entryDateState.value?.format('DD-MM-YYYY') || ''
+								formatDisplayDate(entryDateState.value)
 							}
 							products={productListState}
 							message={message}
@@ -814,7 +895,10 @@ export const AddEntry = () => {
 							products.forEach(product => {
 								dispatchProductList({
 									type: 'ADD_PRODUCT',
-									product,
+									product: {
+										...product,
+										warehouse: defaultWarehouse,
+									},
 								});
 							});
 						}}

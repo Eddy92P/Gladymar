@@ -1,6 +1,7 @@
 import List from '../UI/List/List';
 
 import { api } from '../../Constants';
+import { formatDisplayDate } from '../../DateUtils';
 import ListHeader from '../UI/List/ListHeader';
 import Filter from '../UI/List/Filter';
 import { Fragment, useEffect, useState } from 'react';
@@ -31,6 +32,7 @@ const EntryList = () => {
 		{
 			name: 'Fecha de Entrada',
 			selector: row => row.entryDate,
+			cell: row => formatDisplayDate(row.entryDate),
 			sortable: true,
 		},
 		{

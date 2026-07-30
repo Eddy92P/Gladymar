@@ -50,7 +50,6 @@ def create_agency(**params):
 def create_warehouse(**params):
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
-        'agency': create_agency(),
         'name': f'Warehouse {unique_suffix}',
         'location': 'Test location',
     }
@@ -89,12 +88,7 @@ class TestDecreaseProductStockService(TestCase):
 
     def create_test_product_stock(self, **kwargs):
         unique_suffix = str(uuid.uuid4())[:8]
-        agency = Agency.objects.create(
-            name=f'Test Warehouse{unique_suffix}',
-            location='Test Location',
-        )
         warehouse = Warehouse.objects.create(
-            agency=agency,
             name=f'Test Warehouse {unique_suffix}',
             location='Test Location',
         )

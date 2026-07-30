@@ -63,24 +63,6 @@ function AddWarehousePreview(props) {
 								className={classes.textStyle}
 							/>
 						</Grid>
-						<Grid item md={3}>
-							<TextField
-								label="Agencia"
-								value={props.agency}
-								fullWidth
-								variant="standard"
-								sx={{
-									'& .MuiInput-underline:before': {
-										borderBottom: 'none',
-									},
-									'& .MuiInput-underline:after': {
-										borderBottom: 'none',
-									},
-								}}
-								disabled
-								className={classes.textStyle}
-							/>
-						</Grid>
 					</Grid>
 				</Box>
 				<Box>

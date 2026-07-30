@@ -20,10 +20,11 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Avatar from '@mui/material/Avatar';
 import Logout from '@mui/icons-material/Logout';
-
+import Typography from '@mui/material/Typography';
 import { options } from '../../SideBarOptions';
 
 import AuthContext from '../../store/auth-context';
+import { StoreContext } from '../../store/store-context';
 
 import MainContent from './MainContent';
 
@@ -113,9 +114,12 @@ export default function Main() {
 	const [drawerOpen, setDrawerOpen] = React.useState(false);
 	const [anchorEl, setAnchorEl] = React.useState(null);
 	const authContext = useContext(AuthContext);
+	const storeContext = useContext(StoreContext);
 	const avatarName =
 		authContext.name.charAt(0).toUpperCase() +
 		authContext.lastName.charAt(0).toUpperCase();
+	
+	const agencyName = storeContext.agencyName;
 
 	const handleMenu = event => {
 		setAnchorEl(event.currentTarget);
@@ -160,6 +164,7 @@ export default function Main() {
 					>
 						<MenuIcon />
 					</IconButton>
+					<Typography variant="h6" color="white" sx={{ ml: 2, fontWeight: 'bold' }}>{agencyName}</Typography>
 					<Box sx={{ flexGrow: 1 }} />
 					<IconButton
 						onClick={handleMenu}
@@ -243,7 +248,11 @@ export default function Main() {
 				<List>
 					{options
 						.filter(option =>
-							authContext.permissions.includes(option.permission)
+							Array.isArray(option.permission)
+								? option.permission.every(permission =>
+										authContext.permissions.includes(permission)
+									)
+								: authContext.permissions.includes(option.permission)
 						)
 						.map(option => (
 							<ListItem

@@ -43,11 +43,6 @@ const WarehouseList = () => {
 			sortable: true,
 		},
 		{
-			name: 'Agencia',
-			selector: row => row.agency.name,
-			sortable: true,
-		},
-		{
 			name: 'Acciones',
 			button: 'true',
 			cell: row => (
@@ -99,7 +94,6 @@ const WarehouseList = () => {
 							id: listData.id,
 							name: listData.name,
 							location: listData.location,
-							agency: listData.agency,
 							productStock: listData.product_stock,
 						};
 					});

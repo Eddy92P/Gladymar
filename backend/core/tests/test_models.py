@@ -189,11 +189,6 @@ class ModelTest(TestCase):
     def test_create_warehouse(self):
         """Test creating a Warehouse."""
         warehouse = Warehouse.objects.create(
-            agency=Agency.objects.create(
-                name='Test Setting',
-                location='Test Value',
-                city='LP',
-            ),
             name='Test Warehouse',
             location='Test Location',
         )
@@ -259,11 +254,6 @@ class ModelTest(TestCase):
                     maximum_sale_price=20,
                 ),
                 warehouse=Warehouse.objects.create(
-                    agency=Agency.objects.create(
-                        name='Test Agency 5',
-                        location='Test Location',
-                        city='LP',
-                    ),
                     name='Test Warehouse',
                     location='Test Location 2',
                 ),
@@ -371,11 +361,6 @@ class ModelTest(TestCase):
                     maximum_sale_price=20,
                 ),
                 warehouse=Warehouse.objects.create(
-                    agency=Agency.objects.create(
-                        name='Test Agency 5',
-                        location='Test Location',
-                        city='LP',
-                    ),
                     name='Test Warehouse',
                     location='Test Location 2',
                 ),
@@ -464,11 +449,6 @@ class ModelTest(TestCase):
                     maximum_sale_price=20,
                 ),
                 warehouse=Warehouse.objects.create(
-                    agency=Agency.objects.create(
-                        name='Test Agency 5',
-                        location='Test Location',
-                        city='LP',
-                    ),
                     name='Test Warehouse',
                     location='Test Location 2',
                 ),
@@ -551,35 +531,19 @@ class ModelTest(TestCase):
                 status='pending',
                 purchase_date='2025-01-01',
             ),
-            product_stock=ProductStock.objects.create(
-                product=Product.objects.create(
-                    batch=Batch.objects.create(
-                        category=Category.objects.create(
-                            name='Test Category',
-                        ),
-                        name='Test Batch',
+            product=Product.objects.create(
+                batch=Batch.objects.create(
+                    category=Category.objects.create(
+                        name='Test Category',
                     ),
-                    name='Test Product',
-                    code='1234567890',
-                    measure_unit=create_measure_unit(),
-                    description='Test Description',
-                    minimum_sale_price=10,
-                    maximum_sale_price=20,
+                    name='Test Batch',
                 ),
-                warehouse=Warehouse.objects.create(
-                    agency=Agency.objects.create(
-                        name='Test Agency 5',
-                        location='Test Location',
-                        city='LP',
-                    ),
-                    name='Test Warehouse',
-                    location='Test Location 2',
-                ),
-                stock=50,
-                reserved_stock=10,
-                available_stock=40,
-                minimum_stock=10,
-                maximum_stock=60,
+                name='Test Product',
+                code='1234567890',
+                measure_unit=create_measure_unit(),
+                description='Test Description',
+                minimum_sale_price=10,
+                maximum_sale_price=20,
             ),
             quantity=10,
             unit_price=10,
@@ -676,11 +640,6 @@ class ModelTest(TestCase):
                     maximum_sale_price=20,
                 ),
                 warehouse=Warehouse.objects.create(
-                    agency=Agency.objects.create(
-                        name='Test Agency 5',
-                        location='Test Location',
-                        city='LP',
-                    ),
                     name='Test Warehouse',
                     location='Test Location 2',
                 ),

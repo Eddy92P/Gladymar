@@ -50,7 +50,6 @@ def create_warehouse(**params):
     """Create and return a sample Warehouse."""
     unique_suffix = str(uuid.uuid4())[:4]
     defaults = {
-        'agency': create_agency(),
         'name': f'TestWarehouse{unique_suffix}',
         'location': f'TestLocation{unique_suffix}',
     }
@@ -166,7 +165,7 @@ def create_purchase(**params):
     else:
         PurchaseItem.objects.create(
             purchase=purchase,
-            product_stock=create_product_stock(),
+            product=create_product(),
             quantity=10,
             unit_price=10.00,
             total_price=100.00,
@@ -241,14 +240,14 @@ class PrivatePurchaseApiTests(TestCase):
             'balance_due': 150.00,
             'purchase_items': [
                 {
-                    'product_stock': create_product_stock().id,
+                    'product': create_product().id,
                     'quantity': 2,
                     'unit_price': 25.00,
                     'total_price': 50.00,
                     'entered_stock': 5,
                 },
                 {
-                    'product_stock': create_product_stock().id,
+                    'product': create_product().id,
                     'quantity': 1,
                     'unit_price': 100.00,
                     'total_price': 100.00,

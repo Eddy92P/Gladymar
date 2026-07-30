@@ -3,6 +3,7 @@ Service to update a sale item when an output is done.
 """
 from django.core.exceptions import ValidationError
 from django.db.models import F
+from decimal import Decimal
 from core.models import SaleItem
 import logging
 
@@ -16,15 +17,16 @@ class UpdateSaleItem:
 
     def update_sale_item(self):
         sale_item = self.output_item.sale_item
+        quantity = Decimal(str(self.output_item.quantity))
         try:
             updated = SaleItem.objects.filter(
                 id=sale_item.id,
                 dispatched_stock__lte=(
-                    F('quantity') - self.output_item.quantity
+                    F('quantity') - quantity
                 )
             ).update(
                 dispatched_stock=(
-                    F('dispatched_stock') + self.output_item.quantity
+                    F('dispatched_stock') + quantity
                 )
             )
             if updated == 0:

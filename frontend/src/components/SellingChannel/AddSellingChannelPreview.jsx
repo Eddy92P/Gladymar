@@ -5,6 +5,8 @@ import Alert from '@mui/material/Alert';
 
 import { makeStyles } from '@mui/styles';
 
+import { formatDisplayDate } from '../../DateUtils';
+
 const useStyles = makeStyles({
 	textStyle: {
 		'& .MuiInputBase-input.Mui-disabled': {
@@ -121,7 +123,9 @@ function AddSellingChannelPreview(props) {
 									<Grid item md={3}>
 										<TextField
 											label="Fecha Inicio"
-											value={product.startDate.value}
+											value={formatDisplayDate(
+												product.startDate?.value
+											)}
 											fullWidth
 											variant="standard"
 											sx={{
@@ -140,7 +144,9 @@ function AddSellingChannelPreview(props) {
 									<Grid item md={3}>
 										<TextField
 											label="Fecha Fin"
-											value={product.endDate.value}
+											value={formatDisplayDate(
+												product.endDate?.value
+											)}
 											fullWidth
 											variant="standard"
 											sx={{

@@ -232,6 +232,7 @@ const ReportList = () => {
 										>
 											<DatePicker
 												label="Fecha Inicio"
+												format="DD/MM/YYYY"
 												value={report.startDate}
 												onChange={
 													report.onStartDateChange
@@ -246,6 +247,7 @@ const ReportList = () => {
 										>
 											<DatePicker
 												label="Fecha Fin"
+												format="DD/MM/YYYY"
 												value={report.endDate}
 												onChange={
 													report.onEndDateChange

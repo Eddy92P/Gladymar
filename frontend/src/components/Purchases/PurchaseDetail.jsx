@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import React, { useMemo, useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import dayjs from 'dayjs';
+import { formatDisplayDate } from '../../DateUtils';
 const PurchaseDetail = () => {
 	const location = useLocation();
 	const purchaseData = useMemo(
@@ -27,13 +27,13 @@ const PurchaseDetail = () => {
 	const steps = [
 		{
 			label: 'Realizado',
-			date: dayjs(purchaseData.purchaseDate).format('DD-MM-YYYY'),
+			date: formatDisplayDate(purchaseData.purchaseDate),
 		},
 		{
 			label: 'Terminado',
 			date:
 				purchaseData.status === 'terminado'
-					? dayjs(purchaseData.purchaseEndDate).format('DD-MM-YYYY')
+					? formatDisplayDate(purchaseData.purchaseEndDate)
 					: '',
 		},
 	];
@@ -178,14 +178,12 @@ const PurchaseDetail = () => {
 													<TableCell>
 														{
 															purchaseItem
-																.products_stock
 																.products.code
 														}
 													</TableCell>
 													<TableCell>
 														{
 															purchaseItem
-																.products_stock
 																.products.name
 														}
 													</TableCell>
@@ -279,7 +277,9 @@ const PurchaseDetail = () => {
 											(payment, index) => (
 												<TableRow key={index}>
 													<TableCell>
-														{payment.payment_date}
+														{formatDisplayDate(
+															payment.payment_date
+														)}
 													</TableCell>
 													<TableCell>
 														{payment.payment_method}

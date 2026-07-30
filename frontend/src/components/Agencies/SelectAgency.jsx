@@ -57,7 +57,7 @@ const SelectAgency = () => {
 
 	const confirmHandler = () => {
 		closeHandler();
-		storeContext.chooseAgency(agency.id);
+		storeContext.chooseAgency(agency.id, agency.name);
 		navigate('/principal/dashboard');
 	};
 
