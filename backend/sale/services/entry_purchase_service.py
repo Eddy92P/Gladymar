@@ -1,6 +1,7 @@
 """
 Service to handle update of purchase items when an entry is done
 """
+from decimal import Decimal
 from django.core.exceptions import ValidationError
 import logging
 
@@ -17,11 +18,12 @@ class UpdatePurchaseItem:
         """
         try:
             purchase_item = self.entry_item.purchase_item
-            if (purchase_item.entered_stock + self.entry_item.quantity
+            quantity = Decimal(str(self.entry_item.quantity))
+            if (purchase_item.entered_stock + quantity
                     > purchase_item.quantity):
                 raise ValidationError(
                     "La cantidad ingresada excede la cantidad comprada.")
-            purchase_item.entered_stock += self.entry_item.quantity
+            purchase_item.entered_stock += quantity
             if purchase_item.entered_stock < purchase_item.quantity:
                 purchase_item.status = 'parcial'
             if purchase_item.entered_stock == purchase_item.quantity:

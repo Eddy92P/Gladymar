@@ -49,7 +49,6 @@ def create_agency(**params):
 def create_warehouse(**params):
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
-        'agency': create_agency(),
         'name': f'Warehouse {unique_suffix}',
         'location': 'Test location',
     }
@@ -181,7 +180,7 @@ class TestUpdatePurchaseItem(TestCase):
     def create_test_purchase_item(self, **kwargs):
         defaults = {
             'purchase': create_purchase(),
-            'product_stock': create_product_stock(),
+            'product': create_product(),
             'quantity': 50,
             'unit_price': 50,
             'total_price': 2500,

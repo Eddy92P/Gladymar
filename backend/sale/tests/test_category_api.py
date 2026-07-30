@@ -12,8 +12,6 @@ CATEGORY_URL = reverse('sale:category-list')
 
 def create_user(**params):
     """Create and return a sample user."""
-    from core.models import Agency
-
     unique_suffix = str(uuid.uuid4())[:4]
     agency = Agency.objects.create(
         name=f'Test Agency {unique_suffix}',
@@ -39,11 +37,6 @@ def create_warehouse(**params):
     # Generate unique name and location to avoid constraint violations
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
-        'agency': Agency.objects.create(
-            name=f'Test Agency {unique_suffix}',
-            location=f'Test Agency Location {unique_suffix}',
-            city='La Paz',
-        ),
         'name': f'Sample Warehouse {unique_suffix}',
         'location': 'Sample Location',
     }

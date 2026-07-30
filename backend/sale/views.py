@@ -140,10 +140,10 @@ class CatalogView(APIView):
         elif agency_id and purchase_id:
             purchase_items = PurchaseItem.objects.filter(
                 purchase=purchase_id, purchase__agency=agency_id).exclude(
-                status='completado').prefetch_related('product_stock')
+                status='completado').select_related('product')
 
             for purchase_item in purchase_items:
-                product = purchase_item.product_stock.product
+                product = purchase_item.product
 
                 # Apply search filter
                 if search and not (search.lower() in product.name.lower(
@@ -152,43 +152,18 @@ class CatalogView(APIView):
 
                 data.append({
                     "purchase_item_id": purchase_item.id,
-                    "id": purchase_item.product_stock.id,
-                    "warehouse": purchase_item.product_stock.warehouse.name,
-                    "batch": purchase_item.product_stock.product.batch.name,
+                    "id": purchase_item.product.id,
+                    "warehouse": "",
+                    "batch": purchase_item.product.batch.name,
                     "name": product.name,
                     "code": product.code,
                     "price": 0,
-                    "stock": purchase_item.product_stock.available_stock,
-                    "minimum_stock": purchase_item.product_stock.minimum_stock,
-                    "maximum_stock": purchase_item.product_stock.maximum_stock,
-                    "minimum_sale_price": product.minimum_sale_price,
-                    "maximum_sale_price": product.maximum_sale_price,
+                    "stock": 0,
+                    "minimum_stock": 0,
+                    "maximum_stock": 0,
+                    "minimum_sale_price": 0,
+                    "maximum_sale_price": 0,
                     "status": purchase_item.status,
-                })
-        elif agency_id:
-            products = ProductStock.objects.filter(
-                warehouse__agency=agency_id).select_related('product')
-
-            for product in products:
-                # Apply search filter
-                if search and not (
-                    search.lower() in product.product.name.lower()
-                    or search.lower() in product.product.code.lower()
-                ):
-                    continue
-
-                data.append({
-                    "id": product.id,
-                    "warehouse": product.warehouse.name,
-                    "batch": product.product.batch.name,
-                    "name": product.product.name,
-                    "code": product.product.code,
-                    "price": 0,
-                    "stock": product.stock,
-                    "minimum_stock": product.minimum_stock,
-                    "maximum_stock": product.maximum_stock,
-                    "minimum_sale_price": product.product.minimum_sale_price,
-                    "maximum_sale_price": product.product.maximum_sale_price,
                 })
         else:
             products = ProductStock.objects.all().select_related('product')
@@ -256,12 +231,19 @@ class WarehouseViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     http_method_names = ['get', 'post', 'patch', 'put']
     filter_backends = [filters.SearchFilter]
-    search_fields = ['id', 'name', 'agency__name']
+    search_fields = ['id', 'name']
     pagination_class = PersonalizedPagination
 
     def get_queryset(self):
         """Retrieve warehouses ordered by id."""
-        return self.queryset.order_by('-id').select_related('agency')
+        return self.queryset.order_by('-id')
+
+    @action(detail=False, methods=["get"], url_path="all")
+    def all_warehouses(self, request):
+        queryset = self.filter_queryset(
+            self.get_queryset()).values(
+            "id", "name")
+        return Response(list(queryset))
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -366,8 +348,8 @@ class ProductViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path="all")
     def all_products(self, request):
         queryset = self.filter_queryset(
-            self.get_queryset()).values(
-            "id", "name", "code")
+            self.get_queryset()).select_related('batch').values(
+            "id", "name", "code", "batch__name")
         return Response(list(queryset))
 
 
@@ -388,7 +370,6 @@ class ProductStockViewSet(viewsets.ModelViewSet):
             'product__batch',
             'product__measure_unit',
             'warehouse',
-            'warehouse__agency'
         )
 
     @action(detail=True, methods=['post'], url_path='increment-damaged-stock')
@@ -499,14 +480,12 @@ class EntryViewSet(viewsets.ModelViewSet):
                 'purchase',
                 'purchase__buyer',
                 'purchase__supplier',
-                'warehouse_keeper__agency'
             )
         return self.queryset.filter(
             warehouse_keeper=user).order_by('-id').select_related(
             'purchase',
             'purchase__buyer',
             'purchase__supplier',
-            'warehouse_keeper__agency'
         )
 
 
@@ -535,14 +514,12 @@ class OutputViewSet(viewsets.ModelViewSet):
                 'sale',
                 'sale__client',
                 'warehouse_keeper',
-                'warehouse_keeper__agency'
             )
         return self.queryset.filter(
             warehouse_keeper=user).order_by('-id').select_related(
             'sale',
             'sale__client',
             'warehouse_keeper',
-            'warehouse_keeper__agency'
         )
 
 
@@ -616,7 +593,7 @@ class PurchaseViewSet(viewsets.ModelViewSet):
         queryset = queryset.prefetch_related(
             Prefetch(
                 'purchase_items',
-                queryset=PurchaseItem.objects.select_related('product_stock'),
+                queryset=PurchaseItem.objects.select_related('product'),
             )
         ).select_related('buyer', 'supplier')
 
@@ -664,7 +641,6 @@ class SaleViewSet(viewsets.ModelViewSet):
                 queryset=SaleItem.objects.select_related(
                     'product_stock__product__batch',
                     'product_stock__product__measure_unit',
-                    'product_stock__warehouse__agency',
                 ),
             ),
             Prefetch(
@@ -677,7 +653,6 @@ class SaleViewSet(viewsets.ModelViewSet):
                         queryset=OutputItem.objects.select_related(
                             'product_stock__product__batch',
                             'product_stock__product__measure_unit',
-                            'product_stock__warehouse__agency',
                         ),
                     )
                 ),

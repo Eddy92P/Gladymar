@@ -145,7 +145,7 @@ export const options = [
 		key: 'entries',
 		label: 'Entradas',
 		path: 'entradas',
-		permission: 'core.view_entry',
+		permission: ['core.view_entry', 'core.can_view_reports'],
 		icon: () => (
 			<img
 				src={DoubleEntryIcon}
@@ -158,7 +158,7 @@ export const options = [
 		key: 'outputs',
 		label: 'Salidas',
 		path: 'salidas',
-		permission: 'core.view_output',
+		permission: ['core.view_output', 'core.can_view_reports'],
 		icon: () => (
 			<img
 				src={DoubleEntryIcon}

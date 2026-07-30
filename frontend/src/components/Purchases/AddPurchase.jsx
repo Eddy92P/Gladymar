@@ -450,7 +450,7 @@ export const AddPurchase = () => {
 					total: purchaseTotalAmount,
 					balance_due: purchaseTotalAmount,
 					purchase_items: productListState.map(product => ({
-						product_stock: product.id,
+						product: product.id,
 						quantity: product.quantity.value,
 						unit_price: product.price.value,
 						total_price: product.totalPrice.value,

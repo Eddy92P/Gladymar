@@ -55,11 +55,6 @@ def create_warehouse(**params):
     """Create and return a sample warehouse."""
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
-        'agency': Agency.objects.create(
-            name=f'Test Agency {unique_suffix}',
-            location=f'Test Agency Location {unique_suffix}',
-            city='La Paz',
-        ),
         'name': f'Sample Warehouse {unique_suffix}',
         'location': 'Sample Location',
     }
@@ -221,7 +216,8 @@ class PrivateEntryApiTests(TestCase):
             'invoice_number': '1234567890',
             'entry_items': [
                 {
-                    'product_stock': create_product_stock().id,
+                    'product': create_product().id,
+                    'warehouse': create_warehouse().id,
                     'quantity': 10,
                 }
             ]
@@ -256,7 +252,8 @@ class PrivateEntryApiTests(TestCase):
             'entry_date': '2021-01-01',
             'entry_items': [
                 {
-                    'product_stock': create_product_stock().id,
+                    'product': create_product().id,
+                    'warehouse': create_warehouse().id,
                     'quantity': 15,
                 }
             ]
@@ -274,6 +271,9 @@ class PrivateEntryApiTests(TestCase):
         for i, payload_item in enumerate(payload['entry_items']):
             db_item = entry.entry_items.all()[i]
             self.assertEqual(
-                db_item.product_stock.id,
-                payload_item['product_stock'])
+                db_item.product_stock.product.id,
+                payload_item['product'])
+            self.assertEqual(
+                db_item.product_stock.warehouse.id,
+                payload_item['warehouse'])
             self.assertEqual(db_item.quantity, payload_item['quantity'])

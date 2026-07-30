@@ -64,7 +64,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 function AddWarehouse() {
 	const API = import.meta.env.VITE_API_URL;
 	const url = `${API}${api.API_URL_WAREHOUSES}`;
-	const urlAgencyChoices = `${API}${api.API_URL_AGENCIES}`;
 	const [isLoading, setIsLoading] = useState(false);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
@@ -81,8 +80,6 @@ function AddWarehouse() {
 	const [title, setTitle] = useState('');
 	const [buttonText, setButtonText] = useState('');
 	const [disabled, setDisabled] = useState(true);
-	const [agencyChoices, setAgencyChoices] = useState([]);
-	const [agency, setAgency] = useState(null);
 	const [errorMessage, setErrorMessage] = useState('');
 	const [showProductsModal, setShowProductsModal] = useState(false);
 
@@ -298,10 +295,6 @@ function AddWarehouse() {
 		dispatchProductList({ type: 'STOCK_CHANGE', id, val: value });
 	};
 
-	const agencyInputChangeHandler = (event, option) => {
-		setAgency(option);
-	};
-
 	const handlerCancel = () => {
 		if (isForm) {
 			navigate(-1);
@@ -323,35 +316,6 @@ function AddWarehouse() {
 		}
 	};
 
-	useEffect(() => {
-		const fetchAgencyChoices = async () => {
-			try {
-				const response = await authFetch(urlAgencyChoices, {
-					headers: {
-						'Content-Type': 'application/json',
-					},
-				});
-				if (response.ok) {
-					const data = await response.json();
-					const choices = data.rows || [];
-					setAgencyChoices(choices);
-					if (warehouseData.agency && choices.length > 0) {
-						const matchingChoice = choices.find(
-							choice => choice.id === warehouseData.agency.id
-						);
-						if (matchingChoice) {
-							setAgency(matchingChoice);
-						}
-					}
-				}
-			} catch (error) {
-				console.error('Error fetching agency choices:', error);
-			}
-		};
-
-		fetchAgencyChoices();
-	}, [urlAgencyChoices, warehouseData.agency]);
-
 	const handleSubmit = async () => {
 		try {
 			const response = await authFetch(url, {
@@ -359,7 +323,6 @@ function AddWarehouse() {
 				body: JSON.stringify({
 					name: nameState.value,
 					location: locationState.value,
-					agency_id: agency.id,
 					product_stock: productListState.map(product => ({
 						product: product.id,
 						stock: product.stock.value,
@@ -437,7 +400,6 @@ function AddWarehouse() {
 				body: JSON.stringify({
 					name: nameState.value,
 					location: locationState.value,
-					agency_id: agency.id,
 					product_stock: productListState.map(product => ({
 						id: product.productStockId,
 						product: product.id,
@@ -518,7 +480,6 @@ function AddWarehouse() {
 		if (
 			nameState.value &&
 			locationState.value &&
-			agency &&
 			productListState.length > 0
 		) {
 			// Check if all required fields are filled and valid
@@ -531,13 +492,13 @@ function AddWarehouse() {
 					product.maximumStock?.isValid
 			);
 			const isValid =
-				nameIsValid && locationIsValid && agency && allFieldsValid;
+				nameIsValid && locationIsValid && allFieldsValid;
 
 			setFormIsValid(isValid);
 			setDisabled(!isValid);
-		} else if (nameState.value && locationState.value && agency) {
-			setFormIsValid(nameIsValid && locationIsValid && agency);
-			setDisabled(!nameIsValid && !locationIsValid && !agency);
+		} else if (nameState.value && locationState.value) {
+			setFormIsValid(nameIsValid && locationIsValid);
+			setDisabled(!nameIsValid && !locationIsValid);
 		} else {
 			setDisabled(true);
 		}
@@ -545,7 +506,6 @@ function AddWarehouse() {
 		nameState.value,
 		locationState.value,
 		productListState,
-		agency,
 		nameIsValid,
 		locationIsValid,
 	]);
@@ -606,29 +566,6 @@ function AddWarehouse() {
 											}
 											required
 											fullWidth
-										/>
-									</Grid>
-									<Grid size={{ xs: 6, sm: 3 }}>
-										<Autocomplete
-											disablePortal
-											value={agency}
-											options={agencyChoices}
-											getOptionLabel={option =>
-												option ? option.name || '' : ''
-											}
-											renderOption={(props, option) => (
-												<li {...props} key={option.id}>
-													{option.name}
-												</li>
-											)}
-											renderInput={params => (
-												<TextField
-													{...params}
-													label="Agencia"
-													required
-												/>
-											)}
-											onChange={agencyInputChangeHandler}
 										/>
 									</Grid>
 								</Grid>
@@ -971,7 +908,6 @@ function AddWarehouse() {
 						<AddWarehousePreview
 							name={nameState.value}
 							location={locationState.value}
-							agency={agency.name}
 							productStock={productListState}
 							message={message}
 						/>

@@ -22,7 +22,6 @@ const AddProductDetailedList = ({
 	sale,
 	isPurchase,
 	isOutput,
-	isEntry,
 }) => {
 	const [list, setList] = useState([]);
 	const [error, setError] = useState('');
@@ -39,9 +38,7 @@ const AddProductDetailedList = ({
 			sellingChannel ||
 			purchase?.id ||
 			sale?.id ||
-			isPurchase ||
-			isOutput ||
-			isEntry
+			isOutput
 		) {
 			url = `${API}${api.API_URL_CATALOG}`;
 		} else {
@@ -57,7 +54,7 @@ const AddProductDetailedList = ({
 			url += `?purchase_id=${purchase.id}&agency_id=${storeContext.agency}`;
 		} else if (sale?.id) {
 			url += `?sale_id=${sale.id}&agency_id=${storeContext.agency}`;
-		} else if (isEntry || isOutput || isPurchase) {
+		} else if (isOutput) {
 			url += `?agency_id=${storeContext.agency}`;
 		}
 		if (
@@ -65,9 +62,7 @@ const AddProductDetailedList = ({
 			(sellingChannel ||
 				purchase?.id ||
 				sale?.id ||
-				isPurchase ||
-				isOutput ||
-				isEntry)
+				isOutput)
 		) {
 			url += `&search=${filterText}`;
 		} else if (filterText) {
@@ -152,36 +147,10 @@ const AddProductDetailedList = ({
 					const productStockData = await response.json();
 					products = productStockData.map(item => ({
 						purchaseItem: item.purchase_item_id,
-						warehouse: item.warehouse,
 						id: item.id,
-						name: item.name,
-						code: item.code,
-						price: item.price,
-						stock: item.stock,
-					}));
-				} else if (isEntry || isOutput || isPurchase) {
-					const response = await authFetch(url, {
-						method: 'GET',
-						headers: {
-							'Content-Type': 'application/json',
-						},
-						signal: controller.signal,
-					});
-
-					if (!response.ok) {
-						throw new Error(
-							'Falló al obtener productos para el almacén'
-						);
-					}
-					const productStockData = await response.json();
-					products = productStockData.map(item => ({
-						warehouse: item.warehouse,
 						batch: item.batch,
-						id: item.id,
 						name: item.name,
 						code: item.code,
-						price: item.price,
-						stock: item.stock,
 					}));
 				} else {
 					const response = await authFetch(url, {
@@ -199,9 +168,11 @@ const AddProductDetailedList = ({
 					const data = await response.json();
 
 					if (isMounted) {
+						console.log(data);
 						products = data.map(listData => {
 							return {
 								id: listData.id,
+								batch: listData.batch__name,
 								name: listData.name,
 								code: listData.code,
 							};
@@ -234,7 +205,6 @@ const AddProductDetailedList = ({
 		storeContext.agency,
 		isPurchase,
 		isOutput,
-		isEntry,
 	]);
 
 	const handleCloseModal = () => {

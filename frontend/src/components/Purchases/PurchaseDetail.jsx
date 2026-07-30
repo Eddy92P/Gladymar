@@ -178,14 +178,12 @@ const PurchaseDetail = () => {
 													<TableCell>
 														{
 															purchaseItem
-																.products_stock
 																.products.code
 														}
 													</TableCell>
 													<TableCell>
 														{
 															purchaseItem
-																.products_stock
 																.products.name
 														}
 													</TableCell>

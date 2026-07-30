@@ -63,7 +63,6 @@ def create_warehouse(**params):
     """Create and return a sample warehouse."""
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
-        'agency': create_agency(),
         'name': f'Sample Warehouse {unique_suffix}',
         'location': 'Sample Location',
     }
