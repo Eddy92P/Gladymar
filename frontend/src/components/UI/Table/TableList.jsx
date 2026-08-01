@@ -51,6 +51,7 @@ const TableList = ({
 	const [open, setOpen] = useState(externalOpen || false);
 	const theme = useTheme();
 	const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
+	const [filteredData, setFilteredData] = useState([]);
 
 	// Sync with external open state
 	useEffect(() => {
@@ -72,13 +73,20 @@ const TableList = ({
 		onProductList(prev => [...prev, product]);
 	};
 
+	useEffect(() => {
+		const filteredData = data.filter(
+			item => !addedProducts.some(product => product.id === item.id)
+		);
+		setFilteredData(filteredData);
+	}, [data, addedProducts]);
+
 	// Función para verificar si un producto ya fue agregado
 	const isProductAdded = productId => {
 		return addedProducts.some(product => product.id === productId);
 	};
 
 	// Si no hay datos, mostrar mensaje
-	if (!data || data.length === 0) {
+	if (!filteredData || filteredData.length === 0) {
 		return (
 			<StyledDialog
 				onClose={handleClose}
@@ -129,7 +137,7 @@ const TableList = ({
 		);
 	}
 
-	const columns = Object.keys(data[0]);
+	const columns = Object.keys(filteredData[0]);
 
 	return (
 		<StyledDialog
@@ -164,13 +172,14 @@ const TableList = ({
 					<Table sx={{ minWidth: 650 }} aria-label="simple table">
 						<TableHead>
 							<TableRow>
+								<StyledTableCell>Lote</StyledTableCell>
 								<StyledTableCell>Nombre</StyledTableCell>
 								<StyledTableCell>Código</StyledTableCell>
 								<StyledTableCell></StyledTableCell>
 							</TableRow>
 						</TableHead>
 						<TableBody>
-							{data.map((item, rowIndex) => (
+							{filteredData.map((item, rowIndex) => (
 								<TableRow key={`row-${rowIndex}`}>
 									{columns
 										.filter(value => value !== 'id')

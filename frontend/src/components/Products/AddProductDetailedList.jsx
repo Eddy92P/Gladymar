@@ -37,8 +37,7 @@ const AddProductDetailedList = ({
 		if (
 			sellingChannel ||
 			purchase?.id ||
-			sale?.id ||
-			isOutput
+			sale?.id
 		) {
 			url = `${API}${api.API_URL_CATALOG}`;
 		} else {

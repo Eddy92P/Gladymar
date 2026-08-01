@@ -135,6 +135,25 @@ function AddSupplierPreview(props) {
 								<Grid container spacing={2} key={index}>
 									<Grid item md={3}>
 										<TextField
+											label="Lote"
+											value={product.batch}
+											fullWidth
+											variant="standard"
+											sx={{
+												'& .MuiInput-underline:before':
+													{
+														borderBottom: 'none',
+													},
+												'& .MuiInput-underline:after': {
+													borderBottom: 'none',
+												},
+											}}
+											disabled
+											className={classes.textStyle}
+										/>
+									</Grid>
+									<Grid item md={3}>
+										<TextField
 											label="Nombre del Producto"
 											value={product.name}
 											fullWidth

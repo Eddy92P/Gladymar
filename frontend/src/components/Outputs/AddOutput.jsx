@@ -569,6 +569,9 @@ export const AddOutput = () => {
 													<TableHead>
 														<TableRow>
 															<StyledTableCell>
+																Lote
+															</StyledTableCell>
+															<StyledTableCell>
 																Nombre
 															</StyledTableCell>
 															<StyledTableCell>
@@ -594,6 +597,9 @@ export const AddOutput = () => {
 																<TableRow
 																	key={`row-${product.id}`}
 																>
+																	<TableCell sx={{ width: '12%' }}>
+																		{product.batch}
+																	</TableCell>
 																	<TableCell>
 																		{
 																			product.name

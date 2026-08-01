@@ -308,6 +308,7 @@ export const AddSale = () => {
 		return {
 			saleItemId: saleItem.id,
 			id: saleItem.products_stock.id,
+			batch: saleItem.products_stock.products.batch.name,
 			name: saleItem.products_stock.products.name,
 			code: saleItem.products_stock.products.code,
 			stock: saleItem.products_stock.available_stock,
@@ -1162,31 +1163,32 @@ export const AddSale = () => {
 											>
 												<TableHead>
 													<TableRow>
-														<StyledTableCell>
+														<StyledTableCell sx={{ width: '12%' }}>
+															Lote
+														</StyledTableCell>
+														<StyledTableCell sx={{ width: '12%' }}>
 															Nombre
 														</StyledTableCell>
-														<StyledTableCell>
+														<StyledTableCell sx={{ width: '12%' }}>
 															Código
 														</StyledTableCell>
 														<StyledTableCell>
 															Stock
 														</StyledTableCell>
 														<StyledTableCell>
-															Precio Mínimo de
-															Venta Bs.
+															Precio Mín.
 														</StyledTableCell>
 														<StyledTableCell>
-															Precio Máximo de
-															Venta Bs.
+															Precio Máx.
 														</StyledTableCell>
-														<StyledTableCell>
+														<StyledTableCell sx={{ width: '10%' }}>
 															Cantidad
 														</StyledTableCell>
-														<StyledTableCell>
-															Precio Unitario Bs.
+														<StyledTableCell sx={{ width: '10%' }}>
+															Precio Unit.
 														</StyledTableCell>
-														<StyledTableCell>
-															Costo Total Bs.
+														<StyledTableCell sx={{ width: '10%' }}>
+															Costo Total.
 														</StyledTableCell>
 														{!isSale && <StyledTableCell>
 															Acciones
@@ -1199,6 +1201,9 @@ export const AddSale = () => {
 															<TableRow
 																key={`row-${product.id}`}
 															>
+																<TableCell sx={{ width: '15%' }}>
+																	{product.batch}
+																</TableCell>
 																<TableCell>
 																	{
 																		product.name
