@@ -1163,6 +1163,9 @@ export const AddSale = () => {
 											>
 												<TableHead>
 													<TableRow>
+														<StyledTableCell>
+															Almacén
+														</StyledTableCell>
 														<StyledTableCell sx={{ width: '12%' }}>
 															Lote
 														</StyledTableCell>
@@ -1201,6 +1204,9 @@ export const AddSale = () => {
 															<TableRow
 																key={`row-${product.id}`}
 															>
+																<TableCell>
+																	{product.warehouse}
+																</TableCell>
 																<TableCell sx={{ width: '15%' }}>
 																	{product.batch}
 																</TableCell>
