@@ -124,6 +124,7 @@ const AddProductDetailedList = ({
 						saleItem: item.sale_item_id,
 						warehouse: item.warehouse,
 						id: item.id,
+						batch: item.batch,
 						name: item.name,
 						code: item.code,
 						price: item.price,
@@ -151,6 +152,30 @@ const AddProductDetailedList = ({
 						batch: item.batch,
 						name: item.name,
 						code: item.code,
+					}));
+				} else if (isOutput) {
+					const response = await authFetch(url, {
+						method: 'GET',
+						headers: {
+							'Content-Type': 'application/json',
+						},
+						signal: controller.signal,
+					});
+
+					if (!response.ok) {
+						throw new Error(
+							'Falló al obtener productos para el almacén'
+						);
+					}
+					const productStockData = await response.json();
+					products = productStockData.map(item => ({
+						warehouse: item.warehouse,
+						batch: item.batch,
+						id: item.id,
+						name: item.name,
+						code: item.code,
+						price: item.price,
+						stock: item.stock,
 					}));
 				} else {
 					const response = await authFetch(url, {

@@ -751,6 +751,9 @@ export const AddPurchase = () => {
 												<TableHead>
 													<TableRow>
 														<StyledTableCell>
+															Lote
+														</StyledTableCell>
+														<StyledTableCell>
 															Nombre
 														</StyledTableCell>
 														<StyledTableCell>
@@ -765,7 +768,10 @@ export const AddPurchase = () => {
 														<StyledTableCell>
 															Costo Total Bs.
 														</StyledTableCell>
-														<StyledTableCell>
+														<StyledTableCell
+															align="center"
+															sx={{ width: '10%' }}
+														>
 															Acciones
 														</StyledTableCell>
 													</TableRow>
@@ -776,6 +782,9 @@ export const AddPurchase = () => {
 															<TableRow
 																key={`row-${product.id}`}
 															>
+																<TableCell sx={{ width: '15%' }}>
+																	{product.batch}
+																</TableCell>
 																<TableCell>
 																	{
 																		product.name
@@ -786,7 +795,7 @@ export const AddPurchase = () => {
 																		product.code
 																	}
 																</TableCell>
-																<TableCell>
+																<TableCell sx={{ width: '12%' }}>
 																	<TextField
 																		variant="outlined"
 																		onChange={e =>
@@ -838,7 +847,7 @@ export const AddPurchase = () => {
 																		fullWidth
 																	/>
 																</TableCell>
-																<TableCell>
+																<TableCell sx={{ width: '12%' }}>
 																	<TextField
 																		variant="outlined"
 																		onChange={e =>
@@ -890,7 +899,7 @@ export const AddPurchase = () => {
 																		fullWidth
 																	/>
 																</TableCell>
-																<TableCell>
+																<TableCell sx={{ width: '12%' }}>
 																	<TextField
 																		variant="outlined"
 																		onChange={e =>
@@ -919,30 +928,33 @@ export const AddPurchase = () => {
 																		}}
 																	/>
 																</TableCell>
-																<TableCell align="center">
-																	<Tooltip
-																		title={
-																			'Quitar'
+															<TableCell
+																align="center"
+																sx={{ width: '10%' }}
+															>
+																<Tooltip
+																	title={
+																		'Quitar'
+																	}
+																	placement="top"
+																>
+																	<IconButton
+																		aria-label="add"
+																		onClick={e =>
+																			handleRemoveProduct(
+																				e,
+																				product.id
+																			)
 																		}
-																		placement="top"
 																	>
-																		<IconButton
-																			aria-label="add"
-																			onClick={e =>
-																				handleRemoveProduct(
-																					e,
-																					product.id
-																				)
-																			}
-																		>
-																			<CancelIcon
-																				sx={{
-																					color: red[500],
-																				}}
-																			/>
-																		</IconButton>
-																	</Tooltip>
-																</TableCell>
+																		<CancelIcon
+																			sx={{
+																				color: red[500],
+																			}}
+																		/>
+																	</IconButton>
+																</Tooltip>
+															</TableCell>
 															</TableRow>
 														)
 													)}

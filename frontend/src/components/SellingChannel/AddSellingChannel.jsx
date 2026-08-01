@@ -195,6 +195,7 @@ export const AddSellingChannel = () => {
 				// Core product information
 				sellingChannelId: product.id,
 				id: product.products.id,
+				batch: product.products?.batch?.name || '',
 				name:
 					product.name ||
 					product.products?.name ||
@@ -555,21 +556,24 @@ export const AddSellingChannel = () => {
 											<TableHead>
 												<TableRow>
 													<StyledTableCell>
+														Lote
+													</StyledTableCell>
+													<StyledTableCell>
 														Nombre
 													</StyledTableCell>
 													<StyledTableCell>
 														Código
 													</StyledTableCell>
-													<StyledTableCell>
+													<StyledTableCell sx={{ width: '12%' }}>
 														Precio
 													</StyledTableCell>
-													<StyledTableCell>
+													<StyledTableCell sx={{ width: '12%' }}>
 														Fecha inicio
 													</StyledTableCell>
-													<StyledTableCell>
+													<StyledTableCell sx={{ width: '12%' }}>
 														Fecha Fin
 													</StyledTableCell>
-													<StyledTableCell>
+													<StyledTableCell align="center">
 														Acciones
 													</StyledTableCell>
 												</TableRow>
@@ -580,6 +584,9 @@ export const AddSellingChannel = () => {
 														<TableRow
 															key={`row-${product.id}`}
 														>
+															<TableCell>
+																{product.batch}
+															</TableCell>
 															<TableCell>
 																{product.name}
 															</TableCell>

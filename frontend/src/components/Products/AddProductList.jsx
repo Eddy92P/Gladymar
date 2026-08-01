@@ -19,7 +19,7 @@ const AddProductList = ({ onClose, onProductList, addedProducts = [] }) => {
 
 	useEffect(() => {
 		const API = import.meta.env.VITE_API_URL;
-		let url = `${API}${api.API_URL_PRODUCTS}`;
+		let url = `${API}${api.API_URL_ALL_PRODUCTS}`;
 		let isMounted = true;
 
 		const controller = new AbortController();
@@ -45,9 +45,10 @@ const AddProductList = ({ onClose, onProductList, addedProducts = [] }) => {
 				const data = await response.json();
 
 				if (isMounted) {
-					const parsedList = data.rows.map(listData => {
+					const parsedList = data.map(listData => {
 						return {
 							id: listData.id,
+							batch: listData.batch__name,
 							name: listData.name,
 							code: listData.code,
 						};

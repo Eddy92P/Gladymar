@@ -207,6 +207,7 @@ function AddWarehouse() {
 				// Core product information
 				productStockId: product.id,
 				id: product.products.id,
+				batch: product.products?.batch?.name || '',
 				name:
 					product.name ||
 					product.products?.name ||
@@ -580,19 +581,22 @@ function AddWarehouse() {
 										>
 											<TableHead>
 												<TableRow>
+													<StyledTableCell sx={{ width: '15%' }}>
+														Lote
+													</StyledTableCell>
 													<StyledTableCell>
 														Nombre
 													</StyledTableCell>
 													<StyledTableCell>
 														Código
 													</StyledTableCell>
-													<StyledTableCell>
+													<StyledTableCell sx={{ width: '15%' }}>
 														Stock
 													</StyledTableCell>
-													<StyledTableCell>
+													<StyledTableCell sx={{ width: '15%' }}>
 														Stock Mínimo
 													</StyledTableCell>
-													<StyledTableCell>
+													<StyledTableCell sx={{ width: '15%' }}>
 														Stock Máximo
 													</StyledTableCell>
 													{warehouseData.length === 0 && <StyledTableCell>
@@ -606,6 +610,9 @@ function AddWarehouse() {
 														<TableRow
 															key={`row-${product.id}`}
 														>
+															<TableCell>
+																{product.batch}
+															</TableCell>
 															<TableCell>
 																{product.name}
 															</TableCell>
