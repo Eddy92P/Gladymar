@@ -632,7 +632,7 @@ class SaleViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(
                 status=status)
 
-        if not user.is_superuser or not user.is_staff:
+        if not user.is_superuser:
             queryset = queryset.filter(seller=user)
 
         queryset = queryset.prefetch_related(
