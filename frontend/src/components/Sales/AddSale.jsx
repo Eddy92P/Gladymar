@@ -308,6 +308,7 @@ export const AddSale = () => {
 		return {
 			saleItemId: saleItem.id,
 			id: saleItem.products_stock.id,
+			warehouse: saleItem.products_stock.warehouses.name,
 			batch: saleItem.products_stock.products.batch.name,
 			name: saleItem.products_stock.products.name,
 			code: saleItem.products_stock.products.code,
