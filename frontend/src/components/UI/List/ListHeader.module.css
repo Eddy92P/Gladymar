@@ -2,8 +2,10 @@
 	background-color: white;
 	display: flex;
 	align-items: center;
+	justify-content: space-between;
 	height: 67px;
 	padding-left: 24px;
+	padding-right: 24px;
 }
 
 .headerTitle {
@@ -12,5 +14,11 @@
 	font-style: normal;
 	line-height: 38px;
 	margin-right: 16px;
-	width: 82%;
+	flex: 1;
+}
+
+.headerActions {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
 }
