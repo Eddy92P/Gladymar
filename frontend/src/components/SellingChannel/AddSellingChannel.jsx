@@ -559,7 +559,7 @@ export const AddSellingChannel = () => {
 									<h5>Productos</h5>
 									<TableContainer component={Paper}>
 										<Table
-											sx={{ minWidth: 650 }}
+											sx={{ minWidth: 900 }}
 											aria-label="simple table"
 										>
 											<TableHead>
@@ -573,13 +573,13 @@ export const AddSellingChannel = () => {
 													<StyledTableCell>
 														Código
 													</StyledTableCell>
-													<StyledTableCell sx={{ width: '12%' }}>
+													<StyledTableCell>
 														Precio
 													</StyledTableCell>
-													<StyledTableCell sx={{ width: '12%' }}>
+													<StyledTableCell>
 														Fecha inicio
 													</StyledTableCell>
-													<StyledTableCell sx={{ width: '12%' }}>
+													<StyledTableCell>
 														Fecha Fin
 													</StyledTableCell>
 													<StyledTableCell align="center">
@@ -602,9 +602,10 @@ export const AddSellingChannel = () => {
 															<TableCell>
 																{product.code}
 															</TableCell>
-															<TableCell>
+															<TableCell sx={{ whiteSpace: 'nowrap' }}>
 																<TextField
 																	variant="outlined"
+																	size="small"
 																	onChange={e =>
 																		priceInputChangeHandler(
 																			product.id,
@@ -653,10 +654,10 @@ export const AddSellingChannel = () => {
 																			: ''
 																	}
 																	required
-																	fullWidth
+																	sx={{ width: 110 }}
 																/>
 															</TableCell>
-															<TableCell>
+															<TableCell sx={{ whiteSpace: 'nowrap' }}>
 																<LocalizationProvider
 																	dateAdapter={
 																		AdapterDayjs
@@ -684,6 +685,7 @@ export const AddSellingChannel = () => {
 																				{
 																					variant:
 																						'outlined',
+																					size: 'small',
 																					error:
 																						(product
 																							.startDate
@@ -715,13 +717,13 @@ export const AddSellingChannel = () => {
 																									?.feedbackText ||
 																								''
 																							: '',
-																					fullWidth: true,
+																					sx: { width: 175 },
 																				},
 																		}}
 																	/>
 																</LocalizationProvider>
 															</TableCell>
-															<TableCell>
+															<TableCell sx={{ whiteSpace: 'nowrap' }}>
 																<LocalizationProvider
 																	dateAdapter={
 																		AdapterDayjs
@@ -749,6 +751,7 @@ export const AddSellingChannel = () => {
 																				{
 																					variant:
 																						'outlined',
+																					size: 'small',
 																					error:
 																						(product
 																							.endDate
@@ -780,7 +783,7 @@ export const AddSellingChannel = () => {
 																									?.feedbackText ||
 																								''
 																							: '',
-																					fullWidth: true,
+																					sx: { width: 175 },
 																				},
 																		}}
 																	/>
