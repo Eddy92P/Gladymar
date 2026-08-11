@@ -3,9 +3,11 @@ import React, {
 	useEffect,
 	useMemo,
 	useReducer,
+	useRef,
 	Fragment,
 } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 // MUI Components and styles
 import {
@@ -259,6 +261,29 @@ export const AddSellingChannel = () => {
 		productListReducer,
 		transformedProducts
 	);
+
+	const tableContainerRef = useRef(null);
+	const prevProductCountRef = useRef(productListState.length);
+
+	const rowVirtualizer = useVirtualizer({
+		count: productListState.length,
+		getScrollElement: () => tableContainerRef.current,
+		estimateSize: () => 72,
+		overscan: 8,
+	});
+
+	useEffect(() => {
+		if (productListState.length === 0) {
+			prevProductCountRef.current = 0;
+			return;
+		}
+		if (productListState.length > prevProductCountRef.current) {
+			rowVirtualizer.scrollToIndex(productListState.length - 1, {
+				align: 'end',
+			});
+		}
+		prevProductCountRef.current = productListState.length;
+	}, [productListState.length, rowVirtualizer]);
 
 	const { isValid: nameIsValid } = nameState;
 
@@ -523,10 +548,37 @@ export const AddSellingChannel = () => {
 		}
 	}, [isForm, sellingChannelData]);
 
+	const virtualRows = rowVirtualizer.getVirtualItems();
+	const paddingTop = virtualRows.length > 0 ? virtualRows[0].start : 0;
+	const paddingBottom =
+		virtualRows.length > 0
+			? rowVirtualizer.getTotalSize() - virtualRows[virtualRows.length - 1].end
+			: 0;
+
 	return (
 		<>
 			<Fragment>
-				<ListHeader title={title} text={title} visible={false} />
+				<ListHeader
+					title={title}
+					text={title}
+					visible={false}
+					actions={
+						isForm ? (
+							<Button
+								variant="contained"
+								style={{
+									textTransform: 'none',
+									width: '200px',
+								}}
+								onClick={() => setShowProductsModal(true)}
+								color="success"
+								startIcon={<SearchIcon />}
+							>
+								Buscar Productos
+							</Button>
+						) : null
+					}
+				/>
 				{isForm ? (
 					<div className={classes.listContainer}>
 						{errorMessage && (
@@ -554,42 +606,109 @@ export const AddSellingChannel = () => {
 									</Grid>
 								</Grid>
 							</Box>
-							{productListState.length > 0 && (
-								<Box sx={{ mt: 2, flexGrow: 1 }}>
-									<h5>Productos</h5>
-									<TableContainer component={Paper}>
+							<Box sx={{ mt: 2, flexGrow: 1 }}>
+								<h5>Productos</h5>
+								{productListState.length > 0 && (
+									<TableContainer
+										component={Paper}
+										ref={tableContainerRef}
+										sx={{
+											maxHeight: '60vh',
+											overflow: 'auto',
+										}}
+									>
 										<Table
-											sx={{ minWidth: 650 }}
+											sx={{ minWidth: 900 }}
 											aria-label="simple table"
+											stickyHeader
 										>
 											<TableHead>
 												<TableRow>
-													<StyledTableCell>
+													<StyledTableCell
+														sx={{
+															position: 'sticky',
+															top: 0,
+															zIndex: 1,
+														}}
+													>
 														Lote
 													</StyledTableCell>
-													<StyledTableCell>
+													<StyledTableCell
+														sx={{
+															position: 'sticky',
+															top: 0,
+															zIndex: 1,
+														}}
+													>
 														Nombre
 													</StyledTableCell>
-													<StyledTableCell>
+													<StyledTableCell
+														sx={{
+															position: 'sticky',
+															top: 0,
+															zIndex: 1,
+														}}
+													>
 														Código
 													</StyledTableCell>
-													<StyledTableCell sx={{ width: '12%' }}>
+													<StyledTableCell
+														sx={{
+															position: 'sticky',
+															top: 0,
+															zIndex: 1,
+														}}
+													>
 														Precio
 													</StyledTableCell>
-													<StyledTableCell sx={{ width: '12%' }}>
+													<StyledTableCell
+														sx={{
+															position: 'sticky',
+															top: 0,
+															zIndex: 1,
+														}}
+													>
 														Fecha inicio
 													</StyledTableCell>
-													<StyledTableCell sx={{ width: '12%' }}>
+													<StyledTableCell
+														sx={{
+															position: 'sticky',
+															top: 0,
+															zIndex: 1,
+														}}
+													>
 														Fecha Fin
 													</StyledTableCell>
-													<StyledTableCell align="center">
+													<StyledTableCell
+														align="center"
+														sx={{
+															position: 'sticky',
+															top: 0,
+															zIndex: 1,
+														}}
+													>
 														Acciones
 													</StyledTableCell>
 												</TableRow>
 											</TableHead>
 											<TableBody>
-												{productListState.map(
-													product => (
+												{paddingTop > 0 && (
+													<TableRow>
+														<TableCell
+															colSpan={7}
+															sx={{
+																p: 0,
+																border: 0,
+																height: paddingTop,
+															}}
+														/>
+													</TableRow>
+												)}
+												{virtualRows.map(virtualRow => {
+													const product =
+														productListState[
+															virtualRow.index
+														];
+													return (
 														<TableRow
 															key={`row-${product.id}`}
 														>
@@ -602,9 +721,10 @@ export const AddSellingChannel = () => {
 															<TableCell>
 																{product.code}
 															</TableCell>
-															<TableCell>
+															<TableCell sx={{ whiteSpace: 'nowrap' }}>
 																<TextField
 																	variant="outlined"
+																	size="small"
 																	onChange={e =>
 																		priceInputChangeHandler(
 																			product.id,
@@ -653,10 +773,10 @@ export const AddSellingChannel = () => {
 																			: ''
 																	}
 																	required
-																	fullWidth
+																	sx={{ width: 110 }}
 																/>
 															</TableCell>
-															<TableCell>
+															<TableCell sx={{ whiteSpace: 'nowrap' }}>
 																<LocalizationProvider
 																	dateAdapter={
 																		AdapterDayjs
@@ -684,6 +804,7 @@ export const AddSellingChannel = () => {
 																				{
 																					variant:
 																						'outlined',
+																					size: 'small',
 																					error:
 																						(product
 																							.startDate
@@ -715,13 +836,13 @@ export const AddSellingChannel = () => {
 																									?.feedbackText ||
 																								''
 																							: '',
-																					fullWidth: true,
+																					sx: { width: 175 },
 																				},
 																		}}
 																	/>
 																</LocalizationProvider>
 															</TableCell>
-															<TableCell>
+															<TableCell sx={{ whiteSpace: 'nowrap' }}>
 																<LocalizationProvider
 																	dateAdapter={
 																		AdapterDayjs
@@ -749,6 +870,7 @@ export const AddSellingChannel = () => {
 																				{
 																					variant:
 																						'outlined',
+																					size: 'small',
 																					error:
 																						(product
 																							.endDate
@@ -780,7 +902,7 @@ export const AddSellingChannel = () => {
 																									?.feedbackText ||
 																								''
 																							: '',
-																					fullWidth: true,
+																					sx: { width: 175 },
 																				},
 																		}}
 																	/>
@@ -811,13 +933,25 @@ export const AddSellingChannel = () => {
 																</Tooltip>
 															</TableCell>
 														</TableRow>
-													)
+													);
+												})}
+												{paddingBottom > 0 && (
+													<TableRow>
+														<TableCell
+															colSpan={7}
+															sx={{
+																p: 0,
+																border: 0,
+																height: paddingBottom,
+															}}
+														/>
+													</TableRow>
 												)}
 											</TableBody>
 										</Table>
 									</TableContainer>
-								</Box>
-							)}
+								)}
+							</Box>
 						</FormControl>
 						<Box
 							mt={2}
@@ -850,18 +984,6 @@ export const AddSellingChannel = () => {
 								onClick={handleNext}
 							>
 								{buttonText}
-							</Button>
-							<Button
-								variant="contained"
-								style={{
-									textTransform: 'none',
-									width: '200px',
-								}}
-								onClick={() => setShowProductsModal(true)}
-								color="success"
-								startIcon={<SearchIcon />}
-							>
-								Buscar Productos
 							</Button>
 							{isForm && (
 								<Typography

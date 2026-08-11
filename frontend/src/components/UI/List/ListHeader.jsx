@@ -7,7 +7,8 @@ const ListHeader = props => {
 	return (
 		<div className={classes.headerContainer}>
 			<div className={classes.headerTitle}>{props.title}</div>
-			<div>
+			<div className={classes.headerActions}>
+				{props.actions}
 				{props.visible && (
 					<Button variant="primary" onClick={props.onClick}>
 						<AddCircleOutlineIcon /> {props.text}
