@@ -387,7 +387,12 @@ class PrivateSaleApiTests(TestCase):
         }
 
         url = detail_url(sale.id)
-        res = self.client.put(url, payload, format='json')
+        res = self.client.put(
+            url,
+            payload,
+            format='json',
+            HTTP_IDEMPOTENCY_KEY='test-idempotency-key',
+        )
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('sale_items', res.data)

@@ -70,6 +70,7 @@ export const AddSupplier = () => {
 	const url = `${API}${api.API_URL_SUPPLIERS}`;
 
 	const [isLoading, setIsLoading] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -294,6 +295,8 @@ export const AddSupplier = () => {
 	};
 
 	const handleSubmit = async () => {
+		if (isSubmitting) return;
+		setIsSubmitting(true);
 		try {
 			const response = await authFetch(url, {
 				method: 'POST',
@@ -352,10 +355,14 @@ export const AddSupplier = () => {
 		} catch (e) {
 			setIsLoading(false);
 			setMessage(e.message);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
 	const handleEdit = async () => {
+		if (isSubmitting) return;
+		setIsSubmitting(true);
 		try {
 			const response = await authFetch(`${url}${supplierData.id}/`, {
 				method: 'PUT',
@@ -415,6 +422,8 @@ export const AddSupplier = () => {
 		} catch (e) {
 			setIsLoading(false);
 			setMessage(e.message);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
@@ -675,7 +684,7 @@ export const AddSupplier = () => {
 									textTransform: 'none',
 									width: '150px',
 								}}
-								disabled={disabled || isLoading}
+								disabled={disabled || isLoading || isSubmitting}
 								onClick={handleNext}
 							>
 								{buttonText}
@@ -745,7 +754,7 @@ export const AddSupplier = () => {
 									textTransform: 'none',
 									width: '150px',
 								}}
-								disabled={disabled || isLoading}
+								disabled={disabled || isLoading || isSubmitting}
 								onClick={handleNext}
 							>
 								{buttonText}

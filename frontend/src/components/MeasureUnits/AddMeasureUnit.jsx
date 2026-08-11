@@ -33,6 +33,7 @@ function AddMeasureUnit() {
 	const API = import.meta.env.VITE_API_URL;
 	const url = `${API}${api.API_URL_MEASURE_UNITS}`;
 	const [isLoading, setIsLoading] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -109,6 +110,8 @@ function AddMeasureUnit() {
 	};
 
 	const handleSubmit = async () => {
+		if (isSubmitting) return;
+		setIsSubmitting(true);
 		try {
 			const response = await authFetch(url, {
 				method: 'POST',
@@ -138,9 +141,13 @@ function AddMeasureUnit() {
 		} catch (e) {
 			setIsLoading(false);
 			setMessage(e.message);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 	const handleEdit = async () => {
+		if (isSubmitting) return;
+		setIsSubmitting(true);
 		try {
 			const response = await authFetch(`${url}${measureUnitData.id}/`, {
 				method: 'PUT',
@@ -170,6 +177,8 @@ function AddMeasureUnit() {
 		} catch (e) {
 			setIsLoading(false);
 			setMessage(e.message);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 	useEffect(() => {
@@ -255,7 +264,7 @@ function AddMeasureUnit() {
 									textTransform: 'none',
 									width: '150px',
 								}}
-								disabled={disabled || isLoading}
+								disabled={disabled || isLoading || isSubmitting}
 								onClick={handleNext}
 							>
 								{buttonText}
@@ -308,7 +317,7 @@ function AddMeasureUnit() {
 									textTransform: 'none',
 									width: '150px',
 								}}
-								disabled={disabled || isLoading}
+								disabled={disabled || isLoading || isSubmitting}
 								onClick={handleNext}
 							>
 								{buttonText}

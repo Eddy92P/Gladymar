@@ -70,6 +70,7 @@ export const AddSellingChannel = () => {
 	const url = `${API}${api.API_URL_SELLING_CHANNEL}`;
 
 	const [isLoading, setIsLoading] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -291,6 +292,8 @@ export const AddSellingChannel = () => {
 	};
 
 	const handleSubmit = async () => {
+		if (isSubmitting) return;
+		setIsSubmitting(true);
 		try {
 			const response = await authFetch(url, {
 				method: 'POST',
@@ -383,10 +386,14 @@ export const AddSellingChannel = () => {
 		} catch (e) {
 			setIsLoading(false);
 			setMessage(e.message);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
 	const handleEdit = async () => {
+		if (isSubmitting) return;
+		setIsSubmitting(true);
 		try {
 			const response = await authFetch(`${url}${sellingChannelData.id}/`, {
 				method: 'PUT',
@@ -472,6 +479,8 @@ export const AddSellingChannel = () => {
 		} catch (e) {
 			setIsLoading(false);
 			setMessage(e.message);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
@@ -837,7 +846,7 @@ export const AddSellingChannel = () => {
 									textTransform: 'none',
 									width: '150px',
 								}}
-								disabled={disabled || isLoading}
+								disabled={disabled || isLoading || isSubmitting}
 								onClick={handleNext}
 							>
 								{buttonText}
@@ -902,7 +911,7 @@ export const AddSellingChannel = () => {
 									textTransform: 'none',
 									width: '150px',
 								}}
-								disabled={disabled || isLoading}
+								disabled={disabled || isLoading || isSubmitting}
 								onClick={handleNext}
 							>
 								{buttonText}

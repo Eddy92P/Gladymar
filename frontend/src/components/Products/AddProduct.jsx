@@ -42,6 +42,7 @@ function AddProduct() {
 	const urlBatchChoices = `${API}${api.API_URL_ALL_BATCHES}`;
 	const urlMeasureUnitChoices = `${API}${api.API_URL_ALL_MEASURE_UNITS}`;
 	const [isLoading, setIsLoading] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const authContext = useContext(AuthContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
@@ -345,6 +346,8 @@ function AddProduct() {
 	}, [selectedFile, shouldDeleteImage, existingImage, isForm]);
 
 	const handleSubmit = async () => {
+		if (isSubmitting) return;
+		setIsSubmitting(true);
 		const file = selectedFile || fileRef.current?.files?.[0];
 
 		const formData = new FormData();
@@ -403,9 +406,13 @@ function AddProduct() {
 		} catch (e) {
 			setIsLoading(false);
 			setMessage(e.message);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 	const handleEdit = async () => {
+		if (isSubmitting) return;
+		setIsSubmitting(true);
 		const file = selectedFile || fileRef.current?.files?.[0];
 
 		const formData = new FormData();
@@ -462,6 +469,8 @@ function AddProduct() {
 		} catch (e) {
 			setIsLoading(false);
 			setMessage(e.message);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 	useEffect(() => {
@@ -905,7 +914,7 @@ function AddProduct() {
 									textTransform: 'none',
 									width: '150px',
 								}}
-								disabled={disabled || isLoading}
+								disabled={disabled || isLoading || isSubmitting}
 								onClick={handleNext}
 							>
 								{buttonText}
@@ -965,7 +974,7 @@ function AddProduct() {
 									textTransform: 'none',
 									width: '150px',
 								}}
-								disabled={disabled || isLoading}
+								disabled={disabled || isLoading || isSubmitting}
 								onClick={handleNext}
 							>
 								{buttonText}

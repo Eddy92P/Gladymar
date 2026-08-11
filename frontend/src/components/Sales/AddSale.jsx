@@ -98,6 +98,7 @@ export const AddSale = () => {
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
+	const [idempotencyKey] = useState(() => crypto.randomUUID());
 
 	const saleData = useMemo(
 		() => location.state?.saleData || [],
@@ -127,6 +128,7 @@ export const AddSale = () => {
 	const [paymentMethod, setPaymentMethod] = useState('');
 	const [observation, setObservation] = useState(saleData.observation || '');
 	const [saleAnticipo, setSaleAnticipo] = useState(saleData.saleAnticipo || false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	const saleDateReducer = (state, action) => {
 		if (action.type === 'INPUT_CHANGE') {
@@ -583,6 +585,8 @@ export const AddSale = () => {
 	}, [urlSellingChannelsChoices, saleData]);
 
 	const handleSubmit = async () => {
+		if (isSubmitting) return;
+		setIsSubmitting(true);
 		try {
 			// Preparar los datos básicos de la venta
 			const saleInfo = {
@@ -710,10 +714,14 @@ export const AddSale = () => {
 		} catch (e) {
 			setIsLoading(false);
 			setMessage(e.message);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
 	const handleEdit = async () => {
+		if (isSubmitting) return;
+		setIsSubmitting(true);
 		try {
 			// Preparar los datos básicos de la venta
 			const saleInfo = {
@@ -756,12 +764,18 @@ export const AddSale = () => {
 				};
 			}
 
+			const headers = {
+				'Content-Type': 'application/json',
+			};
+			// Idempotency only when realizing — stock is moved on this path.
+			if (isSale) {
+				headers['Idempotency-Key'] = idempotencyKey;
+			}
+
 			const response = await authFetch(`${url}${saleData.id}/`, {
 				method: 'PUT',
 				body: JSON.stringify(saleInfo),
-				headers: {
-					'Content-Type': 'application/json',
-				},
+				headers,
 			});
 			const data = await response.json();
 
@@ -860,6 +874,8 @@ export const AddSale = () => {
 		} catch (e) {
 			setIsLoading(false);
 			setMessage(e.message);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
@@ -1644,7 +1660,7 @@ export const AddSale = () => {
 									textTransform: 'none',
 									width: '150px',
 								}}
-								disabled={disabled || isLoading}
+								disabled={disabled || isLoading || isSubmitting}
 								onClick={handleNext}
 							>
 								{buttonText}
@@ -1725,7 +1741,7 @@ export const AddSale = () => {
 									textTransform: 'none',
 									width: '150px',
 								}}
-								disabled={disabled || isLoading}
+								disabled={disabled || isLoading || isSubmitting}
 								onClick={handleNext}
 							>
 								{buttonText}

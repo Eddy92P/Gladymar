@@ -1382,6 +1382,31 @@ class SaleSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def update(self, instance, validated_data):
+        idempotency_key = validated_data.pop('idempotency_key', None)
+        becoming_realizado = validated_data.get('status') == 'realizado'
+
+        # Race control only when moving stock (proforma -> realizado).
+        if becoming_realizado:
+            instance = Sale.objects.select_for_update().get(id=instance.id)
+
+            if instance.status == 'realizado':
+                return instance
+
+            if idempotency_key is not None:
+                if (
+                    Sale.objects.select_for_update()
+                    .filter(idempotency_key=idempotency_key)
+                    .exclude(id=instance.id)
+                    .exists()
+                ):
+                    raise serializers.ValidationError({
+                        'detail': (
+                            'La clave de idempotencia ya fue utilizada '
+                            'en otra venta.'
+                        )
+                    })
+                validated_data['idempotency_key'] = idempotency_key
+
         items_data = validated_data.pop('sale_items', None)
         payments_data = validated_data.pop('payments', None)
         try:
@@ -1433,7 +1458,9 @@ class SaleSerializer(serializers.ModelSerializer):
                             item_quantity = Decimal(
                                 str(item_data['quantity']))
                             ProductStock.objects.filter(
-                                id=item_data['product_stock'].id
+                                id=item_data['product_stock'].id,
+                                available_stock__gte=
+                                item_quantity
                             ).update(
                                 reserved_stock=(
                                     F('reserved_stock')
