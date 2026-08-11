@@ -1459,8 +1459,7 @@ class SaleSerializer(serializers.ModelSerializer):
                                 str(item_data['quantity']))
                             ProductStock.objects.filter(
                                 id=item_data['product_stock'].id,
-                                available_stock__gte=
-                                item_quantity
+                                available_stock__gte=item_quantity
                             ).update(
                                 reserved_stock=(
                                     F('reserved_stock')

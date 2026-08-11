@@ -660,7 +660,6 @@ class SaleViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-
     def get_queryset(self):
         """Retrieve sales ordered by id and filtered by status."""
         queryset = super().get_queryset()
