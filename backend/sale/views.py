@@ -1,7 +1,7 @@
 """
 Views for warehouse API.
 """
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import LimitOffsetPagination
@@ -625,7 +625,40 @@ class SaleViewSet(viewsets.ModelViewSet):
     pagination_class = PersonalizedPagination
 
     def perform_create(self, serializer):
+        # Proforma creates do not move stock — no idempotency control needed.
         serializer.save(seller=self.request.user)
+
+    def update(self, request, *args, **kwargs):
+        """Idempotency applies only when realizing a sale (stock moves)."""
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        new_status = request.data.get('status')
+        realizing = new_status == 'realizado'
+        idempotency_key = request.headers.get('Idempotency-Key')
+
+        if realizing:
+            if not idempotency_key:
+                return Response(
+                    {'error': 'Idempotency key is required'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            # Stock already moved — safe idempotent response for retries.
+            if instance.status == 'realizado':
+                serializer = self.get_serializer(instance)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+
+        if realizing:
+            serializer.save(idempotency_key=idempotency_key)
+        else:
+            serializer.save()
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def get_queryset(self):
         """Retrieve sales ordered by id and filtered by status."""

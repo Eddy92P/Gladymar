@@ -33,6 +33,7 @@ function AddCategory() {
 	const API = import.meta.env.VITE_API_URL;
 	const url = `${API}${api.API_URL_CATEGORIES}`;
 	const [isLoading, setIsLoading] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -109,6 +110,8 @@ function AddCategory() {
 	};
 
 	const handleSubmit = async () => {
+		if (isSubmitting) return;
+		setIsSubmitting(true);
 		try {
 			const response = await authFetch(url, {
 				method: 'POST',
@@ -138,9 +141,13 @@ function AddCategory() {
 		} catch (e) {
 			setIsLoading(false);
 			setMessage(e.message);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 	const handleEdit = async () => {
+		if (isSubmitting) return;
+		setIsSubmitting(true);
 		try {
 			const response = await authFetch(`${url}${categoryData.id}/`, {
 				method: 'PUT',
@@ -170,6 +177,8 @@ function AddCategory() {
 		} catch (e) {
 			setIsLoading(false);
 			setMessage(e.message);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 	useEffect(() => {
@@ -253,7 +262,7 @@ function AddCategory() {
 									textTransform: 'none',
 									width: '150px',
 								}}
-								disabled={disabled || isLoading}
+								disabled={disabled || isLoading || isSubmitting}
 								onClick={handleNext}
 							>
 								{buttonText}
@@ -306,7 +315,7 @@ function AddCategory() {
 									textTransform: 'none',
 									width: '150px',
 								}}
-								disabled={disabled || isLoading}
+								disabled={disabled || isLoading || isSubmitting}
 								onClick={handleNext}
 							>
 								{buttonText}

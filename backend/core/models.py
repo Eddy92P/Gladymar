@@ -2,6 +2,7 @@
 Database models for the application.
 """
 import os
+import uuid
 from django.db import models
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -738,6 +739,11 @@ class Sale(models.Model):
     selling_channel = models.ForeignKey(
         SellingChannel, on_delete=models.PROTECT)
     seller = models.ForeignKey(User, on_delete=models.PROTECT)
+    idempotency_key = models.CharField(
+        max_length=255,
+        unique=True,
+        db_index=True,
+        default=uuid.uuid4)
     pre_invoice_number = models.PositiveIntegerField(default=0)
     invoice_number = models.PositiveIntegerField(default=0)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)

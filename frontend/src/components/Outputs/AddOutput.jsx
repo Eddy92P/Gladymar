@@ -74,6 +74,7 @@ export const AddOutput = () => {
 	const urlClientChoices = `${API}${api.API_URL_ALL_CLIENTS}`;
 
 	const [isLoading, setIsLoading] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const storeContext = useContext(StoreContext);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
@@ -237,6 +238,8 @@ export const AddOutput = () => {
 	}, [urlClientChoices, saleData.client]);
 
 	const handleSubmit = async () => {
+		if (isSubmitting) return;
+		setIsSubmitting(true);
 		try {
 			// Preparar los datos básicos de la salida
 			const outputInfo = {
@@ -291,6 +294,8 @@ export const AddOutput = () => {
 		} catch (e) {
 			setIsLoading(false);
 			setMessage(e.message);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 
@@ -745,7 +750,7 @@ export const AddOutput = () => {
 										textTransform: 'none',
 										width: '150px',
 									}}
-									disabled={disabled || isLoading}
+									disabled={disabled || isLoading || isSubmitting}
 									onClick={handleNext}
 								>
 									{buttonText}
@@ -815,7 +820,7 @@ export const AddOutput = () => {
 									textTransform: 'none',
 									width: '150px',
 								}}
-								disabled={disabled || isLoading}
+								disabled={disabled || isLoading || isSubmitting}
 								onClick={handleNext}
 							>
 								{buttonText}

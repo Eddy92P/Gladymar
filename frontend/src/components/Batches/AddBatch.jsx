@@ -35,6 +35,7 @@ function AddBatch() {
 	const url = `${API}${api.API_URL_BATCHES}`;
 	const urlCategoryChoices = `${API}${api.API_URL_ALL_CATEGORIES}`;
 	const [isLoading, setIsLoading] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -146,6 +147,8 @@ function AddBatch() {
 	}, [urlCategoryChoices, batchData.category]);
 
 	const handleSubmit = async () => {
+		if (isSubmitting) return;
+		setIsSubmitting(true);
 		try {
 			const response = await authFetch(url, {
 				method: 'POST',
@@ -176,9 +179,13 @@ function AddBatch() {
 		} catch (e) {
 			setIsLoading(false);
 			setMessage(e.message);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 	const handleEdit = async () => {
+		if (isSubmitting) return;
+		setIsSubmitting(true);
 		try {
 			const response = await authFetch(`${url}${batchData.id}/`, {
 				method: 'PUT',
@@ -209,6 +216,8 @@ function AddBatch() {
 		} catch (e) {
 			setIsLoading(false);
 			setMessage(e.message);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 	useEffect(() => {
@@ -315,7 +324,7 @@ function AddBatch() {
 									textTransform: 'none',
 									width: '150px',
 								}}
-								disabled={disabled || isLoading}
+								disabled={disabled || isLoading || isSubmitting}
 								onClick={handleNext}
 							>
 								{buttonText}
@@ -369,7 +378,7 @@ function AddBatch() {
 									textTransform: 'none',
 									width: '150px',
 								}}
-								disabled={disabled || isLoading}
+								disabled={disabled || isLoading || isSubmitting}
 								onClick={handleNext}
 							>
 								{buttonText}

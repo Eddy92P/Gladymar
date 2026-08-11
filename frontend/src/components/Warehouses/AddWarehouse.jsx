@@ -65,6 +65,7 @@ function AddWarehouse() {
 	const API = import.meta.env.VITE_API_URL;
 	const url = `${API}${api.API_URL_WAREHOUSES}`;
 	const [isLoading, setIsLoading] = useState(false);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [message, setMessage] = useState('');
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -318,6 +319,8 @@ function AddWarehouse() {
 	};
 
 	const handleSubmit = async () => {
+		if (isSubmitting) return;
+		setIsSubmitting(true);
 		try {
 			const response = await authFetch(url, {
 				method: 'POST',
@@ -392,9 +395,13 @@ function AddWarehouse() {
 		} catch (e) {
 			setIsLoading(false);
 			setMessage(e.message);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 	const handleEdit = async () => {
+		if (isSubmitting) return;
+		setIsSubmitting(true);
 		try {
 			const response = await authFetch(`${url}${warehouseData.id}/`, {
 				method: 'PUT',
@@ -471,6 +478,8 @@ function AddWarehouse() {
 		} catch (e) {
 			setIsLoading(false);
 			setMessage(e.message);
+		} finally {
+			setIsSubmitting(false);
 		}
 	};
 	const handleRemoveProduct = (e, id) => {
@@ -878,7 +887,7 @@ function AddWarehouse() {
 									textTransform: 'none',
 									width: '150px',
 								}}
-								disabled={disabled || isLoading}
+								disabled={disabled || isLoading || isSubmitting}
 								onClick={handleNext}
 							>
 								{buttonText}
@@ -945,7 +954,7 @@ function AddWarehouse() {
 									textTransform: 'none',
 									width: '150px',
 								}}
-								disabled={disabled || isLoading}
+								disabled={disabled || isLoading || isSubmitting}
 								onClick={handleNext}
 							>
 								{buttonText}
