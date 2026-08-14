@@ -10,12 +10,17 @@ from core.models import (
     SellingChannel, Product, ProductChannelPrice,
     Batch, Category, Warehouse, Agency, Supplier, MeasureUnit
 )
-from sale.serializers import SellingChannelSerializer
+from sale.serializers import (
+    SellingChannelLightSerializer,
+    SellingChannelSerializer,
+)
 import uuid
 from datetime import date
 
 
 SELLING_CHANNEL_URL = reverse('sale:sellingchannel-list')
+ALL_SELLING_CHANNEL_URL = reverse(
+    'sale:sellingchannel-all-selling-channels')
 
 
 def detail_url(selling_channel_id):
@@ -202,6 +207,20 @@ class PrivateSellingChannelApiTests(TestCase):
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data['rows'], serializer.data)
+
+    def test_retrieve_all_selling_channels_uses_light_serializer(self):
+        """Test /all omits product_channel_price from each channel."""
+        channel = create_selling_channel()
+        create_product_channel_price(selling_channel=channel)
+
+        res = self.client.get(ALL_SELLING_CHANNEL_URL)
+        selling_channels = SellingChannel.objects.all().order_by('-id')
+        serializer = SellingChannelLightSerializer(
+            selling_channels, many=True)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data, serializer.data)
+        self.assertNotIn('product_channel_price', res.data[0])
 
     def test_create_selling_channel(self):
         """Test creating a selling channel."""

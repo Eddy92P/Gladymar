@@ -39,6 +39,7 @@ from .serializers import (
     ProductStockSerializer,
     PurchaseSerializer,
     SaleSerializer,
+    SellingChannelLightSerializer,
     SellingChannelSerializer,
     SupplierSerializer,
     WarehouseSerializer,
@@ -553,14 +554,22 @@ class SellingChannelViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retrieve selling channels ordered by id."""
-        return self.queryset.order_by('-id').prefetch_related(
+        queryset = self.queryset.order_by('-id')
+        if self.action == 'all_selling_channels':
+            return queryset
+        return queryset.prefetch_related(
             Prefetch(
                 'product_channel_price',
                 queryset=ProductChannelPrice.objects.select_related('product')
             )
         )
 
-    @action(detail=False, methods=["get"], url_path="all")
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="all",
+        serializer_class=SellingChannelLightSerializer,
+    )
     def all_selling_channels(self, request):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
