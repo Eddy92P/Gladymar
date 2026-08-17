@@ -111,7 +111,7 @@ class CatalogView(APIView):
                 })
         elif agency_id and sale_id:
             sale_items = SaleItem.objects.filter(
-                sale=sale_id, sale__agency=agency_id).exclude(
+                sale=sale_id).exclude(
                 status='completado').prefetch_related('product_stock')
 
             for sale_item in sale_items:
@@ -140,7 +140,7 @@ class CatalogView(APIView):
                 })
         elif agency_id and purchase_id:
             purchase_items = PurchaseItem.objects.filter(
-                purchase=purchase_id, purchase__agency=agency_id).exclude(
+                purchase=purchase_id).exclude(
                 status='completado').select_related('product')
 
             for purchase_item in purchase_items:
