@@ -708,6 +708,15 @@ class SaleViewSet(viewsets.ModelViewSet):
 
         return queryset.order_by('-sale_anticipation', '-id')
 
+    @action(detail=False, methods=['get'])
+    def choices(self, request):
+        """Get sale status choices."""
+        choices = [
+            {'value': choice[0], 'label': choice[1]}
+            for choice in Sale.STATUS_CHOICES
+        ]
+        return Response(choices)
+
     def list(self, request, *args, **kwargs):
         """List sales, batching payments in a single query per page.
 

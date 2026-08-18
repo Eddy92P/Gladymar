@@ -3,7 +3,7 @@ import List from '../UI/List/List';
 import { api } from '../../Constants';
 import { formatDisplayDate } from '../../DateUtils';
 import ListHeader from '../UI/List/ListHeader';
-import Filter from '../UI/List/Filter';
+import SaleFilter from '../UI/List/SaleFilter';
 import { Fragment, useEffect, useState, useContext } from 'react';
 
 import AuthContext from '../../store/auth-context';
@@ -35,12 +35,16 @@ const SaleList = () => {
 	const API = import.meta.env.VITE_API_URL;
 	const pdfUrl = `${API}${api.PROFORMA_PDF_URL}`;
 
+	const urlSaleChoices = `${API}${api.API_URL_SALE_CHOICES}`;
+
 	const [list, setList] = useState([]);
 	const [error, setError] = useState(null);
+	const [filterTab, setFilterTab] = useState('');
 	const [filterText, setFilterText] = useState('');
 	const [rowCount, setRowCount] = useState(0);
 	const [page, setPage] = useState(0);
 	const [pageSize, setPageSize] = useState(5);
+	const [saleStatusChoices, setSaleStatusChoices] = useState([]);
 	const navigate = useNavigate();
 
 	const contentHeader = [
@@ -185,6 +189,29 @@ const SaleList = () => {
 	];
 
 	useEffect(() => {
+		const fetchSaleStatusChoices = async () => {
+			try {
+				const response = await authFetch(urlSaleChoices, {
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				});
+				if (response.ok) {
+					const choices = await response.json();
+					setSaleStatusChoices(choices);
+				}
+			} catch (error) {
+				console.error('Error fetching sale choices:', error);
+			}
+		};
+
+		if (authContext.userType == 4) {
+			fetchSaleStatusChoices();
+		}
+	}, [urlSaleChoices, authContext.userType]);
+
+	useEffect(() => {
 		let isMounted = true;
 		const controller = new AbortController();
 
@@ -194,6 +221,10 @@ const SaleList = () => {
 
 		if (filterText) {
 			url += `&search=${filterText}`;
+		}
+
+		if (filterTab) {
+			url += `&status=${filterTab}`;
 		}
 
 		const fetchSales = async () => {
@@ -258,7 +289,7 @@ const SaleList = () => {
 			isMounted = false;
 			controller.abort();
 		};
-	}, [filterText, page, pageSize, API]);
+	}, [filterText, page, pageSize, filterTab, API]);
 
 	const handleAddSale = () => {
 		navigate('agregar_venta');
@@ -298,6 +329,10 @@ const SaleList = () => {
 		window.open(fullPdfUrl, '_blank');
 	};
 
+	const handleTabChange = filterTab => {
+		setFilterTab(filterTab);
+	};
+
 	const handlePageChange = newPage => {
 		setPage(newPage);
 	};
@@ -325,7 +360,12 @@ const SaleList = () => {
 				parsedList={list}
 				contentHeader={contentHeader}
 				filter={
-					<Filter onFilter={e => setFilterText(e.target.value)} />
+					<SaleFilter
+						choices={saleStatusChoices}
+						onFilter={e => setFilterText(e.target.value)}
+						onTabChange={handleTabChange}
+						visible={authContext.userType == 4}
+					/>
 				}
 			/>
 		</Fragment>
