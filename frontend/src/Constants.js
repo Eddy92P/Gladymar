@@ -41,6 +41,7 @@ const apiUrl = {
 	API_URL_ALL_SELLING_CHANNEL: '/api/sale/selling-channels/all',
 	API_URL_PURCHASES: '/api/sale/purchases/',
 	API_URL_SALES: '/api/sale/sales/',
+	API_URL_SALE_CHOICES: '/api/sale/sales/choices/',
 	API_URL_PAYMENTS: '/api/sale/payments/',
 	API_URL_CATALOG: '/api/sale/catalog',
 	API_URL_REPORTS: '/api/sale/reports/',
