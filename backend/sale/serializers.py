@@ -48,12 +48,6 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class BatchSerializer(serializers.ModelSerializer):
     """Serializer for Batch model"""
-    category = CategorySerializer(read_only=True)
-    category_id = serializers.PrimaryKeyRelatedField(
-        queryset=Category.objects.all(),
-        source='category',
-        write_only=True
-    )
 
     class Meta:
         model = Batch
@@ -71,10 +65,10 @@ class MeasureUnitSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     """Serializer for Product model"""
-    batch = BatchSerializer(read_only=True)
-    batch_id = serializers.PrimaryKeyRelatedField(
-        queryset=Batch.objects.all(),
-        source='batch',
+    category = CategorySerializer(read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(),
+        source='category',
         write_only=True
     )
     measure_unit = MeasureUnitSerializer(read_only=True)
@@ -87,10 +81,10 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
-            'id', 'batch', 'batch_id', 'measure_unit', 'measure_unit_id',
-            'name', 'code', 'description', 'image',
-            'minimum_sale_price', 'maximum_sale_price',
-            'created_at', 'updated_at',
+            'id', 'category', 'category_id',
+            'measure_unit', 'measure_unit_id', 'name', 'code',
+            'description', 'image', 'minimum_sale_price',
+            'maximum_sale_price', 'created_at', 'updated_at',
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
@@ -159,12 +153,15 @@ class NestedProductStockSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(
         queryset=Product.objects.all(), write_only=True)
     products = ProductSerializer(read_only=True, source='product')
+    batch = serializers.PrimaryKeyRelatedField(
+        queryset=Batch.objects.all(), write_only=True)
+    batches = BatchSerializer(read_only=True, source='batch')
     id = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
         model = ProductStock
         fields = [
-            'id', 'product', 'products',
+            'id', 'product', 'products', 'batch', 'batches',
             'stock', 'reserved_stock', 'available_stock', 'minimum_stock',
             'maximum_stock'
         ]
@@ -255,8 +252,9 @@ class WarehouseSerializer(serializers.ModelSerializer):
             if products_stock_data is not None:
                 existing_items = list(instance.product_stocks.all())
                 existing_by_id = {item.id: item for item in existing_items}
-                existing_by_product = {
-                    item.product_id: item for item in existing_items
+                existing_by_product_batch = {
+                    (item.product_id, item.batch_id): item
+                    for item in existing_items
                 }
                 matched_ids = set()
 
@@ -267,8 +265,11 @@ class WarehouseSerializer(serializers.ModelSerializer):
                         item = existing_by_id.get(item_id)
                     if item is None:
                         product = item_data.get('product')
+                        batch = item_data.get('batch')
                         product_id = getattr(product, 'id', product)
-                        item = existing_by_product.get(product_id)
+                        batch_id = getattr(batch, 'id', batch)
+                        item = existing_by_product_batch.get(
+                            (product_id, batch_id))
 
                     if item is not None:
                         matched_ids.add(item.id)
@@ -315,12 +316,18 @@ class ProductStockSerializer(serializers.ModelSerializer):
     warehouse = serializers.PrimaryKeyRelatedField(
         queryset=Warehouse.objects.all(), write_only=True)
     warehouses = WarehouseLightSerializer(read_only=True, source='warehouse')
+    batch = BatchSerializer(read_only=True)
+    batch_id = serializers.PrimaryKeyRelatedField(
+        queryset=Batch.objects.all(),
+        source='batch',
+        write_only=True)
     id = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
         model = ProductStock
         fields = [
             'id', 'product', 'products', 'warehouse', 'warehouses',
+            'batch', 'batch_id',
             'stock', 'reserved_stock', 'available_stock', 'damaged_stock',
             'minimum_stock', 'maximum_stock'
         ]
@@ -771,6 +778,10 @@ class EntryItemSerializer(serializers.ModelSerializer):
         write_only=True,
         queryset=Warehouse.objects.all()
     )
+    batch = serializers.PrimaryKeyRelatedField(
+        write_only=True,
+        queryset=Batch.objects.all()
+    )
 
     class Meta:
         model = EntryItem
@@ -780,7 +791,8 @@ class EntryItemSerializer(serializers.ModelSerializer):
             'product',
             'products_stock',
             'quantity',
-            'warehouse']
+            'warehouse',
+            'batch']
         read_only_fields = ['id']
 
     def validate(self, data):
@@ -804,10 +816,11 @@ class EntryItemSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         product = validated_data.pop('product')
         warehouse = validated_data.pop('warehouse')
+        batch = validated_data.pop('batch')
         quantity = validated_data.get('quantity', 0)
 
         validated_data['product_stock'] = AssignProductWarehouseService(
-            product, warehouse, quantity
+            product, warehouse, batch, quantity
         ).assign_product_warehouse()
 
         entry_item = super().create(validated_data)

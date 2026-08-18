@@ -10,20 +10,23 @@ logger = logging.getLogger(__name__)
 
 
 class AssignProductWarehouseService:
-    def __init__(self, product, warehouse, quantity):
+    def __init__(self, product, warehouse, batch, quantity):
         self.product = product
         self.warehouse = warehouse
+        self.batch = batch
         self.quantity = Decimal(str(quantity))
 
     def assign_product_warehouse(self):
         """
-        Get or create the ProductStock for the product/warehouse, increasing
-        its stock and available stock. Returns the ProductStock instance.
+        Get or create the ProductStock for the product/warehouse/batch,
+        increasing its stock and available stock. Returns the ProductStock
+        instance.
         """
         try:
             product_stock, created = ProductStock.objects.get_or_create(
                 product=self.product,
                 warehouse=self.warehouse,
+                batch=self.batch,
                 defaults={
                     'stock': self.quantity,
                     'available_stock': self.quantity,

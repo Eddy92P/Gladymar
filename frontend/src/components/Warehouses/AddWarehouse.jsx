@@ -64,6 +64,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 function AddWarehouse() {
 	const API = import.meta.env.VITE_API_URL;
 	const url = `${API}${api.API_URL_WAREHOUSES}`;
+	const urlBatchChoices = `${API}${api.API_URL_ALL_BATCHES}`;
 	const [isLoading, setIsLoading] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [message, setMessage] = useState('');
@@ -83,6 +84,7 @@ function AddWarehouse() {
 	const [disabled, setDisabled] = useState(true);
 	const [errorMessage, setErrorMessage] = useState('');
 	const [showProductsModal, setShowProductsModal] = useState(false);
+	const [batchChoices, setBatchChoices] = useState([]);
 
 	const nameReducer = (state, action) => {
 		if (action.type === 'INPUT_FOCUS') {
@@ -192,6 +194,13 @@ function AddWarehouse() {
 		if (action.type === 'REMOVE_PRODUCT') {
 			return state.filter(product => product.id !== action.id);
 		}
+		if (action.type === 'BATCH_CHANGE') {
+			return state.map(product =>
+				product.id === action.id
+					? { ...product, batch: action.batch }
+					: product
+			);
+		}
 		if (action.type === 'ADD_PRODUCT') {
 			return [...state, action.product];
 		}
@@ -208,7 +217,7 @@ function AddWarehouse() {
 				// Core product information
 				productStockId: product.id,
 				id: product.products.id,
-				batch: product.products?.batch?.name || '',
+				batch: product.batches || null,
 				name:
 					product.name ||
 					product.products?.name ||
@@ -297,6 +306,37 @@ function AddWarehouse() {
 		dispatchProductList({ type: 'STOCK_CHANGE', id, val: value });
 	};
 
+	const batchInputChangeHandler = (event, option, productId) => {
+		dispatchProductList({
+			type: 'BATCH_CHANGE',
+			id: productId,
+			batch: option,
+		});
+	};
+
+	useEffect(() => {
+		const fetchBatches = async () => {
+			try {
+				const response = await authFetch(urlBatchChoices, {
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				});
+				if (response.ok) {
+					const data = await response.json();
+					setBatchChoices(data || []);
+				}
+			} catch (error) {
+				console.error(
+					'Error al recuperar las opciones de Lotes:',
+					error
+				);
+			}
+		};
+		fetchBatches();
+	}, [urlBatchChoices]);
+
 	const handlerCancel = () => {
 		if (isForm) {
 			navigate(-1);
@@ -329,6 +369,7 @@ function AddWarehouse() {
 					location: locationState.value,
 					product_stock: productListState.map(product => ({
 						product: product.id,
+						batch: product.batch?.id,
 						stock: product.stock.value,
 						minimum_stock: product.minimumStock.value,
 						maximum_stock: product.maximumStock.value,
@@ -411,6 +452,7 @@ function AddWarehouse() {
 					product_stock: productListState.map(product => ({
 						id: product.productStockId,
 						product: product.id,
+						batch: product.batch?.id,
 						stock: product.stock.value,
 						minimum_stock: product.minimumStock.value,
 						maximum_stock: product.maximumStock.value,
@@ -499,7 +541,8 @@ function AddWarehouse() {
 					product.stock?.value !== '' &&
 					product.stock?.isValid &&
 					product.minimumStock?.isValid &&
-					product.maximumStock?.isValid
+					product.maximumStock?.isValid &&
+					product.batch?.id
 			);
 			const isValid =
 				nameIsValid && locationIsValid && allFieldsValid;
@@ -617,10 +660,78 @@ function AddWarehouse() {
 												{productListState.map(
 													product => (
 														<TableRow
-															key={`row-${product.id}`}
+															key={`row-${product.productStockId || product.id}-${product.batch?.id || 'new'}`}
 														>
 															<TableCell>
-																{product.batch}
+																<Autocomplete
+																	disablePortal
+																	disabled={
+																		warehouseData.length !==
+																			0 &&
+																		product.productStockId !==
+																			undefined
+																	}
+																	disableClearable={
+																		warehouseData.length !==
+																			0 &&
+																		product.productStockId !==
+																			undefined
+																	}
+																	value={
+																		product.batch
+																			?.id
+																			? product.batch
+																			: null
+																	}
+																	options={
+																		batchChoices
+																	}
+																	isOptionEqualToValue={(
+																		option,
+																		value
+																	) =>
+																		option?.id ===
+																		value?.id
+																	}
+																	getOptionLabel={option =>
+																		option
+																			? option.name ||
+																				''
+																			: ''
+																	}
+																	renderOption={(
+																		props,
+																		option
+																	) => (
+																		<li
+																			{...props}
+																			key={
+																				option.id
+																			}
+																		>
+																			{
+																				option.name
+																			}
+																		</li>
+																	)}
+																	renderInput={params => (
+																		<TextField
+																			{...params}
+																			label="Lote"
+																			required
+																		/>
+																	)}
+																	onChange={(
+																		event,
+																		option
+																	) =>
+																		batchInputChangeHandler(
+																			event,
+																			option,
+																			product.id
+																		)
+																	}
+																/>
 															</TableCell>
 															<TableCell>
 																{product.name}
@@ -981,7 +1092,10 @@ function AddWarehouse() {
 							products.forEach(product => {
 								dispatchProductList({
 									type: 'ADD_PRODUCT',
-									product,
+									product: {
+										...product,
+										batch: null,
+									},
 								});
 							});
 						}}

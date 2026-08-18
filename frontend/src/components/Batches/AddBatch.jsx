@@ -18,7 +18,6 @@ import {
 	FormControl,
 	Box,
 	Typography,
-	Autocomplete,
 } from '@mui/material';
 import classes from '../UI/List/List.module.css';
 
@@ -33,7 +32,6 @@ import authFetch from '../../api/authFetch';
 function AddBatch() {
 	const API = import.meta.env.VITE_API_URL;
 	const url = `${API}${api.API_URL_BATCHES}`;
-	const urlCategoryChoices = `${API}${api.API_URL_ALL_CATEGORIES}`;
 	const [isLoading, setIsLoading] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [message, setMessage] = useState('');
@@ -51,8 +49,6 @@ function AddBatch() {
 	const [title, setTitle] = useState('');
 	const [buttonText, setButtonText] = useState('');
 	const [disabled, setDisabled] = useState(true);
-	const [categoryChoices, setCategoryChoices] = useState([]);
-	const [category, setCategory] = useState(null);
 	const [errorMessage, setErrorMessage] = useState('');
 
 	const nameReducer = (state, action) => {
@@ -92,10 +88,6 @@ function AddBatch() {
 		dispatchName({ type: 'INPUT_CHANGE', val: e.target.value });
 	};
 
-	const categoryInputChangeHandler = (event, option) => {
-		setCategory(option);
-	};
-
 	const handlerCancel = () => {
 		if (isForm) {
 			navigate(-1);
@@ -117,35 +109,6 @@ function AddBatch() {
 		}
 	};
 
-	useEffect(() => {
-		const fetchCategoryChoices = async () => {
-			try {
-				const response = await authFetch(urlCategoryChoices, {
-					headers: {
-						'Content-Type': 'application/json',
-					},
-				});
-				if (response.ok) {
-					const data = await response.json();
-					const choices = data || [];
-					setCategoryChoices(choices);
-					if (batchData.category && choices.length > 0) {
-						const matchingChoice = choices.find(
-							choice => choice.id === batchData.category.id
-						);
-						if (matchingChoice) {
-							setCategory(matchingChoice);
-						}
-					}
-				}
-			} catch (error) {
-				console.error('Error fetching warehouse choices:', error);
-			}
-		};
-
-		fetchCategoryChoices();
-	}, [urlCategoryChoices, batchData.category]);
-
 	const handleSubmit = async () => {
 		if (isSubmitting) return;
 		setIsSubmitting(true);
@@ -154,7 +117,6 @@ function AddBatch() {
 				method: 'POST',
 				body: JSON.stringify({
 					name: nameState.value,
-					category_id: category.id,
 				}),
 				headers: {
 					'Content-Type': 'application/json',
@@ -191,7 +153,6 @@ function AddBatch() {
 				method: 'PUT',
 				body: JSON.stringify({
 					name: nameState.value,
-					category_id: category.id,
 				}),
 				headers: {
 					'Content-Type': 'application/json',
@@ -221,7 +182,7 @@ function AddBatch() {
 		}
 	};
 	useEffect(() => {
-		if (nameState.value && category) {
+		if (nameState.value) {
 			const isValid = nameIsValid;
 
 			setFormIsValid(isValid);
@@ -229,7 +190,7 @@ function AddBatch() {
 		} else {
 			setDisabled(true);
 		}
-	}, [nameState.value, category, nameIsValid]);
+	}, [nameState.value, nameIsValid]);
 
 	useEffect(() => {
 		setTitle(batchData.length !== 0 ? 'Editar Lote' : 'Agregar Lote');
@@ -267,31 +228,6 @@ function AddBatch() {
 											}
 											required
 											fullWidth
-										/>
-									</Grid>
-									<Grid size={{ xs: 6, sm: 3 }}>
-										<Autocomplete
-											disablePortal
-											value={category}
-											options={categoryChoices}
-											getOptionLabel={option =>
-												option ? option.name || '' : ''
-											}
-											renderOption={(props, option) => (
-												<li {...props} key={option.id}>
-													{option.name}
-												</li>
-											)}
-											renderInput={params => (
-												<TextField
-													{...params}
-													label="Categoría"
-													required
-												/>
-											)}
-											onChange={
-												categoryInputChangeHandler
-											}
 										/>
 									</Grid>
 								</Grid>
@@ -348,7 +284,6 @@ function AddBatch() {
 					<div className={classes.listContainer}>
 						<AddBatchPreview
 							name={nameState.value}
-							category={category.name}
 							message={message}
 						/>
 						<Box

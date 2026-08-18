@@ -73,6 +73,7 @@ export const AddEntry = () => {
 	const url = `${API}${api.API_URL_ENTRIES}`;
 	const urlSupplierChoices = `${API}${api.API_URL_ALL_SUPPLIERS}`;
 	const urlWarehousesChoices = `${API}${api.API_URL_ALL_WAREHOUSES}`;
+	const urlBatchChoices = `${API}${api.API_URL_ALL_BATCHES}`;
 
 	const [isLoading, setIsLoading] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -98,6 +99,7 @@ export const AddEntry = () => {
 	const [supplier, setSupplier] = useState(null);
 	const [warehouseChoices, setWarehouseChoices] = useState([]);
 	const [defaultWarehouse, setDefaultWarehouse] = useState(null);
+	const [batchChoices, setBatchChoices] = useState([]);
 	const [note, setNote] = useState('');
 
 	const entryDateReducer = (state, action) => {
@@ -132,10 +134,20 @@ export const AddEntry = () => {
 		if (action.type === 'SET_ERROR') {
 			return state.map(product => {
 				if (product.id === action.id) {
+					const current = product[action.field];
+					if (current && typeof current === 'object') {
+						return {
+							...product,
+							[action.field]: {
+								...current,
+								isValid: false,
+								feedbackText: action.errorMessage,
+							},
+						};
+					}
 					return {
 						...product,
 						[action.field]: {
-							...product[action.field],
 							isValid: false,
 							feedbackText: action.errorMessage,
 						},
@@ -151,6 +163,13 @@ export const AddEntry = () => {
 			return state.map(product =>
 				product.id === action.id
 					? { ...product, warehouse: action.warehouse }
+					: product
+			);
+		}
+		if (action.type === 'BATCH_CHANGE') {
+			return state.map(product =>
+				product.id === action.id
+					? { ...product, batch: action.batch }
 					: product
 			);
 		}
@@ -190,6 +209,14 @@ export const AddEntry = () => {
 			type: 'WAREHOUSE_CHANGE',
 			id: productId,
 			warehouse: option,
+		});
+	};
+
+	const batchInputChangeHandler = (event, option, productId) => {
+		dispatchProductList({
+			type: 'BATCH_CHANGE',
+			id: productId,
+			batch: option,
 		});
 	};
 
@@ -279,6 +306,30 @@ export const AddEntry = () => {
 		};
 		fetchWarehouses();
 	}, [urlWarehousesChoices, purchaseData.warehouse]);
+
+	useEffect(() => {
+		const fetchBatches = async () => {
+			try {
+				const response = await authFetch(urlBatchChoices, {
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				});
+				if (response.ok) {
+					const data = await response.json();
+					setBatchChoices(data || []);
+				}
+			} catch (error) {
+				console.error(
+					'Error al recuperar las opciones de Lotes:',
+					error
+				);
+			}
+		};
+		fetchBatches();
+	}, [urlBatchChoices]);
+
 	const handleSubmit = async () => {
 		if (isSubmitting) return;
 		setIsSubmitting(true);
@@ -293,6 +344,7 @@ export const AddEntry = () => {
 					purchase_item: product.purchaseItem,
 					product: product.id,
 					warehouse: product.warehouse?.id,
+					batch: product.batch?.id,
 					quantity: product.quantity.value,
 				})),
 				note: note,
@@ -328,6 +380,20 @@ export const AddEntry = () => {
 								field: 'quantity',
 							});
 						}
+						if (entry_item.batch) {
+							const errorMessage = Array.isArray(
+								entry_item.batch
+							)
+								? entry_item.batch[0]
+								: entry_item.batch;
+
+							dispatchProductList({
+								type: 'SET_ERROR',
+								id: productId,
+								errorMessage: errorMessage,
+								field: 'batch',
+							});
+						}
 					});
 				}
 			} else {
@@ -354,7 +420,11 @@ export const AddEntry = () => {
 		) {
 			// Validar Productos
 			const allProductsFieldsValid = productListState.every(
-				product => product.quantity.value && product.quantity.isValid
+				product =>
+					product.quantity.value &&
+					product.quantity.isValid &&
+					product.batch?.id &&
+					product.warehouse?.id
 			);
 			const isValid =
 				entryDateIsValid &&
@@ -633,9 +703,79 @@ export const AddEntry = () => {
 																	key={`row-${product.id}`}
 																>
 																	<TableCell>
-																		{
-																			product.batch
-																		}
+																		<Autocomplete
+																			disablePortal
+																			value={
+																				product.batch
+																					?.id
+																					? product.batch
+																					: null
+																			}
+																			options={
+																				batchChoices
+																			}
+																			isOptionEqualToValue={(
+																				option,
+																				value
+																			) =>
+																				option?.id ===
+																				value?.id
+																			}
+																			getOptionLabel={option =>
+																				option
+																					? option.name ||
+																						''
+																					: ''
+																			}
+																			renderOption={(
+																				props,
+																				option
+																			) => (
+																				<li
+																					{...props}
+																					key={
+																						option.id
+																					}
+																				>
+																					{
+																						option.name
+																					}
+																				</li>
+																			)}
+																			renderInput={params => (
+																				<TextField
+																					{...params}
+																					label="Lote"
+																					required
+																					error={
+																						product
+																							.batch
+																							?.isValid ===
+																						false
+																					}
+																					helperText={
+																						product
+																							.batch
+																							?.isValid ===
+																						false
+																							? product
+																									.batch
+																									.feedbackText
+																							: ''
+																					}
+																				/>
+																			)}
+																			onChange={(
+																				event,
+																				option
+																			) =>
+																				batchInputChangeHandler(
+																					event,
+																					option,
+																					product.id
+																				)
+																			}
+																		/>
 																	</TableCell>
 																	<TableCell>
 																		{
@@ -903,6 +1043,7 @@ export const AddEntry = () => {
 									product: {
 										...product,
 										warehouse: defaultWarehouse,
+										batch: null,
 									},
 								});
 							});

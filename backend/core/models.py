@@ -326,7 +326,6 @@ class Category(models.Model):
 
 
 class Batch(models.Model):
-    category = models.ForeignKey(Category, on_delete=models.PROTECT)
     name = models.CharField(
         max_length=255,
         null=False,
@@ -347,8 +346,6 @@ class Batch(models.Model):
     def __str__(self):
         return self.name
 
-    class Meta:
-        unique_together = ('category', 'name')
 
 
 class MeasureUnit(models.Model):
@@ -361,7 +358,10 @@ class MeasureUnit(models.Model):
 
 
 class Product(models.Model):
-    batch = models.ForeignKey(Batch, on_delete=models.PROTECT)
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.PROTECT
+    )
     measure_unit = models.ForeignKey(
         MeasureUnit, on_delete=models.PROTECT)
     name = models.CharField(
@@ -403,7 +403,7 @@ class Product(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('batch', 'code', 'name')
+        unique_together = ('code', 'name')
 
     def __str__(self):
         return f"{self.name} - {self.code}"
@@ -448,6 +448,10 @@ class ProductStock(models.Model):
         Warehouse,
         on_delete=models.PROTECT,
         related_name='product_stocks')
+    batch = models.ForeignKey(
+        Batch,
+        on_delete=models.PROTECT,
+        related_name='product_stocks')
     stock = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     reserved_stock = models.DecimalField(
         max_digits=10, decimal_places=2, default=0)
@@ -461,7 +465,7 @@ class ProductStock(models.Model):
         max_digits=10, decimal_places=2, default=0)
 
     class Meta:
-        unique_together = ("product", "warehouse")
+        unique_together = ("product", "warehouse", "batch")
 
     def save(self, *args, **kwargs):
         if self.minimum_stock > self.maximum_stock:

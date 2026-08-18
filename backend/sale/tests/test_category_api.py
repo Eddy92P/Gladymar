@@ -8,6 +8,7 @@ from sale.serializers import CategorySerializer
 import uuid
 
 CATEGORY_URL = reverse('sale:category-list')
+ALL_CATEGORY_URL = reverse('sale:category-all-categories')
 
 
 def create_user(**params):
@@ -94,6 +95,21 @@ class PrivatCategoryApiTests(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data['rows'], serializer.data)
         self.assertEqual(res.data['total'], 2)
+
+    def test_retrieve_all_categories(self):
+        """Test retrieving all categories with only id and name."""
+        category1 = create_category()
+        category2 = create_category(name='Test Category 2')
+
+        res = self.client.get(ALL_CATEGORY_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIsInstance(res.data, list)
+        self.assertEqual(len(res.data), 2)
+        for item in res.data:
+            self.assertEqual(set(item.keys()), {'id', 'name'})
+        returned_ids = {item['id'] for item in res.data}
+        self.assertEqual(returned_ids, {category1.id, category2.id})
 
     def test_create_category(self):
         """Test creating a category."""

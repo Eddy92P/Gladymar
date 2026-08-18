@@ -476,7 +476,7 @@ export const AddSupplier = () => {
 	}, [isForm, supplierData]);
 
 	// Definir columnas estáticas para evitar renderizar objetos anidados
-	const columns = ['batch', 'name', 'code'];
+	const columns = ['name', 'code'];
 
 	return (
 		<>
@@ -583,9 +583,6 @@ export const AddSupplier = () => {
 										>
 											<TableHead>
 												<TableRow>
-													<StyledTableCell>
-														Lote
-													</StyledTableCell>
 													<StyledTableCell>
 														Nombre
 													</StyledTableCell>

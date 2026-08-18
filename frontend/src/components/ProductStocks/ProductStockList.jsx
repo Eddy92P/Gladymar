@@ -128,7 +128,7 @@ const ProductStockList = () => {
 						return {
 							id: listData.id,
 							name: listData.products.name,
-							batch: listData.products.batch.name,
+							batch: listData.batch.name,
 							code: listData.products.code,
 							warehouse: listData.warehouses.name,
 							stock: listData.stock,

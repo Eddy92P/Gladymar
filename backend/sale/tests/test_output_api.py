@@ -97,7 +97,6 @@ def create_batch(**params):
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
         'name': f'Sample Batch {unique_suffix}',
-        'category': create_category(),
     }
     defaults.update(params)
     batch = Batch.objects.create(**defaults)
@@ -119,7 +118,7 @@ def create_product(**params):
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
         'name': f'Sample Product {unique_suffix}',
-        'batch': create_batch(),
+        'category': create_category(),
         'code': f'CODE-{unique_suffix}',
         'measure_unit': create_measure_unit(),
         'minimum_sale_price': 10.00,
@@ -135,6 +134,7 @@ def create_product_stock(**params):
     defaults = {
         'product': create_product(),
         'warehouse': create_warehouse(),
+        'batch': create_batch(),
         'stock': 50,
         'reserved_stock': 10,
         'available_stock': 40,

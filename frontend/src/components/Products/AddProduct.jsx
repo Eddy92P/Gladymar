@@ -16,6 +16,7 @@ import {
 	validateProductName,
 	validateCode,
 	validatePositiveNumber,
+	validateSelectInput,
 } from '../../Validations';
 
 import authFetch from '../../api/authFetch';
@@ -39,7 +40,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 function AddProduct() {
 	const API = import.meta.env.VITE_API_URL;
 	const url = `${API}${api.API_URL_PRODUCTS}`;
-	const urlBatchChoices = `${API}${api.API_URL_ALL_BATCHES}`;
+	const urlCategoryChoices = `${API}${api.API_URL_ALL_CATEGORIES}`;
 	const urlMeasureUnitChoices = `${API}${api.API_URL_ALL_MEASURE_UNITS}`;
 	const [isLoading, setIsLoading] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,10 +60,12 @@ function AddProduct() {
 	const [title, setTitle] = useState('');
 	const [buttonText, setButtonText] = useState('');
 	const [disabled, setDisabled] = useState(true);
-	const [batchChoices, setBatchChoices] = useState([]);
-	const [batch, setBatch] = useState(null);
+	const [categoryChoices, setCategoryChoices] = useState([]);
+	const [category, setCategory] = useState(null);
 	const [measureUnitChoices, setMeasureUnitChoices] = useState([]);
 	const [measureUnit, setMeasureUnit] = useState(null);
+	const [categoryError, setCategoryError] = useState('');
+	const [measureUnitError, setMeasureUnitError] = useState('');
 	const [errorMessage, setErrorMessage] = useState('');
 	const [selectedFile, setSelectedFile] = useState(null);
 	const [selectedFileUrl, setSelectedFileUrl] = useState(null);
@@ -205,7 +208,8 @@ function AddProduct() {
 	const { isValid: codeIsValid } = codeState;
 	const { isValid: minimumSalePriceIsValid } = minimumSalePriceState;
 	const { isValid: maximumSalePriceIsValid } = maximumSalePriceState;
-	const unitMeasurementIsValid = measureUnit !== null;
+	const categoryIsValid = validateSelectInput(category);
+	const unitMeasurementIsValid = validateSelectInput(measureUnit);
 
 	const nameInputChangeHandler = e => {
 		dispatchName({ type: 'INPUT_CHANGE', val: e.target.value });
@@ -225,14 +229,20 @@ function AddProduct() {
 
 	const measureUnitInputChangeHandler = (event, option) => {
 		setMeasureUnit(option);
+		setMeasureUnitError(
+			validateSelectInput(option) ? '' : 'Seleccione una unidad de medida'
+		);
 	};
 
 	const descriptionInputChangeHandler = e => {
 		setDescription(e.target.value);
 	};
 
-	const batchInputChangeHandler = (event, option) => {
-		setBatch(option);
+	const categoryInputChangeHandler = (event, option) => {
+		setCategory(option);
+		setCategoryError(
+			validateSelectInput(option) ? '' : 'Seleccione una categoría'
+		);
 	};
 
 	const handlerCancel = () => {
@@ -257,9 +267,9 @@ function AddProduct() {
 	};
 
 	useEffect(() => {
-		const fetchBatchChoices = async () => {
+		const fetchCategoryChoices = async () => {
 			try {
-				const response = await authFetch(urlBatchChoices, {
+				const response = await authFetch(urlCategoryChoices, {
 					headers: {
 						'Content-Type': 'application/json',
 					},
@@ -267,23 +277,24 @@ function AddProduct() {
 				if (response.ok) {
 					const data = await response.json();
 					const choices = data || [];
-					setBatchChoices(choices);
-					if (productData.batch && choices.length > 0) {
+					setCategoryChoices(choices);
+					if (productData.category && choices.length > 0) {
 						const matchingChoice = choices.find(
-							choice => choice.id === productData.batch.id
+							choice => choice.id === productData.category.id
 						);
 						if (matchingChoice) {
-							setBatch(matchingChoice);
+							setCategory(matchingChoice);
+							setCategoryError('');
 						}
 					}
 				}
 			} catch (error) {
-				console.error('Error fetching batch choices:', error);
+				console.error('Error fetching category choices:', error);
 			}
 		};
 
-		fetchBatchChoices();
-	}, [urlBatchChoices, productData.batch]);
+		fetchCategoryChoices();
+	}, [urlCategoryChoices, productData.category]);
 
 	useEffect(() => {
 		const fetchMeasureUnitChoices = async () => {
@@ -351,7 +362,7 @@ function AddProduct() {
 		const file = selectedFile || fileRef.current?.files?.[0];
 
 		const formData = new FormData();
-		formData.append('batch_id', batch.id);
+		formData.append('category_id', category.id);
 		formData.append('name', nameState.value);
 		formData.append('code', codeState.value);
 		formData.append('description', description);
@@ -399,6 +410,12 @@ function AddProduct() {
 						errorMessage: data.code[0],
 					});
 				}
+				if (data.category_id) {
+					setCategoryError(data.category_id[0]);
+				}
+				if (data.measure_unit_id) {
+					setMeasureUnitError(data.measure_unit_id[0]);
+				}
 			} else {
 				setIsLoading(true);
 				setShowModal(true);
@@ -419,7 +436,7 @@ function AddProduct() {
 		if (file) {
 			formData.append('image', file);
 		}
-		formData.append('batch_id', batch.id);
+		formData.append('category_id', category.id);
 		formData.append('name', nameState.value);
 		formData.append('code', codeState.value);
 		formData.append('description', description);
@@ -462,6 +479,12 @@ function AddProduct() {
 						errorMessage: data.code[0],
 					});
 				}
+				if (data.category_id) {
+					setCategoryError(data.category_id[0]);
+				}
+				if (data.measure_unit_id) {
+					setMeasureUnitError(data.measure_unit_id[0]);
+				}
 			} else {
 				setIsLoading(true);
 				setShowModal(true);
@@ -480,14 +503,15 @@ function AddProduct() {
 			minimumSalePriceState.value !== null &&
 			maximumSalePriceState.value !== null &&
 			measureUnit &&
-			batch
+			category
 		) {
 			const isValid =
 				nameIsValid &&
 				codeIsValid &&
 				minimumSalePriceIsValid &&
 				maximumSalePriceIsValid &&
-				unitMeasurementIsValid;
+				unitMeasurementIsValid &&
+				categoryIsValid;
 
 			setFormIsValid(isValid);
 			setDisabled(!isValid);
@@ -500,12 +524,13 @@ function AddProduct() {
 		minimumSalePriceState.value,
 		maximumSalePriceState.value,
 		measureUnit,
-		batch,
+		category,
 		nameIsValid,
 		codeIsValid,
 		minimumSalePriceIsValid,
 		maximumSalePriceIsValid,
 		unitMeasurementIsValid,
+		categoryIsValid,
 	]);
 
 	useEffect(() => {
@@ -718,8 +743,8 @@ function AddProduct() {
 										<Grid size={{ xs: 6, sm: 3 }}>
 											<Autocomplete
 												disablePortal
-												value={batch}
-												options={batchChoices}
+												value={category}
+												options={categoryChoices}
 												getOptionLabel={option =>
 													option
 														? option.name || ''
@@ -739,12 +764,16 @@ function AddProduct() {
 												renderInput={params => (
 													<TextField
 														{...params}
-														label="Lote"
+														label="Categoría"
 														required
+														error={!!categoryError}
+														helperText={
+															categoryError
+														}
 													/>
 												)}
 												onChange={
-													batchInputChangeHandler
+													categoryInputChangeHandler
 												}
 											/>
 										</Grid>
@@ -810,6 +839,10 @@ function AddProduct() {
 														{...params}
 														label="Unidad de Medida"
 														required
+														error={!!measureUnitError}
+														helperText={
+															measureUnitError
+														}
 													/>
 												)}
 												onChange={
@@ -937,7 +970,7 @@ function AddProduct() {
 				) : (
 					<div className={classes.listContainer}>
 						<AddProductPreview
-							batch={batch.name}
+							category={category.name}
 							name={nameState.value}
 							code={codeState.value}
 							image={selectedFileUrl || existingImage}

@@ -311,7 +311,7 @@ export const AddSale = () => {
 			saleItemId: saleItem.id,
 			id: saleItem.products_stock.id,
 			warehouse: saleItem.products_stock.warehouses.name,
-			batch: saleItem.products_stock.products.batch.name,
+			batch: saleItem.products_stock.batch.name,
 			name: saleItem.products_stock.products.name,
 			code: saleItem.products_stock.products.code,
 			stock: saleItem.products_stock.available_stock,

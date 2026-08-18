@@ -205,9 +205,6 @@ class ModelTest(TestCase):
     def test_create_batch(self):
         """Test creating a Batch."""
         batch = Batch.objects.create(
-            category=Category.objects.create(
-                name='Test Category',
-            ),
             name='Test Batch',
         )
         self.assertEqual(batch.name, 'Test Batch')
@@ -215,11 +212,8 @@ class ModelTest(TestCase):
     def test_create_product(self):
         """Test creating a Product."""
         product = Product.objects.create(
-            batch=Batch.objects.create(
-                category=Category.objects.create(
-                    name='Test Category',
-                ),
-                name='Test Batch',
+            category=Category.objects.create(
+                name='Test Category',
             ),
             name='Test Product',
             code='1234567890',
@@ -240,11 +234,8 @@ class ModelTest(TestCase):
         with self.assertRaises(ValidationError):
             ProductStock.objects.create(
                 product=Product.objects.create(
-                    batch=Batch.objects.create(
-                        category=Category.objects.create(
-                            name='Test Category',
-                        ),
-                        name='Test Batch',
+                    category=Category.objects.create(
+                        name='Test Category',
                     ),
                     name='Test Product',
                     code='1234567890',
@@ -257,6 +248,9 @@ class ModelTest(TestCase):
                     name='Test Warehouse',
                     location='Test Location 2',
                 ),
+                batch=Batch.objects.create(
+                    name='Test Batch',
+                ),
                 stock=50,
                 reserved_stock=10,
                 available_stock=40,
@@ -268,11 +262,8 @@ class ModelTest(TestCase):
         """Test creating a Product with invalid sale price."""
         with self.assertRaises(ValidationError):
             Product.objects.create(
-                batch=Batch.objects.create(
-                    category=Category.objects.create(
-                        name='Test Category',
-                    ),
-                    name='Test Batch',
+                category=Category.objects.create(
+                    name='Test Category',
                 ),
                 name='Test Product',
                 code='1234567890',
@@ -347,11 +338,8 @@ class ModelTest(TestCase):
             ),
             product_stock=ProductStock.objects.create(
                 product=Product.objects.create(
-                    batch=Batch.objects.create(
-                        category=Category.objects.create(
-                            name='Test Category',
-                        ),
-                        name='Test Batch',
+                    category=Category.objects.create(
+                        name='Test Category',
                     ),
                     name='Test Product',
                     code='1234567890',
@@ -363,6 +351,9 @@ class ModelTest(TestCase):
                 warehouse=Warehouse.objects.create(
                     name='Test Warehouse',
                     location='Test Location 2',
+                ),
+                batch=Batch.objects.create(
+                    name='Test Batch',
                 ),
                 stock=50,
                 reserved_stock=10,
@@ -435,11 +426,8 @@ class ModelTest(TestCase):
             ),
             product_stock=ProductStock.objects.create(
                 product=Product.objects.create(
-                    batch=Batch.objects.create(
-                        category=Category.objects.create(
-                            name='Test Category',
-                        ),
-                        name='Test Batch',
+                    category=Category.objects.create(
+                        name='Test Category',
                     ),
                     name='Test Product',
                     code='1234567890',
@@ -451,6 +439,9 @@ class ModelTest(TestCase):
                 warehouse=Warehouse.objects.create(
                     name='Test Warehouse',
                     location='Test Location 2',
+                ),
+                batch=Batch.objects.create(
+                    name='Test Batch',
                 ),
                 stock=50,
                 reserved_stock=10,
@@ -532,11 +523,8 @@ class ModelTest(TestCase):
                 purchase_date='2025-01-01',
             ),
             product=Product.objects.create(
-                batch=Batch.objects.create(
-                    category=Category.objects.create(
-                        name='Test Category',
-                    ),
-                    name='Test Batch',
+                category=Category.objects.create(
+                    name='Test Category',
                 ),
                 name='Test Product',
                 code='1234567890',
@@ -626,11 +614,8 @@ class ModelTest(TestCase):
             ),
             product_stock=ProductStock.objects.create(
                 product=Product.objects.create(
-                    batch=Batch.objects.create(
-                        category=Category.objects.create(
-                            name='Test Category',
-                        ),
-                        name='Test Batch',
+                    category=Category.objects.create(
+                        name='Test Category',
                     ),
                     name='Test Product',
                     code='1234567890',
@@ -642,6 +627,9 @@ class ModelTest(TestCase):
                 warehouse=Warehouse.objects.create(
                     name='Test Warehouse',
                     location='Test Location 2',
+                ),
+                batch=Batch.objects.create(
+                    name='Test Batch',
                 ),
                 stock=50,
                 reserved_stock=10,

@@ -756,9 +756,6 @@ export const AddPurchase = () => {
 												<TableHead>
 													<TableRow>
 														<StyledTableCell>
-															Lote
-														</StyledTableCell>
-														<StyledTableCell>
 															Nombre
 														</StyledTableCell>
 														<StyledTableCell>
@@ -787,9 +784,6 @@ export const AddPurchase = () => {
 															<TableRow
 																key={`row-${product.id}`}
 															>
-																<TableCell sx={{ width: '15%' }}>
-																	{product.batch}
-																</TableCell>
 																<TableCell>
 																	{
 																		product.name

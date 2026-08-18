@@ -69,12 +69,11 @@ class TestDecreaseProductStockService(TestCase):
             name=f'Test Category {unique_suffix}',
         )
         batch = Batch.objects.create(
-            category=category,
             name=f'Test Batch {unique_suffix}',
         )
         defaults = {
             'name': f'Test Product {unique_suffix}',
-            'batch': batch,
+            'category': category,
             'code': f'TEST-{unique_suffix}',
             'measure_unit': MeasureUnit.objects.create(
                 name=f'Unit {unique_suffix}',
@@ -95,6 +94,9 @@ class TestDecreaseProductStockService(TestCase):
         defaults = {
             'product': self.create_test_product(),
             'warehouse': warehouse,
+            'batch': Batch.objects.create(
+                name=f'Test Batch{unique_suffix}',
+            ),
             'stock': 50,
             'reserved_stock': 30,
             'available_stock': 20,

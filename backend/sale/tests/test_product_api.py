@@ -4,7 +4,6 @@ from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
 from core.models import (
-    Batch,
     Category,
     Warehouse,
     Product,
@@ -67,18 +66,6 @@ def create_category(**params):
     return category
 
 
-def create_batch(**params):
-    """Create and return a sample batch."""
-    unique_suffix = str(uuid.uuid4())[:8]
-    defaults = {
-        'name': f'Sample Batch {unique_suffix}',
-        'category': create_category(),
-    }
-    defaults.update(params)
-    batch = Batch.objects.create(**defaults)
-    return batch
-
-
 def create_supplier(**params):
     """Create and return a sample supplier."""
     unique_suffix = str(uuid.uuid4())[:8]
@@ -109,7 +96,7 @@ def create_product(**params):
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
         'name': f'Sample Product {unique_suffix}',
-        'batch': create_batch(),
+        'category': create_category(),
         'code': f'Sample Code {unique_suffix}',
         'measure_unit': create_measure_unit(),
         'description': 'Sample Description',
@@ -209,8 +196,6 @@ class PrivateProductApiTests(TestCase):
 
     def test_create_product_with_image(self):
         """Test creating a product with an uploaded image."""
-        batch = create_batch()
-
         # Create a valid test image file (minimal JPEG)
         # This is a minimal valid JPEG file content
         image_content = (
@@ -238,7 +223,7 @@ class PrivateProductApiTests(TestCase):
         supplier = create_supplier()
         payload = {
             'name': f'Test Product with Image {unique_suffix}',
-            'batch_id': batch.id,
+            'category_id': create_category().id,
             'code': f'TEST001_{unique_suffix}',
             'measure_unit_id': create_measure_unit().id,
             'description': 'Test product with image',
@@ -263,13 +248,11 @@ class PrivateProductApiTests(TestCase):
 
     def test_create_product_without_image(self):
         """Test creating a product without an image."""
-        batch = create_batch()
-
         unique_suffix = str(uuid.uuid4())[:8]
         supplier = create_supplier()
         payload = {
             'name': f'Test Product without Image {unique_suffix}',
-            'batch_id': batch.id,
+            'category_id': create_category().id,
             'code': f'TEST002_{unique_suffix}',
             'measure_unit_id': create_measure_unit().id,
             'description': 'Test product without image',
@@ -360,8 +343,6 @@ class PrivateProductApiTests(TestCase):
 
     def test_invalid_image_format(self):
         """Test uploading an invalid image format."""
-        batch = create_batch()
-
         # Create a file that's not an image
         invalid_content = b'this is not an image file'
         invalid_file = SimpleUploadedFile(
@@ -374,7 +355,7 @@ class PrivateProductApiTests(TestCase):
         supplier = create_supplier()
         payload = {
             'name': f'Test Product {unique_suffix}',
-            'batch_id': batch.id,
+            'category_id': create_category().id,
             'code': f'TEST003_{unique_suffix}',
             'measure_unit_id': create_measure_unit().id,
             'image': invalid_file,
@@ -388,15 +369,27 @@ class PrivateProductApiTests(TestCase):
                        status.HTTP_422_UNPROCESSABLE_ENTITY])
 
     def test_partial_update_product(self):
-        """Test partial update of a product."""
-        product = create_product(name='Old Name')
-        payload = {'name': 'Updated Name'}
+        """Test partial update of a product preserves the existing image."""
+        product = create_product(
+            name='Old Name',
+            image=create_test_image(name='original_image.jpg'),
+        )
+        original_image_name = product.image.name
+        payload = {
+            'name': 'Updated Name',
+        }
         url = detail_url(product.id)
         res = self.client.patch(url, payload)
 
         product.refresh_from_db()
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(product.name, payload['name'])
+        self.assertTrue(product.image)
+        self.assertEqual(product.image.name, original_image_name)
+
+        if product.image:
+            if os.path.exists(product.image.path):
+                os.remove(product.image.path)
 
     def test_full_update_product(self):
         """Test full update of a product."""
@@ -425,7 +418,7 @@ class PrivateProductApiTests(TestCase):
         supplier_ids = list(product.suppliers.values_list('id', flat=True))
         payload = {
             'name': 'Updated Name',
-            'batch_id': product.batch.id,
+            'category_id': product.category.id,
             'code': f'TEST004_{unique_suffix}',
             'measure_unit_id': create_measure_unit().id,
             'description': 'Updated Description',

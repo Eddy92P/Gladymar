@@ -40,11 +40,6 @@ const BatchList = () => {
 			sortable: true,
 		},
 		{
-			name: 'Categoría',
-			selector: row => row.category.name,
-			sortable: true,
-		},
-		{
 			name: 'Acciones',
 			button: 'true',
 			cell: row => (
@@ -95,7 +90,6 @@ const BatchList = () => {
 						return {
 							id: listData.id,
 							name: listData.name,
-							category: listData.category,
 						};
 					});
 					setList(parsedList);

@@ -48,7 +48,6 @@ const AddProductList = ({ onClose, onProductList, addedProducts = [] }) => {
 					const parsedList = data.map(listData => {
 						return {
 							id: listData.id,
-							batch: listData.batch__name,
 							name: listData.name,
 							code: listData.code,
 						};

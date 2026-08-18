@@ -34,8 +34,8 @@ const ProductList = () => {
 
 	const contentHeader = [
 		{
-			name: 'Lote',
-			selector: row => row.batch.name,
+			name: 'Categoría',
+			selector: row => row.category.name,
 			sortable: true,
 		},
 		{
@@ -116,7 +116,7 @@ const ProductList = () => {
 						return {
 							id: listData.id,
 							name: listData.name,
-							batch: listData.batch,
+							category: listData.category,
 							code: listData.code,
 							image: listData.image,
 							description: listData.description,

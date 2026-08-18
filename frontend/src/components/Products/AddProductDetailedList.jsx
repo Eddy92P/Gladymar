@@ -90,7 +90,7 @@ const AddProductDetailedList = ({
 					const productStockData = await response.json();
 					allProducts = productStockData.map(item => ({
 						warehouse: item.warehouse,
-						batch: item.batch,
+						batch: item.batch ?? '-',
 						id: item.id,
 						name: item.name,
 						code: item.code,
@@ -124,7 +124,7 @@ const AddProductDetailedList = ({
 						saleItem: item.sale_item_id,
 						warehouse: item.warehouse,
 						id: item.id,
-						batch: item.batch,
+						batch: item.batch ?? '-',
 						name: item.name,
 						code: item.code,
 						price: item.price,
@@ -149,7 +149,6 @@ const AddProductDetailedList = ({
 					products = productStockData.map(item => ({
 						purchaseItem: item.purchase_item_id,
 						id: item.id,
-						batch: item.batch,
 						name: item.name,
 						code: item.code,
 					}));
@@ -170,7 +169,7 @@ const AddProductDetailedList = ({
 					const productStockData = await response.json();
 					products = productStockData.map(item => ({
 						warehouse: item.warehouse,
-						batch: item.batch,
+						batch: item.batch ?? '-',
 						id: item.id,
 						name: item.name,
 						code: item.code,
@@ -193,11 +192,9 @@ const AddProductDetailedList = ({
 					const data = await response.json();
 
 					if (isMounted) {
-						console.log(data);
 						products = data.map(listData => {
 							return {
 								id: listData.id,
-								batch: listData.batch__name,
 								name: listData.name,
 								code: listData.code,
 							};

@@ -3,7 +3,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from core.models import Batch, Category, Warehouse, Agency
+from core.models import Batch, Agency
 from sale.serializers import BatchSerializer
 import uuid
 
@@ -32,35 +32,11 @@ def create_user(**params):
     return get_user_model().objects.create_user(**defaults)
 
 
-def create_warehouse(**params):
-    """Create and return a sample warehouse."""
-    unique_suffix = str(uuid.uuid4())[:8]
-    defaults = {
-        'name': f'Sample Warehouse {unique_suffix}',
-        'location': 'Sample Location',
-    }
-    defaults.update(params)
-    warehouse = Warehouse.objects.create(**defaults)
-    return warehouse
-
-
-def create_category(**params):
-    """Create and return a sample category."""
-    unique_suffix = str(uuid.uuid4())[:8]
-    defaults = {
-        'name': f'Sample Category {unique_suffix}',
-    }
-    defaults.update(params)
-    category = Category.objects.create(**defaults)
-    return category
-
-
 def create_batch(**params):
     """Create and return a sample batch."""
     unique_suffix = str(uuid.uuid4())[:8]
     defaults = {
         'name': f'Sample Batch {unique_suffix}',
-        'category': create_category(),
     }
     defaults.update(params)
     batch = Batch.objects.create(**defaults)
@@ -110,17 +86,14 @@ class PrivateBatchApiTests(TestCase):
 
     def test_create_batch(self):
         """Test creating a batch."""
-        category = create_category()
         payload = {
             'name': 'Test batch',
-            'category_id': category.id,
         }
         res = self.client.post(BATCH_URL, payload)
         batch = Batch.objects.get(id=res.data['id'])
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
         self.assertEqual(batch.name, payload['name'])
-        self.assertEqual(batch.category.id, payload['category_id'])
 
     def test_partial_update_batch(self):
         """Test partial update of a batch."""
@@ -135,16 +108,14 @@ class PrivateBatchApiTests(TestCase):
 
     def test_full_update_batch(self):
         """Test full update of a batch."""
-        category = create_category()
         batch = create_batch(name='Original Name')
-        payload = {'name': 'New Name', 'category_id': category.id}
+        payload = {'name': 'New Name'}
         url = detail_url(batch.id)
         res = self.client.put(url, payload)
         batch.refresh_from_db()
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(batch.name, payload['name'])
-        self.assertEqual(batch.category.id, payload['category_id'])
 
     def test_not_delete_batch(self):
         """Test that a batch cannot be deleted via API."""

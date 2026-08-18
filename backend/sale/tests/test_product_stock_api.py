@@ -42,7 +42,6 @@ def create_product_stock(**params):
     # Create batch
     batch = Batch.objects.create(
         name=f'Test Batch {unique_suffix}',
-        category=category
     )
 
     # Create product
@@ -52,7 +51,7 @@ def create_product_stock(**params):
     product = Product.objects.create(
         name=f'Test Product {unique_suffix}',
         code=f'TEST-{unique_suffix}',
-        batch=batch,
+        category=category,
         measure_unit=measure_unit,
         minimum_sale_price=10.00,
         maximum_sale_price=100.00
@@ -67,6 +66,7 @@ def create_product_stock(**params):
     defaults = {
         'product': product,
         'warehouse': warehouse,
+        'batch': batch,
         'stock': 100,
         'reserved_stock': 20,
         'available_stock': 80,

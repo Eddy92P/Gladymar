@@ -80,7 +80,6 @@ def create_batch(**params):
     """Create and return a sample Batch."""
     unique_suffix = str(uuid.uuid4())[:4]
     defaults = {
-        'category': create_category(),
         'name': f'TestBatch{unique_suffix}',
     }
     defaults.update(params)
@@ -101,7 +100,7 @@ def create_product(**params):
     """Create and return a sample Product."""
     unique_suffix = str(uuid.uuid4())[:4]
     defaults = {
-        'batch': create_batch(),
+        'category': create_category(),
         'name': f'TestProduct{unique_suffix}',
         'code': f'CODE{unique_suffix}',
         'measure_unit': create_measure_unit(),

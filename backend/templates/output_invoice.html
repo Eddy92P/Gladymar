@@ -39,7 +39,7 @@
                 </tr>
                 {% for output_item in output.output_items.all %}
                     <tr>
-                        <td>{{ output_item.product_stock.product.batch.name }}</td>
+                        <td>{{ output_item.product_stock.batch.name }}</td>
                         <td>{{ output_item.product_stock.product.code }}</td>
                         <td>{{ output_item.product_stock.warehouse.name }}</td>
                         <td>{{ output_item.output.agency.name }}</td>

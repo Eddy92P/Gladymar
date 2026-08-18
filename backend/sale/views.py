@@ -71,7 +71,8 @@ class CatalogView(APIView):
             prices = ProductChannelPrice.objects.filter(
                 selling_channel=selling_channel_id)
             products_stock = ProductStock.objects.filter(product__in=Subquery(
-                prices.values('product'))).select_related('product')
+                prices.values('product'))).select_related(
+                'product', 'batch', 'warehouse')
             product_price = {
                 pp.product_id: pp
                 for pp in ProductChannelPrice.objects.filter(
@@ -95,7 +96,7 @@ class CatalogView(APIView):
                 data.append({
                     "id": product_stock.id,
                     "warehouse": product_stock.warehouse.name,
-                    "batch": product_stock.product.batch.name,
+                    "batch": product_stock.batch.name if product_stock.batch else "-",
                     "name": product_stock.product.name,
                     "code": product_stock.product.code,
                     "price": pp.price,
@@ -112,7 +113,10 @@ class CatalogView(APIView):
         elif agency_id and sale_id:
             sale_items = SaleItem.objects.filter(
                 sale=sale_id).exclude(
-                status='completado').prefetch_related('product_stock')
+                status='completado').select_related(
+                'product_stock__product',
+                'product_stock__warehouse',
+                'product_stock__batch')
 
             for sale_item in sale_items:
                 product = sale_item.product_stock.product
@@ -126,7 +130,7 @@ class CatalogView(APIView):
                     "sale_item_id": sale_item.id,
                     "id": sale_item.product_stock.id,
                     "warehouse": sale_item.product_stock.warehouse.name,
-                    "batch": sale_item.product_stock.product.batch.name,
+                    "batch": sale_item.product_stock.batch.name if sale_item.product_stock.batch else "-",
                     "name": product.name,
                     "code": product.code,
                     "price": 0,
@@ -155,7 +159,7 @@ class CatalogView(APIView):
                     "purchase_item_id": purchase_item.id,
                     "id": purchase_item.product.id,
                     "warehouse": "",
-                    "batch": purchase_item.product.batch.name,
+                    "batch": "-",
                     "name": product.name,
                     "code": product.code,
                     "price": 0,
@@ -167,7 +171,8 @@ class CatalogView(APIView):
                     "status": purchase_item.status,
                 })
         else:
-            products = ProductStock.objects.all().select_related('product')
+            products = ProductStock.objects.all().select_related(
+                'product', 'warehouse', 'batch')
 
             for product in products:
                 # Apply search filter
@@ -180,7 +185,7 @@ class CatalogView(APIView):
                 data.append({
                     "id": product.id,
                     "warehouse": product.warehouse.name,
-                    "batch": product.product.batch.name,
+                    "batch": product.batch.name if product.batch else "-",
                     "name": product.product.name,
                     "code": product.product.code,
                     "price": 0,
@@ -281,7 +286,7 @@ class BatchViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Retrieve batches ordered by id."""
-        return self.queryset.order_by('-id').select_related('category')
+        return self.queryset.order_by('-id')
 
     @action(detail=False, methods=["get"], url_path="all")
     def all_categories(self, request):
@@ -326,22 +331,21 @@ class ProductViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """Retrieve products ordered by id."""
         return self.queryset.order_by('-id').select_related(
-            'batch', 'measure_unit')
+            'category', 'measure_unit')
 
     def update(self, request, *args, **kwargs):
         """Custom update method to handle image deletion."""
         instance = self.get_object()
+        partial = kwargs.get('partial', False)
 
-        # Check if image should be deleted (not present in request data or
-        # explicitly set to null/empty)
-        should_delete_image = (
-            'image' not in request.data or
-            request.data.get('image') is None or
-            request.data.get('image') == ''
-        )
+        if 'image' in request.data:
+            image_value = request.data.get('image')
+            should_delete_image = image_value is None or image_value == ''
+        else:
+            # PUT without image deletes it; PATCH without image keeps it.
+            should_delete_image = not partial
 
         if should_delete_image and instance.image:
-            # Delete the old image file from storage
             instance.delete_image()
 
         return super().update(request, *args, **kwargs)
@@ -349,8 +353,8 @@ class ProductViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path="all")
     def all_products(self, request):
         queryset = self.filter_queryset(
-            self.get_queryset()).select_related('batch').values(
-            "id", "name", "code", "batch__name")
+            self.get_queryset()).select_related('category').values(
+            "id", "name", "code", "category__name")
         return Response(list(queryset))
 
 
@@ -368,9 +372,9 @@ class ProductStockViewSet(viewsets.ModelViewSet):
         """Retrieve product stocks ordered by id."""
         return self.queryset.order_by('-id').select_related(
             'product',
-            'product__batch',
             'product__measure_unit',
             'warehouse',
+            'batch',
         )
 
     @action(detail=True, methods=['post'], url_path='increment-damaged-stock')
@@ -686,7 +690,7 @@ class SaleViewSet(viewsets.ModelViewSet):
             Prefetch(
                 'sale_items',
                 queryset=SaleItem.objects.select_related(
-                    'product_stock__product__batch',
+                    'product_stock__batch',
                     'product_stock__product__measure_unit',
                 ),
             ),
@@ -698,7 +702,7 @@ class SaleViewSet(viewsets.ModelViewSet):
                     Prefetch(
                         'output_items',
                         queryset=OutputItem.objects.select_related(
-                            'product_stock__product__batch',
+                            'product_stock__batch',
                             'product_stock__product__measure_unit',
                         ),
                     )

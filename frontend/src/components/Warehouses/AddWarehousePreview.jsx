@@ -119,6 +119,25 @@ function AddWarehousePreview(props) {
 									</Grid>
 									<Grid item md={3}>
 										<TextField
+											label="Lote"
+											value={product.batch?.name || ''}
+											fullWidth
+											variant="standard"
+											sx={{
+												'& .MuiInput-underline:before':
+													{
+														borderBottom: 'none',
+													},
+												'& .MuiInput-underline:after': {
+													borderBottom: 'none',
+												},
+											}}
+											disabled
+											className={classes.textStyle}
+										/>
+									</Grid>
+									<Grid item md={3}>
+										<TextField
 											label="Stock"
 											value={product.stock.value}
 											fullWidth

@@ -62,7 +62,7 @@
                 </tr>
                 {% for sale_item in sale.sale_items.all %}
                     <tr>
-                        <td>{{ sale_item.product_stock.product.batch.name }}</td>
+                        <td>{{ sale_item.product_stock.batch.name }}</td>
                         <td>{{ sale_item.product_stock.product.code }}</td>
                         <td>{{ sale_item.product_stock.warehouse.name }}</td>
                         <td>{{ sale_item.sale.agency.name }}</td>
