@@ -68,9 +68,6 @@ class TestDecreaseProductStockService(TestCase):
         category = Category.objects.create(
             name=f'Test Category {unique_suffix}',
         )
-        batch = Batch.objects.create(
-            name=f'Test Batch {unique_suffix}',
-        )
         defaults = {
             'name': f'Test Product {unique_suffix}',
             'category': category,

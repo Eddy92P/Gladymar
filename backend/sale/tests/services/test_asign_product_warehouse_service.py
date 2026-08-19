@@ -121,7 +121,7 @@ class TestAssignProductWarehouseService(TestCase):
         self.assertEqual(product_stock.available_stock, Decimal('20'))
 
     def test_assign_product_warehouse_creates_row_for_different_batch(self):
-        """Same product and warehouse with a different batch creates a new row."""
+        """Different batch on same product/warehouse creates a new row."""
         ProductStock.objects.create(
             product=self.product,
             warehouse=self.warehouse,

@@ -347,7 +347,6 @@ class Batch(models.Model):
         return self.name
 
 
-
 class MeasureUnit(models.Model):
     name = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -96,7 +96,10 @@ class CatalogView(APIView):
                 data.append({
                     "id": product_stock.id,
                     "warehouse": product_stock.warehouse.name,
-                    "batch": product_stock.batch.name if product_stock.batch else "-",
+                    "batch": (
+                        product_stock.batch.name
+                        if product_stock.batch else "-"
+                    ),
                     "name": product_stock.product.name,
                     "code": product_stock.product.code,
                     "price": pp.price,
@@ -130,7 +133,10 @@ class CatalogView(APIView):
                     "sale_item_id": sale_item.id,
                     "id": sale_item.product_stock.id,
                     "warehouse": sale_item.product_stock.warehouse.name,
-                    "batch": sale_item.product_stock.batch.name if sale_item.product_stock.batch else "-",
+                    "batch": (
+                        sale_item.product_stock.batch.name
+                        if sale_item.product_stock.batch else "-"
+                    ),
                     "name": product.name,
                     "code": product.code,
                     "price": 0,

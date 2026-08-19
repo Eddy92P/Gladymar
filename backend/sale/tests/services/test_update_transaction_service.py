@@ -4,7 +4,7 @@ Tests for update transaction service.
 from sale.services.update_transaction_service import UpdateTransactionService
 
 from core.models import (
-    Agency, Batch, Category, Client, MeasureUnit, Payment, Product,
+    Agency, Category, Client, MeasureUnit, Payment, Product,
     Purchase, Sale, SellingChannel, Supplier,
 )
 from django.contrib.auth import get_user_model
@@ -66,9 +66,6 @@ class UpdateTransactionServiceTest(TestCase):
         unique_suffix = str(uuid.uuid4())[:8]
         category = Category.objects.create(
             name=f'Test Category{unique_suffix}',
-        )
-        batch = Batch.objects.create(
-            name=f'Test Batch{unique_suffix}',
         )
         defaults = {
             'name': f'Test Product{unique_suffix}',
